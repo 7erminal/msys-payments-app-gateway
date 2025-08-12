@@ -1,0 +1,1398 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "beego Test API",
+        "description": "beego has a very cool tools to autogenerate documents for your API\n",
+        "version": "1.0.0",
+        "termsOfService": "http://beego.me/",
+        "contact": {
+            "email": "astaxie@gmail.com"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        }
+    },
+    "basePath": "/v1",
+    "paths": {
+        "/api/account-balance": {
+            "post": {
+                "tags": [
+                    "api"
+                ],
+                "description": "Account Balance\n\u003cbr\u003e",
+                "operationId": "Api_requestsController.Account Balance",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "name": "Authorization",
+                        "description": "header for User",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "PhoneNumber",
+                        "description": "header for Customer's phone number",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "SourceSystem",
+                        "description": "header for Source system",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Request content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.NumberExistsApiRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "{int} models.Api_requests"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/api/account-query": {
+            "post": {
+                "tags": [
+                    "api"
+                ],
+                "description": "Account Query\n\u003cbr\u003e",
+                "operationId": "Api_requestsController.Account Query",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "name": "Authorization",
+                        "description": "header for User",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "PhoneNumber",
+                        "description": "header for Customer's phone number",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "SourceSystem",
+                        "description": "header for Source system",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "BillerCode",
+                        "description": "header for network",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Request content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.DSTVAccountQueryApiRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "{int} models.Api_requests"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/api/buy-airtime": {
+            "post": {
+                "tags": [
+                    "api"
+                ],
+                "description": "Buy Airtime\n\u003cbr\u003e",
+                "operationId": "Api_requestsController.Buy Airtime",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "name": "Authorization",
+                        "description": "header for User",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "PhoneNumber",
+                        "description": "header for Customer's phone number",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "SourceSystem",
+                        "description": "header for Source system",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "Network",
+                        "description": "header for network",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Request content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.BuyAirtimeAPIRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "{int} models.Api_requests"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/api/buy-data-bundle": {
+            "post": {
+                "tags": [
+                    "api"
+                ],
+                "description": "Buy Data Bundle Available\n\u003cbr\u003e",
+                "operationId": "Api_requestsController.Buy Data Bundle",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "name": "Authorization",
+                        "description": "header for User",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "PhoneNumber",
+                        "description": "header for Customer's phone number",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "SourceSystem",
+                        "description": "header for Source system",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "Network",
+                        "description": "header for network",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Request content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.BuyDataBundleAPIRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "{int} models.Api_requests"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/api/get-corporatives": {
+            "post": {
+                "tags": [
+                    "api"
+                ],
+                "description": "Get Corporatives Available\n\u003cbr\u003e",
+                "operationId": "Api_requestsController.Get Corporatives",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "name": "Authorization",
+                        "description": "header for User",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "PhoneNumber",
+                        "description": "header for Customer's phone number",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "SourceSystem",
+                        "description": "header for Source system",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "Network",
+                        "description": "header for network",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Request content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.GetBundlesAPIRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "{int} models.Api_requests"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/api/get-customer-accounts": {
+            "post": {
+                "tags": [
+                    "api"
+                ],
+                "description": "Get customer accounts\n\u003cbr\u003e",
+                "operationId": "Api_requestsController.Get Customer Accounts",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "name": "Authorization",
+                        "description": "header for User",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "SourceSystem",
+                        "description": "header for Source system",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Request content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.NumberExistsApiRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "{int} models.Api_requests"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/api/get-customer-details": {
+            "post": {
+                "tags": [
+                    "api"
+                ],
+                "description": "Get Customer Details\n\u003cbr\u003e",
+                "operationId": "Api_requestsController.Get Customer Details",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "name": "Authorization",
+                        "description": "header for User",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "PhoneNumber",
+                        "description": "header for Customer's phone number",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "SourceSystem",
+                        "description": "header for Source system",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "{int} models.Api_requests"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/api/get-data-bundles": {
+            "post": {
+                "tags": [
+                    "api"
+                ],
+                "description": "Get Data Bundles Available\n\u003cbr\u003e",
+                "operationId": "Api_requestsController.Get Bundles",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "name": "Authorization",
+                        "description": "header for User",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "PhoneNumber",
+                        "description": "header for Customer's phone number",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "SourceSystem",
+                        "description": "header for Source system",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "Network",
+                        "description": "header for network",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Request content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.GetBundlesAPIRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "{int} models.Api_requests"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/api/name-inquiry": {
+            "post": {
+                "tags": [
+                    "api"
+                ],
+                "description": "Name Inquiry with number\n\u003cbr\u003e",
+                "operationId": "Api_requestsController.Name Inquiry",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "name": "Authorization",
+                        "description": "header for User",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "PhoneNumber",
+                        "description": "header for Customer's phone number",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "SourceSystem",
+                        "description": "header for Source system",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Request content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.NumberExistsApiRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "{int} models.Api_requests"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/api/pay-dstv": {
+            "post": {
+                "tags": [
+                    "api"
+                ],
+                "description": "Pay DSTV\n\u003cbr\u003e",
+                "operationId": "Api_requestsController.Pay DSTV",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "name": "Authorization",
+                        "description": "header for User",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "PhoneNumber",
+                        "description": "header for Customer's phone number",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "SourceSystem",
+                        "description": "header for Source system",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Request content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.DSTVPaymentApiRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "{int} models.Api_requests"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/api/pay-ecg": {
+            "post": {
+                "tags": [
+                    "api"
+                ],
+                "description": "Pay ECG\n\u003cbr\u003e",
+                "operationId": "Api_requestsController.Pay ECG",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "name": "Authorization",
+                        "description": "header for User",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "PhoneNumber",
+                        "description": "header for Customer's phone number",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "SourceSystem",
+                        "description": "header for Source system",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Request content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.ECGPaymentRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "{int} models.Api_requests"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/api/pay-gotv": {
+            "post": {
+                "tags": [
+                    "api"
+                ],
+                "description": "Pay GOTV\n\u003cbr\u003e",
+                "operationId": "Api_requestsController.Pay GOTV",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "name": "Authorization",
+                        "description": "header for User",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "PhoneNumber",
+                        "description": "header for Customer's phone number",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "SourceSystem",
+                        "description": "header for Source system",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Request content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.BuyDataBundleAPIRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "{int} models.Api_requests"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/api/pay-startimes": {
+            "post": {
+                "tags": [
+                    "api"
+                ],
+                "description": "Pay Startimes Bill\n\u003cbr\u003e",
+                "operationId": "Api_requestsController.Pay Startimes bill",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "name": "Authorization",
+                        "description": "header for User",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "PhoneNumber",
+                        "description": "header for Customer's phone number",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "SourceSystem",
+                        "description": "header for Source system",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Request content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.StartimesPaymentRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "{int} models.Api_requests"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/api/pay-water": {
+            "post": {
+                "tags": [
+                    "api"
+                ],
+                "description": "Pay Water Bill\n\u003cbr\u003e",
+                "operationId": "Api_requestsController.Pay Water bill",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "name": "Authorization",
+                        "description": "header for User",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "PhoneNumber",
+                        "description": "header for Customer's phone number",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "SourceSystem",
+                        "description": "header for Source system",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Request content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.GhanaWaterPaymentRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "{int} models.Api_requests"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/api/reset-pin": {
+            "post": {
+                "tags": [
+                    "api"
+                ],
+                "description": "Reset Customer Pin\n\u003cbr\u003e",
+                "operationId": "Api_requestsController.Reset Pin",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "name": "Authorization",
+                        "description": "header for User",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "PhoneNumber",
+                        "description": "header for Customer's phone number",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "SourceSystem",
+                        "description": "header for Source system",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Request content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.NumberExistsApiRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "{int} models.Api_requests"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/api/validate-customer": {
+            "post": {
+                "tags": [
+                    "api"
+                ],
+                "description": "Validate Customer\n\u003cbr\u003e",
+                "operationId": "Api_requestsController.Validate Customer",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "name": "Authorization",
+                        "description": "header for User",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "PhoneNumber",
+                        "description": "header for Customer's phone number",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "SourceSystem",
+                        "description": "header for Source system",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "{int} models.Api_requests"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/auth/": {
+            "get": {
+                "tags": [
+                    "auth"
+                ],
+                "description": "get Auth_requests\n\u003cbr\u003e",
+                "operationId": "Auth_requestsController.GetAll",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "query",
+                        "description": "Filter. e.g. col1:v1,col2:v2 ...",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "fields",
+                        "description": "Fields returned. e.g. col1,col2 ...",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "sortby",
+                        "description": "Sorted-by fields. e.g. col1,col2 ...",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "order",
+                        "description": "Order corresponding to each sortby field, if single value, apply to all sortby fields. e.g. desc,asc ...",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "limit",
+                        "description": "Limit the size of result set. Must be an integer",
+                        "type": "string"
+                    },
+                    {
+                        "in": "query",
+                        "name": "offset",
+                        "description": "Start position of result set. Must be an integer",
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.Auth_requests"
+                        }
+                    },
+                    "403": {
+                        "description": ""
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "auth"
+                ],
+                "description": "create Auth_requests\n\u003cbr\u003e",
+                "operationId": "Auth_requestsController.Create",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Auth_requests content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Auth_requests"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.Auth_requests"
+                        }
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/auth/login": {
+            "post": {
+                "tags": [
+                    "auth"
+                ],
+                "description": "Login\n\u003cbr\u003e",
+                "operationId": "Auth_requestsController.Login",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "name": "PhoneNumber",
+                        "description": "header for Customer's phone number",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "SourceSystem",
+                        "description": "header for Source system",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Request content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.LoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{int} responses.LoginResponse"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/auth/register": {
+            "post": {
+                "tags": [
+                    "auth"
+                ],
+                "description": "Register customer\n\u003cbr\u003e",
+                "operationId": "Auth_requestsController.Register",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "name": "SourceSystem",
+                        "description": "header for Source system",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Request content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.RegisterRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "{int} models.Api_requests"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/auth/{id}": {
+            "get": {
+                "tags": [
+                    "auth"
+                ],
+                "description": "get Auth_requests by id\n\u003cbr\u003e",
+                "operationId": "Auth_requestsController.GetOne",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "The key for staticblock",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.Auth_requests"
+                        }
+                    },
+                    "403": {
+                        "description": ":id is empty"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "auth"
+                ],
+                "description": "update the Auth_requests\n\u003cbr\u003e",
+                "operationId": "Auth_requestsController.Put",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "The id you want to update",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Auth_requests content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Auth_requests"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.Auth_requests"
+                        }
+                    },
+                    "403": {
+                        "description": ":id is not int"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "auth"
+                ],
+                "description": "delete the Auth_requests\n\u003cbr\u003e",
+                "operationId": "Auth_requestsController.Delete",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "description": "The id you want to delete",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{string} delete success!"
+                    },
+                    "403": {
+                        "description": "id is empty"
+                    }
+                }
+            }
+        },
+        "/callback/": {
+            "post": {
+                "tags": [
+                    "callback"
+                ],
+                "description": "create Callback\n\u003cbr\u003e",
+                "operationId": "CallbackController.Callback",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Callback content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.CallbackAPIRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.Callback"
+                        }
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/callback/check-transaction-status": {
+            "post": {
+                "tags": [
+                    "callback"
+                ],
+                "description": "Check transaction status\n\u003cbr\u003e",
+                "operationId": "CallbackController.Check transaction status",
+                "parameters": [
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Transaction status check",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.TransactionStatusRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.Callback"
+                        }
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "models.Auth_requests": {
+            "title": "Auth_requests",
+            "type": "object"
+        },
+        "models.Callback": {
+            "title": "Callback",
+            "type": "object"
+        },
+        "requests.BuyAirtimeAPIRequest": {
+            "title": "BuyAirtimeAPIRequest",
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number",
+                    "format": "double"
+                },
+                "destination": {
+                    "type": "string"
+                }
+            }
+        },
+        "requests.BuyDataBundleAPIRequest": {
+            "title": "BuyDataBundleAPIRequest",
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number",
+                    "format": "double"
+                },
+                "bundle_id": {
+                    "type": "string"
+                },
+                "destination": {
+                    "type": "string"
+                }
+            }
+        },
+        "requests.CallbackAPIRequest": {
+            "title": "CallbackAPIRequest",
+            "type": "object",
+            "properties": {
+                "Data": {
+                    "$ref": "#/definitions/requests.CallbackData"
+                },
+                "ResponseCode": {
+                    "type": "string"
+                }
+            }
+        },
+        "requests.CallbackData": {
+            "title": "CallbackData",
+            "type": "object",
+            "properties": {
+                "Amount": {
+                    "type": "number",
+                    "format": "double"
+                },
+                "AmountDebited": {
+                    "type": "number",
+                    "format": "double"
+                },
+                "Charges": {
+                    "type": "number",
+                    "format": "double"
+                },
+                "ClientReference": {
+                    "type": "string"
+                },
+                "Description": {
+                    "type": "string"
+                },
+                "ExternalTransactionId": {
+                    "type": "string"
+                },
+                "Meta": {
+                    "$ref": "#/definitions/requests.CallbackMeta"
+                },
+                "RecipientName": {
+                    "type": "string"
+                },
+                "TransactionId": {
+                    "type": "string"
+                }
+            }
+        },
+        "requests.CallbackMeta": {
+            "title": "CallbackMeta",
+            "type": "object",
+            "properties": {
+                "Commission": {
+                    "type": "string"
+                }
+            }
+        },
+        "requests.DSTVAccountQueryApiRequest": {
+            "title": "DSTVAccountQueryApiRequest",
+            "type": "object",
+            "properties": {
+                "account_number": {
+                    "type": "string"
+                }
+            }
+        },
+        "requests.DSTVPaymentApiRequest": {
+            "title": "DSTVPaymentApiRequest",
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number",
+                    "format": "double"
+                },
+                "destination_account": {
+                    "type": "string"
+                },
+                "package_type": {
+                    "type": "string"
+                }
+            }
+        },
+        "requests.ECGPaymentRequest": {
+            "title": "ECGPaymentRequest",
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number",
+                    "format": "double"
+                },
+                "destination_account": {
+                    "type": "string"
+                },
+                "package_type": {
+                    "type": "string"
+                }
+            }
+        },
+        "requests.GetBundlesAPIRequest": {
+            "title": "GetBundlesAPIRequest",
+            "type": "object",
+            "properties": {
+                "destination": {
+                    "type": "string"
+                }
+            }
+        },
+        "requests.GhanaWaterPaymentRequest": {
+            "title": "GhanaWaterPaymentRequest",
+            "type": "object",
+            "properties": {
+                "Amount": {
+                    "type": "number",
+                    "format": "double"
+                },
+                "DestinationAccount": {
+                    "type": "string"
+                },
+                "PackageType": {
+                    "type": "string"
+                },
+                "PhoneNumber": {
+                    "type": "string"
+                },
+                "SourceSystem": {
+                    "type": "string"
+                }
+            }
+        },
+        "requests.LoginRequest": {
+            "title": "LoginRequest",
+            "type": "object",
+            "properties": {
+                "ClientId": {
+                    "type": "string"
+                },
+                "Password": {
+                    "type": "string"
+                },
+                "PhoneNumber": {
+                    "type": "string"
+                }
+            }
+        },
+        "requests.NumberExistsApiRequest": {
+            "title": "NumberExistsApiRequest",
+            "type": "object",
+            "properties": {
+                "ClientId": {
+                    "type": "string"
+                },
+                "MobileNumber": {
+                    "type": "string"
+                }
+            }
+        },
+        "requests.RegisterRequest": {
+            "title": "RegisterRequest",
+            "type": "object",
+            "properties": {
+                "ClientId": {
+                    "type": "string"
+                },
+                "Dob": {
+                    "type": "string"
+                },
+                "FirstName": {
+                    "type": "string"
+                },
+                "Gender": {
+                    "type": "string"
+                },
+                "LastName": {
+                    "type": "string"
+                },
+                "MobileNumber": {
+                    "type": "string"
+                },
+                "Password": {
+                    "type": "string"
+                },
+                "Username": {
+                    "type": "string"
+                }
+            }
+        },
+        "requests.StartimesPaymentRequest": {
+            "title": "StartimesPaymentRequest",
+            "type": "object",
+            "properties": {
+                "Amount": {
+                    "type": "number",
+                    "format": "double"
+                },
+                "DestinationAccount": {
+                    "type": "string"
+                },
+                "PackageType": {
+                    "type": "string"
+                },
+                "PhoneNumber": {
+                    "type": "string"
+                },
+                "SourceSystem": {
+                    "type": "string"
+                }
+            }
+        },
+        "requests.TransactionStatusRequest": {
+            "title": "TransactionStatusRequest",
+            "type": "object",
+            "properties": {
+                "TransactionID": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "api",
+            "description": "Api_requestsController operations for Api_requests\n"
+        },
+        {
+            "name": "callback",
+            "description": "CallbackController operations for Callback\n"
+        },
+        {
+            "name": "auth",
+            "description": "Auth_requestsController operations for Auth_requests\n"
+        }
+    ]
+}
