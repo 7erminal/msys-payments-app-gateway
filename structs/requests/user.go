@@ -18,7 +18,6 @@ type RegisterRequest struct {
 	LastName     string `validate:"required"`
 	Gender       string `validate:"required"`
 	MobileNumber string `validate:"required"`
-	ClientId     string
 	Password     string `validate:"required"`
 	Dob          string `validate:"required"`
 	Username     string `validate:"required"`
