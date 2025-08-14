@@ -226,6 +226,7 @@ func (c *Auth_requestsController) Register() {
 		registerRequest := requests.AddCustomer{
 			PhoneNumber:  req.MobileNumber,
 			Name:         req.LastName + " " + req.FirstName,
+			Email:        req.Email,
 			Location:     "",
 			IdType:       "",
 			IdNumber:     "",

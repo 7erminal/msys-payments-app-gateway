@@ -16,6 +16,7 @@ type LoginRequest struct {
 type RegisterRequest struct {
 	FirstName    string `validate:"required"`
 	LastName     string `validate:"required"`
+	Email        string
 	Gender       string `validate:"required"`
 	MobileNumber string `validate:"required"`
 	Password     string `validate:"required"`
