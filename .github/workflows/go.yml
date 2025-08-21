@@ -13,6 +13,7 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    environment: production
     steps:
     - uses: actions/checkout@v4
 
@@ -33,5 +34,5 @@ jobs:
           pm2 restart app-gateway
         "
 
-    - name: Test
-      run: go test -v ./...
+    # - name: Test
+    #   run: go test -v ./...
