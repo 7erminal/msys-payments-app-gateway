@@ -14,6 +14,7 @@ type LoginRequest struct {
 }
 
 type RegisterRequest struct {
+	ClientId     int64  `validate:"required"`
 	FirstName    string `validate:"required"`
 	LastName     string `validate:"required"`
 	Email        string

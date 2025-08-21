@@ -14,7 +14,12 @@ func main() {
 	if err != nil {
 		logs.Error("%s", err)
 	}
+	// sqlConn2, err2 := beego.AppConfig.String("sqlconn2")
+	// if err2 != nil {
+	// 	logs.Error("%s", err)
+	// }
 	orm.RegisterDataBase("default", "mysql", sqlConn)
+	// orm.RegisterDataBase("db2", "mysql", sqlConn2)
 
 	if beego.BConfig.RunMode == "dev" {
 		beego.BConfig.WebConfig.DirectoryIndex = true

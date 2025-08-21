@@ -22,7 +22,16 @@ jobs:
         go-version: '1.20'
 
     - name: Build
-      run: go build -v ./...
+      env:
+          GIT_USERNAME: ${{ secrets.GIT_USERNAME }}
+          GIT_PASSWORD: ${{ secrets.GIT_PASSWORD }}
+          SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+      run: |
+        sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no root@185.211.5.90 "
+          cd /usr/app/mobile-application/msys-payments-app-gateway/ && \
+          git pull https://$GIT_USERNAME:$GIT_PASSWORD@github.com/7erminal/msys-payments-app-gateway.git && \
+          pm2 restart app-gateway
+        "
 
     - name: Test
       run: go test -v ./...

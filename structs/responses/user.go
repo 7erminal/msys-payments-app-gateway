@@ -69,6 +69,7 @@ type Customer_categories struct {
 
 type Customer struct {
 	CustomerId           int64
+	CustomerNumber       string
 	FullName             string
 	Email                string
 	PhoneNumber          string

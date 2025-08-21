@@ -276,35 +276,60 @@ func (c *Auth_requestsController) Register() {
 				c.ServeJSON()
 				return
 			}
-			responseText, err := json.Marshal(response.Result)
-			if err != nil {
-				logs.Error("Error marshalling response result: ", err)
-				responseText = []byte("[]")
-			}
-			v.RequestResponse = string(responseText)
-			v.DateModified = time.Now()
-			v.ResponseDate = time.Now()
-			if err := models.UpdateApi_requestsById(&v); err != nil {
-				logs.Error("Error updating API request with response: ", err)
+			logs.Info("Customer credentials saved successfully: ", credentialResp)
+			// Add customer corporative
+			if client, err := models.GetClientsById(req.ClientId); err != nil {
+				logs.Error("Error getting client by ID: ", err)
+				response = responses.RegisterResponse{
+					StatusCode:    false,
+					StatusMessage: "Error getting client by ID: " + err.Error(),
+					Result:        nil,
+				}
 			} else {
-				logs.Info("API request updated with response successfully: ", v)
-			}
-			cust := responses.CustomerGateway{
-				CustomerId:           resp.Customer.CustomerId,
-				FullName:             resp.Customer.FullName,
-				PhoneNumber:          resp.Customer.PhoneNumber,
-				Email:                resp.Customer.Email,
-				Location:             resp.Customer.Location,
-				IdentificationType:   nil,
-				IdentificationNumber: resp.Customer.IdentificationNumber,
-				ImagePath:            resp.Customer.ImagePath,
-				DateCreated:          resp.Customer.DateCreated,
-				Status:               resp.Customer.Active,
-			}
-			response = responses.RegisterResponse{
-				StatusCode:    true,
-				StatusMessage: "Registration successful",
-				Result:        &cust,
+				customerCorporative := models.Customer_corporatives{
+					CustomerNumber: resp.Customer.CustomerNumber,
+					CorpId:         client, // Assuming default corp ID, can be changed later
+				}
+
+				if _, err := models.AddCustomer_corporatives(&customerCorporative); err != nil {
+					logs.Error("An error occurred adding customer corporative ", err.Error())
+					response = responses.RegisterResponse{
+						StatusCode:    false,
+						StatusMessage: "An error occurred adding customer corporative. " + err.Error(),
+						Result:        nil,
+					}
+				} else {
+					responseText, err := json.Marshal(response.Result)
+					if err != nil {
+						logs.Error("Error marshalling response result: ", err)
+						responseText = []byte("[]")
+					}
+					v.RequestResponse = string(responseText)
+					v.DateModified = time.Now()
+					v.ResponseDate = time.Now()
+					if err := models.UpdateApi_requestsById(&v); err != nil {
+						logs.Error("Error updating API request with response: ", err)
+					} else {
+						logs.Info("API request updated with response successfully: ", v)
+					}
+					cust := responses.CustomerGateway{
+						CustomerId:           resp.Customer.CustomerId,
+						FullName:             resp.Customer.FullName,
+						PhoneNumber:          resp.Customer.PhoneNumber,
+						Email:                resp.Customer.Email,
+						Location:             resp.Customer.Location,
+						IdentificationType:   nil,
+						IdentificationNumber: resp.Customer.IdentificationNumber,
+						ImagePath:            resp.Customer.ImagePath,
+						DateCreated:          resp.Customer.DateCreated,
+						Status:               resp.Customer.Active,
+					}
+					response = responses.RegisterResponse{
+						StatusCode:    true,
+						StatusMessage: "Registration successful",
+						Result:        &cust,
+					}
+				}
 			}
 		}
 
