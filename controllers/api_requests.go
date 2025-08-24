@@ -219,8 +219,11 @@ func (c *Api_requestsController) GetCustomerDetails() {
 			}
 		}
 
+		logs.Debug("Query for customer corporatives is ", query)
+
 		if customerCorps, err := models.GetAllCustomer_corporatives(query, fields, sortby, order, offset, limit); err == nil {
 
+			logs.Debug("Returned customer corporatives data is ", customerCorps)
 			var customerCorpsDTO []responses.CustomerCorporativesResponseDTO
 			for _, v := range customerCorps {
 				if corp, ok := v.(responses.CustomerCorporativesResponseDTO); ok {
