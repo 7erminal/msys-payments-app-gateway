@@ -226,8 +226,11 @@ func (c *Api_requestsController) GetCustomerDetails() {
 			logs.Debug("Returned customer corporatives data is ", customerCorps)
 			var customerCorpsDTO []responses.CustomerCorporativesResponseDTO
 			for _, v := range customerCorps {
+				logs.Debug("Processing customer corporative: ", v)
 				if corp, ok := v.(responses.CustomerCorporativesResponseDTO); ok {
 					customerCorpsDTO = append(customerCorpsDTO, corp)
+				} else {
+					logs.Error("Error asserting customer corporative data")
 				}
 			}
 
