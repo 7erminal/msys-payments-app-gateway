@@ -231,7 +231,13 @@ func (c *Api_requestsController) GetCustomerDetails() {
 				}
 			}
 
-			logs.Debug("Formatted customer corporatives data is ", customerCorpsDTO)
+			// Log customer corporatives data as readable JSON
+			corpsJSON, err := json.MarshalIndent(customerCorpsDTO, "", "  ")
+			if err != nil {
+				logs.Error("Error marshalling customer corporatives to JSON: ", err)
+			} else {
+				logs.Debug("Formatted customer corporatives data is: %s", string(corpsJSON))
+			}
 
 			customerResp := responses.CustomerGateway{
 				CustomerId:           customerData.CustomerId,
