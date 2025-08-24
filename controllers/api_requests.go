@@ -231,6 +231,8 @@ func (c *Api_requestsController) GetCustomerDetails() {
 				}
 			}
 
+			logs.Debug("Formatted customer corporatives data is ", customerCorpsDTO)
+
 			customerResp := responses.CustomerGateway{
 				CustomerId:           customerData.CustomerId,
 				FullName:             customerData.FullName,
