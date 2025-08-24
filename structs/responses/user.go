@@ -100,6 +100,30 @@ type CustomerResponseDTO2 struct {
 	StatusDesc string
 }
 
+type Clients struct {
+	Id           int64
+	ClientCorpId string
+	ClientName   string
+	ClientCode   string
+	ClientUrl    string
+	DateCreated  time.Time
+	DateModified time.Time
+	CreatedBy    int
+	ModifiedBy   int
+	Active       int
+}
+
+type CustomerCorporativesResponseDTO struct {
+	Id             int64
+	CustomerNumber string
+	CorpId         *Clients
+	IsDefault      int
+	DateCreated    time.Time
+	DateModified   time.Time
+	CreatedBy      int
+	ModifiedBy     int
+}
+
 type CustomerGateway struct {
 	CustomerId           int64
 	FullName             string
@@ -113,6 +137,7 @@ type CustomerGateway struct {
 	Status               int
 	LastDeal             time.Time
 	Branch               *string
+	CustomerCorporatives *[]CustomerCorporativesResponseDTO
 }
 
 type CustomerGatewayResponseDTO struct {

@@ -2,10 +2,13 @@ package controllers
 
 import (
 	"encoding/json"
+	"errors"
 	apifunctions "msys_payment_app_gateway/controllers/api_functions"
 	"msys_payment_app_gateway/models"
 	"msys_payment_app_gateway/structs/requests"
 	"msys_payment_app_gateway/structs/responses"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/beego/beego/v2/core/logs"
@@ -188,25 +191,72 @@ func (c *Api_requestsController) GetCustomerDetails() {
 	if _, err := models.AddApi_requests(&v); err == nil {
 		logs.Info("API request logged successfully: ", v)
 
-		customerResp := responses.CustomerGateway{
-			CustomerId:           customerData.CustomerId,
-			FullName:             customerData.FullName,
-			ImagePath:            customerData.ImagePath,
-			Email:                customerData.Email,
-			PhoneNumber:          customerData.PhoneNumber,
-			Location:             customerData.Location,
-			IdentificationType:   customerData.IdentificationType,
-			IdentificationNumber: customerData.IdentificationNumber,
-			DateCreated:          customerData.DateCreated,
-			Status:               customerData.Active,
+		var response responses.CustomerGatewayResponseDTO = responses.CustomerGatewayResponseDTO{
+			StatusCode:    false,
+			StatusMessage: "Customer fetch failed",
+			Result:        nil,
 		}
 
-		logs.Info("Formatted request for customer: ")
+		var fields []string
+		var sortby []string
+		var order []string
+		var query = make(map[string]string)
+		var limit int64 = 10
+		var offset int64
 
-		var response responses.CustomerGatewayResponseDTO = responses.CustomerGatewayResponseDTO{
-			StatusCode:    true,
-			StatusMessage: "Customer fetched successfully",
-			Result:        &customerResp,
+		customerNumberSearch := "CustomerNumber:" + customerData.CustomerNumber
+
+		if v := customerNumberSearch; v != "" {
+			for _, cond := range strings.Split(v, ",") {
+				kv := strings.SplitN(cond, ":", 2)
+				if len(kv) != 2 {
+					c.Data["json"] = errors.New("Error: invalid query key/value pair")
+					c.ServeJSON()
+					return
+				}
+				k, v := kv[0], kv[1]
+				query[k] = v
+			}
+		}
+
+		if customerCorps, err := models.GetAllCustomer_corporatives(query, fields, sortby, order, offset, limit); err == nil {
+
+			var customerCorpsDTO []responses.CustomerCorporativesResponseDTO
+			for _, v := range customerCorps {
+				if corp, ok := v.(responses.CustomerCorporativesResponseDTO); ok {
+					customerCorpsDTO = append(customerCorpsDTO, corp)
+				}
+			}
+
+			customerResp := responses.CustomerGateway{
+				CustomerId:           customerData.CustomerId,
+				FullName:             customerData.FullName,
+				ImagePath:            customerData.ImagePath,
+				Email:                customerData.Email,
+				PhoneNumber:          customerData.PhoneNumber,
+				Location:             customerData.Location,
+				IdentificationType:   customerData.IdentificationType,
+				IdentificationNumber: customerData.IdentificationNumber,
+				DateCreated:          customerData.DateCreated,
+				Status:               customerData.Active,
+				CustomerCorporatives: &customerCorpsDTO,
+			}
+
+			logs.Info("Formatted request for customer: ")
+
+			response = responses.CustomerGatewayResponseDTO{
+				StatusCode:    true,
+				StatusMessage: "Customer fetched successfully",
+				Result:        &customerResp,
+			}
+		} else {
+			logs.Error("Error fetching customer corporatives: ", err)
+			response = responses.CustomerGatewayResponseDTO{
+				StatusCode:    false,
+				StatusMessage: "Something went wrong:: " + err.Error(),
+				Result:        nil,
+			}
+			c.Data["json"] = response
 		}
 
 		c.Ctx.Output.SetStatus(200)
@@ -269,14 +319,6 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 	}
 	if _, err := models.AddApi_requests(&v); err == nil {
 		logs.Info("API request logged successfully: ", v)
-		listAccountsRequest := requests.NumberExistsApiRequest{
-			MobileNumber: phoneNumber,
-			ClientId:     req.ClientId,
-		}
-
-		logs.Info("Formatted request for customer accounts: ", listAccountsRequest)
-		resp := apifunctions.ListCustomerAccounts(&c.Controller, listAccountsRequest)
-		logs.Info("Response from customer accounts API: ", resp)
 
 		var response responses.CustomerAccountsResponse = responses.CustomerAccountsResponse{
 			StatusCode:    false,
@@ -284,30 +326,57 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 			Result:        nil,
 		}
 
-		if resp.Data.StatusCode != 200 {
+		var clientId int64
+		clientId, err = strconv.ParseInt(req.ClientId, 10, 64)
+		if err != nil {
+			logs.Error("Error converting ClientId to int64: ", err)
 			response = responses.CustomerAccountsResponse{
 				StatusCode:    false,
-				StatusMessage: resp.Data.StatusMessage,
+				StatusMessage: "Invalid ClientId",
 				Result:        nil,
 			}
-		} else {
-			responseText, err := json.Marshal(response.Result)
-			if err != nil {
-				logs.Error("Error marshalling response result: ", err)
-				responseText = []byte("[]")
+			c.Ctx.Output.SetStatus(400)
+			c.Data["json"] = response
+		}
+
+		if client, err := models.GetClientsById(clientId); err != nil {
+
+			clientCorpId := client.ClientCorpId
+
+			listAccountsRequest := requests.NumberExistsApiRequest{
+				MobileNumber: phoneNumber,
+				ClientId:     clientCorpId,
 			}
-			v.RequestResponse = string(responseText)
-			v.DateModified = time.Now()
-			v.ResponseDate = time.Now()
-			if err := models.UpdateApi_requestsById(&v); err != nil {
-				logs.Error("Error updating API request with response: ", err)
+
+			logs.Info("Formatted request for customer accounts: ", listAccountsRequest)
+			resp := apifunctions.ListCustomerAccounts(&c.Controller, listAccountsRequest)
+			logs.Info("Response from customer accounts API: ", resp)
+
+			if resp.Data.StatusCode != 200 {
+				response = responses.CustomerAccountsResponse{
+					StatusCode:    false,
+					StatusMessage: resp.Data.StatusMessage,
+					Result:        nil,
+				}
 			} else {
-				logs.Info("API request updated with response successfully: ", v)
-			}
-			response = responses.CustomerAccountsResponse{
-				StatusCode:    true,
-				StatusMessage: "Accounts fetched successfully",
-				Result:        resp.Data.Result,
+				responseText, err := json.Marshal(response.Result)
+				if err != nil {
+					logs.Error("Error marshalling response result: ", err)
+					responseText = []byte("[]")
+				}
+				v.RequestResponse = string(responseText)
+				v.DateModified = time.Now()
+				v.ResponseDate = time.Now()
+				if err := models.UpdateApi_requestsById(&v); err != nil {
+					logs.Error("Error updating API request with response: ", err)
+				} else {
+					logs.Info("API request updated with response successfully: ", v)
+				}
+				response = responses.CustomerAccountsResponse{
+					StatusCode:    true,
+					StatusMessage: "Accounts fetched successfully",
+					Result:        resp.Data.Result,
+				}
 			}
 		}
 
