@@ -227,11 +227,17 @@ func (c *Api_requestsController) GetCustomerDetails() {
 			var customerCorpsDTO []responses.CustomerCorporativesResponseDTO
 			for _, v := range customerCorps {
 				logs.Debug("Processing customer corporative: ", v)
-				if corp, ok := v.(responses.CustomerCorporativesResponseDTO); ok {
-					customerCorpsDTO = append(customerCorpsDTO, corp)
-				} else {
-					logs.Error("Error asserting customer corporative data")
+				var corpDTO responses.CustomerCorporativesResponseDTO
+				corpBytes, err := json.Marshal(v)
+				if err != nil {
+					logs.Error("Error marshalling customer corporative data: ", err)
+					continue
 				}
+				if err := json.Unmarshal(corpBytes, &corpDTO); err != nil {
+					logs.Error("Error unmarshalling customer corporative data: ", err)
+					continue
+				}
+				customerCorpsDTO = append(customerCorpsDTO, corpDTO)
 			}
 
 			// Log customer corporatives data as readable JSON
