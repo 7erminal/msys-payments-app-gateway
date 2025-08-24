@@ -269,13 +269,13 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 	}
 	if _, err := models.AddApi_requests(&v); err == nil {
 		logs.Info("API request logged successfully: ", v)
-		loginRequest := requests.NumberExistsApiRequest{
+		listAccountsRequest := requests.NumberExistsApiRequest{
 			MobileNumber: phoneNumber,
 			ClientId:     req.ClientId,
 		}
 
-		logs.Info("Formatted request for customer accounts: ", loginRequest)
-		resp := apifunctions.ListCustomerAccounts(&c.Controller, loginRequest)
+		logs.Info("Formatted request for customer accounts: ", listAccountsRequest)
+		resp := apifunctions.ListCustomerAccounts(&c.Controller, listAccountsRequest)
 		logs.Info("Response from customer accounts API: ", resp)
 
 		var response responses.CustomerAccountsResponse = responses.CustomerAccountsResponse{

@@ -202,6 +202,7 @@ type CorporativeData struct {
 	ClientName   string
 	ClientCode   string
 	ClientUrl    string
+	ClientCorpId int64
 	DateCreated  string
 	DateModified string
 	Active       int
