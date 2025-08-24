@@ -40,7 +40,7 @@ func AddClients(m *Clients) (id int64, err error) {
 func GetClientsById(id int64) (v *Clients, err error) {
 	o := orm.NewOrm()
 	v = &Clients{Id: id}
-	if err = o.QueryTable(new(Clients)).Filter("Id", id).RelatedSel().One(v); err == nil {
+	if err = o.QueryTable(new(Clients)).Filter("ClientId", id).RelatedSel().One(v); err == nil {
 		return v, nil
 	}
 	return nil, err
