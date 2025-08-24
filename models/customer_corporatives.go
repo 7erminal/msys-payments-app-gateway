@@ -14,7 +14,7 @@ type Customer_corporatives struct {
 	Id             int64     `orm:"auto;column(customer_corporative_id)"`
 	CustomerNumber string    `orm:"size(255)"`
 	CorpId         *Clients  `orm:"rel(fk);column(corp_id)"`
-	IsDefault      int       `orm:"default(0)"`
+	IsDefault      int       `orm:"default(0);column(isDefault)"`
 	DateCreated    time.Time `orm:"type(datetime)"`
 	DateModified   time.Time `orm:"type(datetime)"`
 	CreatedBy      int
