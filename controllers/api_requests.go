@@ -359,7 +359,7 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 			c.Data["json"] = response
 		}
 
-		if client, err := models.GetClientsById(clientId); err != nil {
+		if client, err := models.GetClientsById(clientId); err == nil {
 
 			clientCorpId := client.ClientCorpId
 
