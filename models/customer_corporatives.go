@@ -11,7 +11,7 @@ import (
 )
 
 type Customer_corporatives struct {
-	Id             int64     `orm:"auto"`
+	Id             int64     `orm:"auto;column(customer_corporative_id)"`
 	CustomerNumber string    `orm:"size(255)"`
 	CorpId         *Clients  `orm:"rel(fk);column(corp_id)"`
 	IsDefault      int       `orm:"default(0)"`
