@@ -101,7 +101,7 @@ type CustomerResponseDTO2 struct {
 }
 
 type Clients struct {
-	Id           int64
+	ClientId     int64
 	ClientCorpId string
 	ClientName   string
 	ClientCode   string
@@ -114,14 +114,14 @@ type Clients struct {
 }
 
 type CustomerCorporativesResponseDTO struct {
-	Id             int64
-	CustomerNumber string
-	CorpId         *Clients
-	IsDefault      int
-	DateCreated    time.Time
-	DateModified   time.Time
-	CreatedBy      int
-	ModifiedBy     int
+	CustomerCorporativeId int64
+	CustomerNumber        string
+	CorpId                *Clients
+	IsDefault             int
+	DateCreated           time.Time
+	DateModified          time.Time
+	CreatedBy             int
+	ModifiedBy            int
 }
 
 type CustomerGateway struct {
