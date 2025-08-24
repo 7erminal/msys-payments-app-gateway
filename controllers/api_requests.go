@@ -398,10 +398,19 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 					Result:        resp.Data.Result,
 				}
 			}
-		}
 
-		c.Ctx.Output.SetStatus(200)
-		c.Data["json"] = response
+			c.Ctx.Output.SetStatus(200)
+			c.Data["json"] = response
+		} else {
+			logs.Error("Error fetching client details: ", err)
+			response = responses.CustomerAccountsResponse{
+				StatusCode:    false,
+				StatusMessage: "Something went wrong:: " + err.Error(),
+				Result:        nil,
+			}
+			c.Ctx.Output.SetStatus(400)
+			c.Data["json"] = response
+		}
 
 	} else {
 		var response responses.CustomerAccountsResponse = responses.CustomerAccountsResponse{
