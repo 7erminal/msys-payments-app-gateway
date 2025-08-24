@@ -313,7 +313,7 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 
 	phoneNumber := req.MobileNumber
 
-	logs.Info("Login called with PhoneNumber: %s, SourceSystem: %s", phoneNumber, sourceSystem)
+	logs.Info("Get customer accounts called with PhoneNumber: %s, SourceSystem: %s", phoneNumber, sourceSystem)
 	reqBody := c.Ctx.Input.RequestBody
 	reqHeaders := c.Ctx.Request.Header
 
