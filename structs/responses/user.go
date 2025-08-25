@@ -163,6 +163,12 @@ type RegisterResponse struct {
 	Result        *CustomerGateway
 }
 
+type RegisterAccountResponse struct {
+	StatusCode    bool
+	StatusMessage string
+	Result        *bool
+}
+
 type CustomerAccountsDataResponseResult struct {
 	StatusCode    int
 	StatusMessage string

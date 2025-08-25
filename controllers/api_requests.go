@@ -424,6 +424,134 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 	c.ServeJSON()
 }
 
+// RegisterAccount ...
+// @Title Register Account
+// @Description Register customer
+// @Param	SourceSystem		header 	string true		"header for Source system"
+// @Param	body		body 	requests.OpenAccountRequest	true		"body for Request content"
+// @Success 201 {int} models.Api_requests
+// @Failure 403 body is empty
+// @router /register-account [post]
+func (c *Auth_requestsController) RegisterAccount() {
+	// Extract headers
+	// phoneNumber := c.Ctx.Input.Header("PhoneNumber")
+	sourceSystem := c.Ctx.Input.Header("SourceSystem")
+
+	var req requests.OpenAccountRequest
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &req); err != nil {
+		logs.Error("Error unmarshalling request body: ", err)
+		c.Data["json"] = "Invalid request body"
+		c.ServeJSON()
+		return
+	}
+
+	logs.Info("Register account called with SourceSystem: %s", sourceSystem)
+	reqBody := c.Ctx.Input.RequestBody
+	reqHeaders := c.Ctx.Request.Header
+
+	requestMap := map[string]interface{}{
+		"headers": reqHeaders,
+		"body":    string(reqBody),
+	}
+
+	reqText, err := json.Marshal(requestMap)
+	if err != nil {
+		logs.Error("Error marshalling request input: ", err)
+		c.Data["json"] = err.Error()
+		c.ServeJSON()
+		return
+	}
+	var v models.Api_requests = models.Api_requests{
+		Request:      string(reqText),
+		PhoneNumber:  req.MobileNumber,
+		RequestType:  "Register Account",
+		RequestDate:  time.Now(),
+		DateCreated:  time.Now(),
+		DateModified: time.Now(),
+	}
+	if _, err := models.AddApi_requests(&v); err == nil {
+		logs.Info("API request logged successfully: ", v)
+
+		mobileNumberValidation := requests.MobileNumberRequest{
+			MobileNumber: req.MobileNumber,
+		}
+
+		checkCustomer := apifunctions.GetCustomer(&c.Controller, mobileNumberValidation)
+
+		var response responses.RegisterAccountResponse = responses.RegisterAccountResponse{
+			StatusCode:    false,
+			StatusMessage: "Something went wrong",
+			Result:        nil,
+		}
+
+		if checkCustomer.StatusCode == 200 && checkCustomer.Customer != nil {
+			logs.Info("Customer exists: ", checkCustomer.Customer)
+
+			if client, err := models.GetClientsById(req.ClientId); err != nil {
+				logs.Error("Error getting client by ID: ", err)
+				response = responses.RegisterAccountResponse{
+					StatusCode:    false,
+					StatusMessage: "Error getting client by ID: " + err.Error(),
+					Result:        nil,
+				}
+			} else {
+				logs.Info("Mobile Number: ", req.MobileNumber)
+				logs.Info("First Name: ", req.FirstName)
+				logs.Info("Last Name: ", req.LastName)
+				registerAccountRequest := requests.OpenAccountApiRequest{
+					FirstName:    req.FirstName,
+					LastName:     req.LastName,
+					Gender:       req.Gender,
+					MobileNumber: req.MobileNumber,
+					ClientId:     client.ClientCorpId,
+				}
+
+				logs.Info("Formatted request for Register account: ", registerAccountRequest)
+				resp := apifunctions.OpenAccount(&c.Controller, registerAccountRequest)
+				logs.Info("Response from Register account API: ", resp)
+
+				if resp.Data.StatusCode != 200 {
+					response = responses.RegisterAccountResponse{
+						StatusCode:    false,
+						StatusMessage: resp.Data.StatusMessage,
+						Result:        nil,
+					}
+				} else {
+					response = responses.RegisterAccountResponse{
+						StatusCode:    true,
+						StatusMessage: resp.Data.StatusMessage,
+						Result:        &resp.Data.Result,
+					}
+				}
+			}
+
+		} else {
+			response = responses.RegisterAccountResponse{
+				StatusCode:    false,
+				StatusMessage: "Something went wrong:: " + checkCustomer.StatusDesc,
+				Result:        nil,
+			}
+			c.Ctx.Output.SetStatus(400)
+			c.Data["json"] = response
+			c.ServeJSON()
+			return
+		}
+
+		c.Ctx.Output.SetStatus(200)
+		c.Data["json"] = response
+
+	} else {
+		var response responses.RegisterAccountResponse = responses.RegisterAccountResponse{
+			StatusCode:    false,
+			StatusMessage: "Something went wrong:: " + err.Error(),
+			Result:        nil,
+		}
+
+		c.Data["json"] = response
+	}
+	c.ServeJSON()
+}
+
 // NameInquiry ...
 // @Title Name Inquiry
 // @Description Name Inquiry with number

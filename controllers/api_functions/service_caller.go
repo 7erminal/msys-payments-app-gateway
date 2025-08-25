@@ -163,7 +163,7 @@ func Register(c *beego.Controller, req requests.AddCustomer) (resp responses.Cus
 	return data
 }
 
-func OpenAccount(c *beego.Controller, req requests.RegisterApiRequest) (resp responses.RegisterApiResponse) {
+func OpenAccount(c *beego.Controller, req requests.OpenAccountApiRequest) (resp responses.RegisterApiResponse) {
 	host, _ := beego.AppConfig.String("clientBaseUrl")
 
 	logs.Info("Registering user ", req.MobileNumber, " with name ", req.FirstName, " ", req.LastName)

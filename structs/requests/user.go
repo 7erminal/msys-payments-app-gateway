@@ -36,6 +36,22 @@ type RegisterApiRequest struct {
 	Username     string
 }
 
+type OpenAccountRequest struct {
+	ClientId     int64  `validate:"required"`
+	FirstName    string `validate:"required"`
+	LastName     string `validate:"required"`
+	Gender       string `validate:"required"`
+	MobileNumber string `validate:"required"`
+}
+
+type OpenAccountApiRequest struct {
+	FirstName    string
+	LastName     string
+	Gender       string
+	MobileNumber string
+	ClientId     string
+}
+
 type NumberExistsApiRequest struct {
 	MobileNumber string
 	ClientId     string

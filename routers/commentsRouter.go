@@ -214,6 +214,15 @@ func init() {
             Filters: nil,
             Params: nil})
 
+    beego.GlobalControllerRouter["msys_payment_app_gateway/controllers:Auth_requestsController"] = append(beego.GlobalControllerRouter["msys_payment_app_gateway/controllers:Auth_requestsController"],
+        beego.ControllerComments{
+            Method: "RegisterAccount",
+            Router: `/register-account`,
+            AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
     beego.GlobalControllerRouter["msys_payment_app_gateway/controllers:CallbackController"] = append(beego.GlobalControllerRouter["msys_payment_app_gateway/controllers:CallbackController"],
         beego.ControllerComments{
             Method: "Callback",
