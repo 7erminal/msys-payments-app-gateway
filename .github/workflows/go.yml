@@ -30,6 +30,7 @@ jobs:
       run: |
         sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no root@185.211.5.90 "
           cd /usr/app/mobile-application/msys-payments-app-gateway/ && \
+          git stash && \
           git pull https://$GIT_USERNAME:$GIT_PASSWORD@github.com/7erminal/msys-payments-app-gateway.git && \
           pm2 restart app-gateway
         "
