@@ -107,6 +107,9 @@ func (c *Auth_requestsController) Login() {
 			} else {
 				logs.Info("API request updated with response successfully: ", v)
 			}
+
+			// Check if account is verified
+
 			response = responses.LoginResponse{
 				StatusCode:    true,
 				StatusMessage: "Login successful",

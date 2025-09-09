@@ -720,6 +720,41 @@
                 }
             }
         },
+        "/api/register-account": {
+            "post": {
+                "tags": [
+                    "api"
+                ],
+                "description": "Register customer\n\u003cbr\u003e",
+                "operationId": "Api_requestsController.Register Account",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "name": "SourceSystem",
+                        "description": "header for Source system",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Request content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.OpenAccountRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "{int} models.Api_requests"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
         "/api/reset-pin": {
             "post": {
                 "tags": [
@@ -1319,14 +1354,40 @@
                 }
             }
         },
+        "requests.OpenAccountRequest": {
+            "title": "OpenAccountRequest",
+            "type": "object",
+            "properties": {
+                "ClientId": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "FirstName": {
+                    "type": "string"
+                },
+                "Gender": {
+                    "type": "string"
+                },
+                "LastName": {
+                    "type": "string"
+                },
+                "MobileNumber": {
+                    "type": "string"
+                }
+            }
+        },
         "requests.RegisterRequest": {
             "title": "RegisterRequest",
             "type": "object",
             "properties": {
                 "ClientId": {
-                    "type": "string"
+                    "type": "integer",
+                    "format": "int64"
                 },
                 "Dob": {
+                    "type": "string"
+                },
+                "Email": {
                     "type": "string"
                 },
                 "FirstName": {
