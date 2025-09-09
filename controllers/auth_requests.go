@@ -311,6 +311,10 @@ func (c *Auth_requestsController) Register() {
 						gender = "M"
 					case "female":
 						gender = "F"
+					case "m":
+						gender = "M"
+					case "f":
+						gender = "F"
 					}
 					go helpers.AccountProcessor(&c.Controller, requests.VerifyCustomerApiRequest{
 						Username:     req.Username,
