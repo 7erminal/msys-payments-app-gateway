@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"msys_payment_app_gateway/structs/responses"
+	"strings"
 
 	"encoding/json"
 	apifunctions "msys_payment_app_gateway/controllers/api_functions"
@@ -304,6 +305,13 @@ func (c *Auth_requestsController) Register() {
 						Result:        nil,
 					}
 				} else {
+					gender := "N"
+					switch genderStr := strings.ToLower(req.Gender); genderStr {
+					case "male":
+						gender = "M"
+					case "female":
+						gender = "F"
+					}
 					go helpers.AccountProcessor(&c.Controller, requests.VerifyCustomerApiRequest{
 						Username:     req.Username,
 						FirstName:    req.FirstName,
@@ -311,7 +319,7 @@ func (c *Auth_requestsController) Register() {
 						Email:        req.Email,
 						Dob:          req.Dob,
 						ClientId:     client.ClientCode,
-						Gender:       "N",
+						Gender:       gender,
 						MobileNumber: req.MobileNumber,
 					})
 
