@@ -10,7 +10,7 @@ type LoginApiRequest struct {
 type LoginRequest struct {
 	PhoneNumber string
 	Password    string
-	ClientId    string
+	ClientId    string `validate:"omitempty"`
 }
 
 type RegisterRequest struct {
