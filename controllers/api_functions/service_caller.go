@@ -231,7 +231,7 @@ func OpenAccount(c *beego.Controller, req requests.OpenAccountApiRequest) (resp 
 func VerifyCustomer(c *beego.Controller, req requests.VerifyCustomerApiRequest) (resp responses.VerifyCustomerApiResponse) {
 	host, _ := beego.AppConfig.String("clientBaseUrl")
 
-	logs.Info("Registering user ", req.MobileNumber, " with name ", req.FirstName, " ", req.LastName)
+	logs.Info("Registering user ", req.MobileNumber, " with name ", req.FirstName, " ", req.LastName, " username ", req.Username, " email ", req.Email, " dob ", req.Dob)
 	request := api.NewRequest(
 		host,
 		"/v2/api/verify-customer",
