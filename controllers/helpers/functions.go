@@ -1,0 +1,112 @@
+package helpers
+
+import (
+	"encoding/json"
+	"errors"
+	apifunctions "msys_payment_app_gateway/controllers/api_functions"
+	"msys_payment_app_gateway/models"
+	"msys_payment_app_gateway/structs/requests"
+	"msys_payment_app_gateway/structs/responses"
+	"strings"
+
+	"github.com/beego/beego/v2/core/logs"
+	beego "github.com/beego/beego/v2/server/web"
+)
+
+func AccountProcessor(c *beego.Controller, req requests.VerifyCustomerApiRequest) {
+	logs.Info("Processing Account Verification for PhoneNumber: ", req.MobileNumber)
+	apifunctions.VerifyCustomer(c, req)
+}
+
+func CheckAccountsStatus(c *beego.Controller, customerData *responses.Customer) {
+	var fields []string
+	var sortby []string
+	var order []string
+	var query = make(map[string]string)
+	var limit int64 = 10
+	var offset int64
+
+	customerNumberSearch := "CustomerNumber:" + customerData.CustomerNumber
+
+	// query: k:v,k:v
+	if v := customerNumberSearch; v != "" {
+		for _, cond := range strings.Split(v, ",") {
+			kv := strings.SplitN(cond, ":", 2)
+			if len(kv) != 2 {
+				c.Data["json"] = errors.New("Error: invalid query key/value pair")
+				c.ServeJSON()
+				return
+			}
+			k, v := kv[0], kv[1]
+			query[k] = v
+		}
+	}
+	if customerCorporatives, err := models.GetAllCustomer_corporatives(query, fields, sortby, order, offset, limit); err == nil {
+		logs.Info("Customer corporatives fetched successfully: ", customerCorporatives)
+		// Process each corporative
+		// var customerCorporativesDTO []responses.CustomerCorporativesResponseDTO
+		for _, corpc := range customerCorporatives {
+			logs.Info("Processing customer corporative: ", corpc)
+			// Convert to DTO
+			var corpDTO models.Customer_corporatives
+			corpBytes, err := json.Marshal(corpc)
+			if err != nil {
+				logs.Error("Error marshalling customer corporative data: ", err)
+				continue
+			}
+			if err := json.Unmarshal(corpBytes, &corpDTO); err != nil {
+				logs.Error("Error unmarshalling customer corporative data: ", err)
+			}
+			logs.Info("Customer corporative DTO: ", corpDTO)
+			// customerCorporativesDTO = append(customerCorporativesDTO, corpDTO)
+
+			// Get corp code
+			if corpDTO.IsActive == 0 {
+				if corp, err := models.GetClientsById(corpDTO.CorpId.Id); err == nil {
+					corpCode := corp.ClientCode
+
+					approvedAccountsResp := apifunctions.FetchApprovedAccounts(c, corpCode)
+
+					logs.Info("Approved accounts response: ", approvedAccountsResp)
+					// Process approved accounts response
+					if approvedAccountsResp.StatusCode != 200 {
+						logs.Error("Error fetching approved accounts: ", approvedAccountsResp.StatusDesc)
+					} else {
+						logs.Info("Approved accounts fetched successfully: ", approvedAccountsResp.Result)
+
+						for _, acc := range *approvedAccountsResp.Result {
+							if strings.EqualFold(acc.MobileNumber, customerData.PhoneNumber) {
+								logs.Info("Customer account already exists in approved accounts: ", acc)
+								// Account exists - Update account to be verified
+								activateAccountReq := requests.ActivateVerifiedCustomerApiRequest{
+									Username:     acc.Username,
+									ClientId:     corpCode,
+									MobileNumber: customerData.PhoneNumber,
+								}
+								authorizeAccountResp := apifunctions.ActivateVerifiedCustomer(c, activateAccountReq)
+								logs.Info("Authorize account response: ", authorizeAccountResp)
+								if authorizeAccountResp.StatusCode != 200 {
+									logs.Error("Error authorizing account: ", authorizeAccountResp.StatusDesc)
+								} else {
+									logs.Info("Account authorized successfully: ", authorizeAccountResp.Result)
+									// Update corporative as active
+									corpDTO.IsActive = 1
+									if err := models.UpdateCustomer_corporativesById(&corpDTO); err != nil {
+										logs.Error("Error updating customer corporative as active: ", err)
+									} else {
+										logs.Info("Customer corporative updated as active successfully")
+									}
+
+								}
+								break
+							}
+						}
+					}
+
+				}
+			}
+
+		}
+
+	}
+}

@@ -5,6 +5,7 @@ import (
 
 	"encoding/json"
 	apifunctions "msys_payment_app_gateway/controllers/api_functions"
+	"msys_payment_app_gateway/controllers/helpers"
 	"msys_payment_app_gateway/models"
 	"msys_payment_app_gateway/structs/requests"
 	"time"
@@ -235,6 +236,7 @@ func (c *Auth_requestsController) Register() {
 			CustomerType: "Individual", // Assuming default customer type
 			Branch:       "1",
 			Dob:          dob,
+			Status:       "Pending",
 		}
 
 		logs.Info("Formatted request for Register: ", registerRequest)
@@ -299,6 +301,17 @@ func (c *Auth_requestsController) Register() {
 						Result:        nil,
 					}
 				} else {
+					go helpers.AccountProcessor(&c.Controller, requests.VerifyCustomerApiRequest{
+						Username:     req.Username,
+						FirstName:    req.FirstName,
+						LastName:     req.LastName,
+						Email:        req.Email,
+						Dob:          req.Dob,
+						ClientId:     client.ClientCode,
+						Gender:       "N",
+						MobileNumber: req.MobileNumber,
+					})
+
 					responseText, err := json.Marshal(response.Result)
 					if err != nil {
 						logs.Error("Error marshalling response result: ", err)

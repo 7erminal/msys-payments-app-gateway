@@ -34,8 +34,8 @@ type LoginResponse struct {
 }
 
 type CustAccountsData struct {
-	AccountNumber string
-	Product       string
+	Username     string
+	MobileNumber string
 }
 
 type CustAccountsDataResponseResult struct {
@@ -46,7 +46,9 @@ type CustAccountsDataResponseResult struct {
 }
 
 type CustAccountsApiResponse struct {
-	Data CustAccountsDataResponseResult `json:"data"`
+	StatusCode int
+	StatusDesc string
+	Result     *[]CustAccountsData
 }
 
 type Identification_types struct {
@@ -118,6 +120,7 @@ type CustomerCorporativesResponseDTO struct {
 	CustomerNumber string
 	CorpId         *Clients
 	IsDefault      int
+	IsActive       int
 	DateCreated    time.Time
 	DateModified   time.Time
 	CreatedBy      int
@@ -169,6 +172,42 @@ type RegisterAccountResponse struct {
 	Result        *bool
 }
 
+type VerifyCustomerApiResponse struct {
+	StatusCode    int
+	StatusMessage string
+	Result        string
+}
+
+type VerifyCustomerResponse struct {
+	StatusCode    bool
+	StatusMessage string
+	Result        *CustomerGateway
+}
+
+type FetchApprovedCustomersApiResponse struct {
+	StatusCode int
+	StatusDesc string
+	Result     *CustomerGateway
+}
+
+type FetchApprovedCustomersResponse struct {
+	StatusCode    bool
+	StatusMessage string
+	Result        *CustomerGateway
+}
+
+type VerifyApprovedCustomerApiResponse struct {
+	StatusCode int
+	StatusDesc string
+	Result     *CustomerGateway
+}
+
+type VerifyApprovedCustomerResponse struct {
+	StatusCode    bool
+	StatusMessage string
+	Result        *CustomerGateway
+}
+
 type CustomerAccountsDataResponseResult struct {
 	StatusCode    int
 	StatusMessage string
@@ -184,6 +223,12 @@ type CustomerAccountsResponse struct {
 	StatusCode    bool
 	StatusMessage string
 	Result        *[]CustAccountsData
+}
+
+type CustomerCorporativeAccountsResponse struct {
+	StatusCode    bool
+	StatusMessage string
+	Result        *[]CustomerAccountsApiResponse
 }
 
 type AccountInfoDataResponseResult struct {
@@ -593,4 +638,27 @@ type CustomerGuarantorResponseDTO struct {
 	StatusCode        int
 	CustomerGuarantor *CustomerGuarantor
 	StatusDesc        string
+}
+
+type CustomerAccountResponseObj struct {
+	CustomerAccountId int64   `json:"customer_account_id"`
+	AccountNumber     string  `json:"account_number"`
+	AccountAlias      string  `json:"account_alias"`
+	Balance           float64 `json:"balance"`
+	FrozenAmount      float64 `json:"frozen_amount"`
+	BalanceBefore     float64 `json:"balance_before"`
+	DateCreated       string  `json:"date_created"`
+	Active            int     `json:"active"`
+}
+
+type CreateCustomerAccountApiResponse struct {
+	StatusCode    string                      `json:"statusCode"`
+	StatusMessage string                      `json:"statusMessage"`
+	Result        *CustomerAccountResponseObj `json:"result,omitempty"`
+}
+
+type CustomerApprovalAccountsResponse struct {
+	StatusCode    string                        `json:"statusCode"`
+	StatusMessage string                        `json:"statusMessage"`
+	Result        []*CustomerAccountResponseObj `json:"result,omitempty"`
 }

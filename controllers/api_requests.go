@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	apifunctions "msys_payment_app_gateway/controllers/api_functions"
+	"msys_payment_app_gateway/controllers/helpers"
 	"msys_payment_app_gateway/models"
 	"msys_payment_app_gateway/structs/requests"
 	"msys_payment_app_gateway/structs/responses"
@@ -37,6 +38,8 @@ func (c *Api_requestsController) URLMapping() {
 	c.Mapping("AccountBalance", c.AccountBalance)
 	c.Mapping("ResetPin", c.ResetPin)
 	c.Mapping("GetCustomerDetails", c.GetCustomerDetails)
+	c.Mapping("RegisterAccount", c.RegisterAccount)
+
 }
 
 // GetCorporatives ...
@@ -269,6 +272,13 @@ func (c *Api_requestsController) GetCustomerDetails() {
 				StatusMessage: "Customer fetched successfully",
 				Result:        &customerResp,
 			}
+
+			if customerData.Active == 2 {
+				// Fetch customer corporatives
+
+				helpers.CheckAccountsStatus(&c.Controller, customerData)
+
+			}
 		} else {
 			logs.Error("Error fetching customer corporatives: ", err)
 			response = responses.CustomerGatewayResponseDTO{
@@ -308,6 +318,17 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 	// phoneNumber := c.Ctx.Input.Header("PhoneNumber")
 	sourceSystem := c.Ctx.Input.Header("SourceSystem")
 
+	cust := c.Ctx.Input.GetData("customer")
+
+	logs.Info("Customer details: %s", cust)
+	customerData, ok := cust.(*responses.Customer)
+	if !ok {
+		logs.Error("Error asserting customer data")
+		c.Data["json"] = "Invalid customer data"
+		c.ServeJSON()
+		return
+	}
+
 	var req requests.NumberExistsApiRequest
 	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
 
@@ -332,7 +353,7 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 	var v models.Api_requests = models.Api_requests{
 		Request:      string(reqText),
 		PhoneNumber:  phoneNumber,
-		RequestType:  "List Customer Accounts",
+		RequestType:  "Get Customer Accounts",
 		RequestDate:  time.Now(),
 		DateCreated:  time.Now(),
 		DateModified: time.Now(),
@@ -346,71 +367,51 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 			Result:        nil,
 		}
 
-		var clientId int64
-		clientId, err = strconv.ParseInt(req.ClientId, 10, 64)
-		if err != nil {
-			logs.Error("Error converting ClientId to int64: ", err)
-			response = responses.CustomerAccountsResponse{
-				StatusCode:    false,
-				StatusMessage: "Invalid ClientId",
-				Result:        nil,
-			}
-			c.Ctx.Output.SetStatus(400)
-			c.Data["json"] = response
-		}
+		if customerData != nil {
+			switch customerData.Active {
+			case 1:
+				resp := apifunctions.GetCustomerAccounts(&c.Controller, strconv.FormatInt(customerData.CustomerId, 10))
+				logs.Info("Response from customer accounts API: ", resp)
 
-		if client, err := models.GetClientsById(clientId); err == nil {
-
-			clientCorpId := client.ClientCorpId
-
-			listAccountsRequest := requests.NumberExistsApiRequest{
-				MobileNumber: phoneNumber,
-				ClientId:     clientCorpId,
-			}
-
-			logs.Info("Formatted request for customer accounts: ", listAccountsRequest)
-			resp := apifunctions.ListCustomerAccounts(&c.Controller, listAccountsRequest)
-			logs.Info("Response from customer accounts API: ", resp)
-
-			if resp.Data.StatusCode != 200 {
-				response = responses.CustomerAccountsResponse{
-					StatusCode:    false,
-					StatusMessage: resp.Data.StatusMessage,
-					Result:        nil,
-				}
-			} else {
-				responseText, err := json.Marshal(response.Result)
-				if err != nil {
-					logs.Error("Error marshalling response result: ", err)
-					responseText = []byte("[]")
-				}
-				v.RequestResponse = string(responseText)
-				v.DateModified = time.Now()
-				v.ResponseDate = time.Now()
-				if err := models.UpdateApi_requestsById(&v); err != nil {
-					logs.Error("Error updating API request with response: ", err)
+				if resp.StatusCode != 200 {
+					response = responses.CustomerAccountsResponse{
+						StatusCode:    false,
+						StatusMessage: resp.StatusDesc,
+						Result:        nil,
+					}
 				} else {
-					logs.Info("API request updated with response successfully: ", v)
-				}
-				response = responses.CustomerAccountsResponse{
-					StatusCode:    true,
-					StatusMessage: "Accounts fetched successfully",
-					Result:        resp.Data.Result,
+					responseText, err := json.Marshal(response.Result)
+					if err != nil {
+						logs.Error("Error marshalling response result: ", err)
+						responseText = []byte("[]")
+					}
+					v.RequestResponse = string(responseText)
+					v.DateModified = time.Now()
+					v.ResponseDate = time.Now()
+					if err := models.UpdateApi_requestsById(&v); err != nil {
+						logs.Error("Error updating API request with response: ", err)
+					} else {
+						logs.Info("API request updated with response successfully: ", v)
+					}
+					response = responses.CustomerAccountsResponse{
+						StatusCode:    true,
+						StatusMessage: "Accounts fetched successfully",
+						Result:        resp.Result,
+					}
 				}
 			}
 
-			c.Ctx.Output.SetStatus(200)
-			c.Data["json"] = response
+			go helpers.CheckAccountsStatus(&c.Controller, customerData)
 		} else {
-			logs.Error("Error fetching client details: ", err)
 			response = responses.CustomerAccountsResponse{
 				StatusCode:    false,
-				StatusMessage: "Something went wrong:: " + err.Error(),
+				StatusMessage: "Invalid customer data",
 				Result:        nil,
 			}
-			c.Ctx.Output.SetStatus(400)
-			c.Data["json"] = response
 		}
+
+		c.Ctx.Output.SetStatus(200)
+		c.Data["json"] = response
 
 	} else {
 		var response responses.CustomerAccountsResponse = responses.CustomerAccountsResponse{
@@ -432,7 +433,7 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 // @Success 201 {int} models.Api_requests
 // @Failure 403 body is empty
 // @router /register-account [post]
-func (c *Auth_requestsController) RegisterAccount() {
+func (c *Api_requestsController) RegisterAccount() {
 	// Extract headers
 	// phoneNumber := c.Ctx.Input.Header("PhoneNumber")
 	sourceSystem := c.Ctx.Input.Header("SourceSystem")
@@ -495,6 +496,21 @@ func (c *Auth_requestsController) RegisterAccount() {
 					Result:        nil,
 				}
 			} else {
+				// logs.Info("Mobile Number: ", req.MobileNumber)
+				// logs.Info("First Name: ", req.FirstName)
+				// logs.Info("Last Name: ", req.LastName)
+				// registerAccountRequest := requests.OpenAccountApiRequest{
+				// 	FirstName:    req.FirstName,
+				// 	LastName:     req.LastName,
+				// 	Gender:       req.Gender,
+				// 	MobileNumber: req.MobileNumber,
+				// 	ClientId:     client.ClientCorpId,
+				// }
+
+				// logs.Info("Formatted request for Register account: ", registerAccountRequest)
+				// resp := apifunctions.OpenAccount(&c.Controller, registerAccountRequest)
+				// logs.Info("Response from Register account API: ", resp)
+
 				logs.Info("Mobile Number: ", req.MobileNumber)
 				logs.Info("First Name: ", req.FirstName)
 				logs.Info("Last Name: ", req.LastName)
@@ -1971,3 +1987,133 @@ func (c *Api_requestsController) ValidateCustomer() {
 	}
 	c.ServeJSON()
 }
+
+// GetCustomerCorporativeAccounts ...
+// @Title Get Customer Corporative Accounts
+// @Description Get customer accounts
+// @Param	Authorization		header 	string true		"header for User"
+// @Param	SourceSystem		header 	string true		"header for Source system"
+// @Param	body		body 	requests.NumberExistsApiRequest	true		"body for Request content"
+// @Success 201 {int} models.Api_requests
+// @Failure 403 body is empty
+// @router /get-customer-corporative-accounts [post]
+// func (c *Api_requestsController) GetCustomerCorporativeAccounts() {
+// 	// Extract headers
+// 	// phoneNumber := c.Ctx.Input.Header("PhoneNumber")
+// 	sourceSystem := c.Ctx.Input.Header("SourceSystem")
+
+// 	var req requests.NumberExistsApiRequest
+// 	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
+
+// 	phoneNumber := req.MobileNumber
+
+// 	logs.Info("Get customer accounts called with PhoneNumber: %s, SourceSystem: %s", phoneNumber, sourceSystem)
+// 	reqBody := c.Ctx.Input.RequestBody
+// 	reqHeaders := c.Ctx.Request.Header
+
+// 	requestMap := map[string]interface{}{
+// 		"headers": reqHeaders,
+// 		"body":    string(reqBody),
+// 	}
+
+// 	reqText, err := json.Marshal(requestMap)
+// 	if err != nil {
+// 		logs.Error("Error marshalling request input: ", err)
+// 		c.Data["json"] = err.Error()
+// 		c.ServeJSON()
+// 		return
+// 	}
+// 	var v models.Api_requests = models.Api_requests{
+// 		Request:      string(reqText),
+// 		PhoneNumber:  phoneNumber,
+// 		RequestType:  "List Customer Accounts",
+// 		RequestDate:  time.Now(),
+// 		DateCreated:  time.Now(),
+// 		DateModified: time.Now(),
+// 	}
+// 	if _, err := models.AddApi_requests(&v); err == nil {
+// 		logs.Info("API request logged successfully: ", v)
+
+// 		var response responses.CustomerAccountsResponse = responses.CustomerAccountsResponse{
+// 			StatusCode:    false,
+// 			StatusMessage: "Something went wrong",
+// 			Result:        nil,
+// 		}
+
+// 		var clientId int64
+// 		clientId, err = strconv.ParseInt(req.ClientId, 10, 64)
+// 		if err != nil {
+// 			logs.Error("Error converting ClientId to int64: ", err)
+// 			response = responses.CustomerAccountsResponse{
+// 				StatusCode:    false,
+// 				StatusMessage: "Invalid ClientId",
+// 				Result:        nil,
+// 			}
+// 			c.Ctx.Output.SetStatus(400)
+// 			c.Data["json"] = response
+// 		}
+
+// 		if client, err := models.GetClientsById(clientId); err == nil {
+
+// 			clientCorpId := client.ClientCorpId
+
+// 			listAccountsRequest := requests.NumberExistsApiRequest{
+// 				MobileNumber: phoneNumber,
+// 				ClientId:     clientCorpId,
+// 			}
+
+// 			logs.Info("Formatted request for customer accounts: ", listAccountsRequest)
+// 			resp := apifunctions.ListCustomerAccounts(&c.Controller, listAccountsRequest)
+// 			logs.Info("Response from customer accounts API: ", resp)
+
+// 			if resp.Data.StatusCode != 200 {
+// 				response = responses.CustomerAccountsResponse{
+// 					StatusCode:    false,
+// 					StatusMessage: resp.Data.StatusMessage,
+// 					Result:        nil,
+// 				}
+// 			} else {
+// 				responseText, err := json.Marshal(response.Result)
+// 				if err != nil {
+// 					logs.Error("Error marshalling response result: ", err)
+// 					responseText = []byte("[]")
+// 				}
+// 				v.RequestResponse = string(responseText)
+// 				v.DateModified = time.Now()
+// 				v.ResponseDate = time.Now()
+// 				if err := models.UpdateApi_requestsById(&v); err != nil {
+// 					logs.Error("Error updating API request with response: ", err)
+// 				} else {
+// 					logs.Info("API request updated with response successfully: ", v)
+// 				}
+// 				response = responses.CustomerAccountsResponse{
+// 					StatusCode:    true,
+// 					StatusMessage: "Accounts fetched successfully",
+// 					Result:        resp.Data.Result,
+// 				}
+// 			}
+
+// 			c.Ctx.Output.SetStatus(200)
+// 			c.Data["json"] = response
+// 		} else {
+// 			logs.Error("Error fetching client details: ", err)
+// 			response = responses.CustomerAccountsResponse{
+// 				StatusCode:    false,
+// 				StatusMessage: "Something went wrong:: " + err.Error(),
+// 				Result:        nil,
+// 			}
+// 			c.Ctx.Output.SetStatus(400)
+// 			c.Data["json"] = response
+// 		}
+
+// 	} else {
+// 		var response responses.CustomerAccountsResponse = responses.CustomerAccountsResponse{
+// 			StatusCode:    false,
+// 			StatusMessage: "Something went wrong:: " + err.Error(),
+// 			Result:        nil,
+// 		}
+
+// 		c.Data["json"] = response
+// 	}
+// 	c.ServeJSON()
+// }

@@ -52,6 +52,28 @@ type OpenAccountApiRequest struct {
 	ClientId     string
 }
 
+type VerifyCustomerApiRequest struct {
+	Username     string
+	FirstName    string
+	LastName     string
+	Email        string
+	Dob          string
+	Gender       string
+	MobileNumber string
+	ClientId     string
+}
+
+type ActivateVerifiedCustomerRequest struct {
+	MobileNumber string
+	Username     string
+}
+
+type ActivateVerifiedCustomerApiRequest struct {
+	MobileNumber string
+	Username     string
+	ClientId     string
+}
+
 type NumberExistsApiRequest struct {
 	MobileNumber string
 	ClientId     string
@@ -86,6 +108,7 @@ type AddCustomer struct {
 	CustomerType string
 	Branch       string
 	Dob          string
+	Status       string
 }
 
 type ResetPinRequest struct {
@@ -187,4 +210,12 @@ type AddCustomerCredential struct {
 	Username   string
 	Password   string
 	Pin        string
+}
+
+type CreateCustomerAccountApiRequest struct {
+	AccountNumber string
+	AccountAlias  string
+	Balance       float64
+	CreatedBy     int
+	Active        int
 }
