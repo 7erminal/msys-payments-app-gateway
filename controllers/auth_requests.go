@@ -295,6 +295,10 @@ func (c *Auth_requestsController) Register() {
 				customerCorporative := models.Customer_corporatives{
 					CustomerNumber: resp.Customer.CustomerNumber,
 					CorpId:         client, // Assuming default corp ID, can be changed later
+					IsActive:       0,      // Set to inactive until verified
+					CreatedBy:      1,
+					ModifiedBy:     1,
+					IsDefault:      1,
 				}
 
 				if _, err := models.AddCustomer_corporatives(&customerCorporative); err != nil {

@@ -320,14 +320,15 @@ func GetCustomerCount(c *beego.Controller, query string, search string) (resp re
 	return data
 }
 
-func UpdateCustomer(c *beego.Controller, id string, userid string, req requests.UpdateCustomer, branch int64) (resp responses.CustomerResponseDTO) {
+func UpdateCustomer(c *beego.Controller, req requests.UpdateCustomer) (resp responses.CustomerResponseDTO) {
 	host, _ := beego.AppConfig.String("customerBaseUrl")
 
 	logs.Info("Sending first name ", req.Name)
 
 	logs.Info("Sending email ", req.Email)
 
-	branchid := strconv.FormatInt(branch, 10)
+	branchid := strconv.FormatInt(req.Branch, 10)
+	customerId := strconv.FormatInt(req.CustomerId, 10)
 
 	// Get date
 	now := time.Now()
@@ -344,7 +345,7 @@ func UpdateCustomer(c *beego.Controller, id string, userid string, req requests.
 
 	request := api.NewRequest(
 		host,
-		"/v1/customers/"+id,
+		"/v1/customers/"+customerId,
 		api.PUT)
 	request.Params["Name"] = req.Name
 	request.Params["Email"] = req.Email
@@ -352,7 +353,7 @@ func UpdateCustomer(c *beego.Controller, id string, userid string, req requests.
 	request.Params["PhoneNumber"] = req.PhoneNumber
 	request.Params["IdNumber"] = req.IdNumber
 	request.Params["Dob"] = dob
-	request.Params["ModifiedBy"] = userid
+	request.Params["ModifiedBy"] = strconv.FormatInt(req.UserId, 10)
 	request.Params["Location"] = req.Location
 	request.FileField["CustomerImage"] = req.ImagePath
 	request.Params["Branch"] = branchid

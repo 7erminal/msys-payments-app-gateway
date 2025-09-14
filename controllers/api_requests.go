@@ -276,7 +276,7 @@ func (c *Api_requestsController) GetCustomerDetails() {
 			if customerData.Active == 2 {
 				// Fetch customer corporatives
 
-				helpers.CheckAccountsStatus(&c.Controller, customerData)
+				helpers.CheckProfileCompletion(&c.Controller, customerData)
 
 			}
 		} else {
@@ -401,7 +401,7 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 				}
 			}
 
-			go helpers.CheckAccountsStatus(&c.Controller, customerData)
+			// go helpers.CheckAccountsStatus(&c.Controller, customerData)
 		} else {
 			response = responses.CustomerAccountsResponse{
 				StatusCode:    false,
@@ -514,10 +514,22 @@ func (c *Api_requestsController) RegisterAccount() {
 				logs.Info("Mobile Number: ", req.MobileNumber)
 				logs.Info("First Name: ", req.FirstName)
 				logs.Info("Last Name: ", req.LastName)
+
+				gender := "N"
+				switch genderStr := strings.ToLower(req.Gender); genderStr {
+				case "male":
+					gender = "M"
+				case "female":
+					gender = "F"
+				case "m":
+					gender = "M"
+				case "f":
+					gender = "F"
+				}
 				registerAccountRequest := requests.OpenAccountApiRequest{
 					FirstName:    req.FirstName,
 					LastName:     req.LastName,
-					Gender:       req.Gender,
+					Gender:       gender,
 					MobileNumber: req.MobileNumber,
 					ClientId:     client.ClientCorpId,
 				}

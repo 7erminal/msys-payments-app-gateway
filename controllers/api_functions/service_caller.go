@@ -286,14 +286,14 @@ func FetchApprovedAccounts(c *beego.Controller, clientId string) (resp responses
 	request := api.NewRequest(
 		host,
 		"/v2/api/fetch-approved-customers",
-		api.POST)
+		api.GET)
 	// request.Params["username"] = username
 	// request.Params = {"UserId": strconv.Itoa(int(userid))}
 	request.HeaderField["clientId"] = clientId
 
 	client := api.Client{
 		Request: request,
-		Type_:   "body",
+		Type_:   "params",
 	}
 	res, err := client.SendRequest()
 	if err != nil {

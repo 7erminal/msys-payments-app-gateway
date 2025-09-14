@@ -151,15 +151,17 @@ type EmailPasswordReq struct {
 }
 
 type UpdateCustomer struct {
-	Email            string
-	Name             string
-	PhoneNumber      string
-	Location         string
-	IdType           string
-	IdNumber         string
-	ImagePath        string
-	EmergencyContact []EditCustomerEmergencyContact
-	Guarantor        []EditCustomerGuarantor
+	Email       string
+	Name        string
+	PhoneNumber string
+	Location    string
+	IdType      string
+	IdNumber    string
+	ImagePath   string
+	Branch      int64
+	UserId      int64
+	CustomerId  int64
+	Status      int
 }
 
 type AddCustomerEmergencyContact struct {
