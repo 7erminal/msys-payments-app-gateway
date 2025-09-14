@@ -329,6 +329,7 @@ func UpdateCustomer(c *beego.Controller, req requests.UpdateCustomer) (resp resp
 
 	branchid := strconv.FormatInt(req.Branch, 10)
 	customerId := strconv.FormatInt(req.CustomerId, 10)
+	status := strconv.Itoa(req.Status)
 
 	// Get date
 	now := time.Now()
@@ -357,6 +358,7 @@ func UpdateCustomer(c *beego.Controller, req requests.UpdateCustomer) (resp resp
 	request.Params["Location"] = req.Location
 	request.FileField["CustomerImage"] = req.ImagePath
 	request.Params["Branch"] = branchid
+	request.Params["Status"] = status
 	// request.Params = {"UserId": strconv.Itoa(int(userid))}
 	client := api.Client{
 		Request: request,
