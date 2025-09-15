@@ -440,6 +440,12 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 
 											if addAccountResponse.StatusCode == "200" {
 												logs.Info("Account added successfully: ", addAccountResponse.Result)
+												corpDTO.IsActive = 1
+												if err := models.UpdateCustomer_corporativesById(&corpDTO); err != nil {
+													logs.Error("Error updating customer corporative to active: ", err)
+												} else {
+													logs.Info("Customer corporative updated to active successfully: ", corpDTO)
+												}
 											} else {
 												logs.Error("Error adding account: ", addAccountResponse.StatusMessage)
 											}
