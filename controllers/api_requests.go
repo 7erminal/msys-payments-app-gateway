@@ -275,6 +275,7 @@ func (c *Api_requestsController) GetCustomerDetails() {
 			}
 
 			if customerData.Active == 2 {
+				logs.Info("Customer is pending activation, checking accounts and profile completion")
 				// Fetch customer corporatives
 
 				helpers.CheckProfileCompletion(&c.Controller, customerData)
