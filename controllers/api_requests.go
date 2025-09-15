@@ -303,6 +303,7 @@ func (c *Api_requestsController) GetCustomerDetails() {
 
 		c.Data["json"] = response
 	}
+	logs.Info("Final response to be sent: ", c.Data["json"])
 	c.ServeJSON()
 }
 
