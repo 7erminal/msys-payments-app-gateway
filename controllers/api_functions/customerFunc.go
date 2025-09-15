@@ -331,6 +331,9 @@ func UpdateCustomer(c *beego.Controller, req requests.UpdateCustomer) (resp resp
 	customerId := strconv.FormatInt(req.CustomerId, 10)
 	status := strconv.Itoa(req.Status)
 
+	logs.Info("Customer status is ", req.Status)
+	logs.Info("Customer status string is ", status)
+
 	// Get date
 	now := time.Now()
 	y, m, d := now.Date()
