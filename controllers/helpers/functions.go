@@ -177,6 +177,53 @@ func CheckProfileCompletion(c *beego.Controller, customerData *responses.Custome
 	}
 }
 
+func FetchCustomerAccounts(c *beego.Controller, customerData *responses.Customer, corpDTO models.Customer_corporatives, phoneNumber string) {
+	logs.Info("Fetching accounts for customer: ", customerData.CustomerNumber)
+	if corp, err := models.GetClientsById(corpDTO.CorpId.Id); err == nil {
+		corpCode := corp.ClientCode
+
+		req := requests.NumberExistsApiRequest{
+			MobileNumber: phoneNumber,
+			ClientId:     corpCode,
+		}
+
+		listAccountResponse := apifunctions.ListCustomerAccounts(c, req)
+
+		if listAccountResponse.StatusCode == 200 {
+			logs.Info("Accounts fetched successfully for corporative ", corp.ClientName)
+			if listAccountResponse.Result != nil && len(*listAccountResponse.Result) > 0 {
+				for _, account := range *listAccountResponse.Result {
+					logs.Info("Processing account: ", account)
+
+					accountAlias := account.AccountNumber
+					addAccountRequest := requests.CreateCustomerAccountApiRequest{
+						AccountNumber: account.AccountNumber,
+						AccountAlias:  accountAlias,
+						CreatedBy:     int(customerData.CustomerId),
+						Active:        1,
+					}
+
+					addAccountResponse := apifunctions.AddCustomerAccount(c, addAccountRequest)
+
+					if addAccountResponse.StatusCode == "200" {
+						logs.Info("Account added successfully: ", addAccountResponse.Result)
+						corpDTO.IsActive = 1
+						if err := models.UpdateCustomer_corporativesById(&corpDTO); err != nil {
+							logs.Error("Error updating customer corporative to active: ", err)
+						} else {
+							logs.Info("Customer corporative updated to active successfully: ", corpDTO)
+						}
+					} else {
+						logs.Error("Error adding account: ", addAccountResponse.StatusMessage)
+					}
+				}
+			}
+		} else {
+			logs.Error("Error fetching accounts for corporative ", corp.ClientName, ": ", listAccountResponse.StatusDesc)
+		}
+	}
+}
+
 func CheckAccountsStatus(c *beego.Controller, customerData *responses.Customer) {
 	var fields []string
 	var sortby []string
