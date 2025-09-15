@@ -90,31 +90,27 @@ func CheckProfileCompletion(c *beego.Controller, customerData *responses.Custome
 								} else {
 									logs.Info("Account authorized successfully: ", authorizeAccountResp.Result)
 									// Update corporative as active
-									corpDTO.IsActive = 1
-									if err := models.UpdateCustomer_corporativesById(&corpDTO); err != nil {
-										logs.Error("Error updating customer corporative as active: ", err)
-									} else {
-										logs.Info("Customer corporative updated as active successfully")
 
-										active := 1
-										updateCustomer := requests.UpdateCustomer{
-											Name:        customerData.FullName,
-											Email:       customerData.Email,
-											PhoneNumber: customerData.PhoneNumber,
-											IdNumber:    customerData.IdentificationNumber,
-											Location:    customerData.Location,
-											Branch:      1, // Assuming default branch
-											UserId:      1, // Assuming system user
-											CustomerId:  customerData.CustomerId,
-											Status:      active,
-										}
-										updateCustomerResp := apifunctions.UpdateCustomer(c, updateCustomer)
-										logs.Info("Update customer response: ", updateCustomerResp)
-										if updateCustomerResp.StatusCode != 200 {
-											logs.Error("Error updating customer status: ", updateCustomerResp.StatusDesc)
-										} else {
-											logs.Info("Customer status updated successfully: ", updateCustomerResp.Customer)
-										}
+									logs.Info("Customer corporative updated as active successfully")
+
+									active := 1
+									updateCustomer := requests.UpdateCustomer{
+										Name:        customerData.FullName,
+										Email:       customerData.Email,
+										PhoneNumber: customerData.PhoneNumber,
+										IdNumber:    customerData.IdentificationNumber,
+										Location:    customerData.Location,
+										Branch:      1, // Assuming default branch
+										UserId:      1, // Assuming system user
+										CustomerId:  customerData.CustomerId,
+										Status:      active,
+									}
+									updateCustomerResp := apifunctions.UpdateCustomer(c, updateCustomer)
+									logs.Info("Update customer response: ", updateCustomerResp)
+									if updateCustomerResp.StatusCode != 200 {
+										logs.Error("Error updating customer status: ", updateCustomerResp.StatusDesc)
+									} else {
+										logs.Info("Customer status updated successfully: ", updateCustomerResp.Customer)
 									}
 
 								}

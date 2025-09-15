@@ -381,8 +381,10 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 			var limit int64 = 10
 			var offset int64
 
+			logs.Info("Customer status is ", customerData.Active)
 			switch customerData.Active {
 			case 1, 2:
+				logs.Info("Customer is active or pending activation, fetching accounts")
 				customerNumberSearch := "CustomerNumber:" + customerData.CustomerNumber
 
 				// query: k:v,k:v
