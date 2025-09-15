@@ -258,6 +258,7 @@ func (c *Api_requestsController) GetCustomerDetails() {
 				Email:                customerData.Email,
 				PhoneNumber:          customerData.PhoneNumber,
 				Location:             customerData.Location,
+				Gender:               customerData.Gender,
 				IdentificationType:   customerData.IdentificationType,
 				IdentificationNumber: customerData.IdentificationNumber,
 				DateCreated:          customerData.DateCreated,
@@ -308,6 +309,7 @@ func (c *Api_requestsController) GetCustomerDetails() {
 // @Title Get Customer Accounts
 // @Description Get customer accounts
 // @Param	Authorization		header 	string true		"header for User"
+// @Param	PhoneNumber		header 	string true		"header for Customer's phone number"
 // @Param	SourceSystem		header 	string true		"header for Source system"
 // @Param	body		body 	requests.NumberExistsApiRequest	true		"body for Request content"
 // @Success 201 {int} models.Api_requests
@@ -370,34 +372,121 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 		if customerData != nil {
 			switch customerData.Active {
 			case 1:
-				resp := apifunctions.GetCustomerAccounts(&c.Controller, strconv.FormatInt(customerData.CustomerId, 10))
-				logs.Info("Response from customer accounts API: ", resp)
+				var fields []string
+				var sortby []string
+				var order []string
+				var query = make(map[string]string)
+				var limit int64 = 10
+				var offset int64
 
-				if resp.StatusCode != 200 {
-					response = responses.CustomerAccountsResponse{
-						StatusCode:    false,
-						StatusMessage: resp.StatusDesc,
-						Result:        nil,
+				customerNumberSearch := "CustomerNumber:" + customerData.CustomerNumber
+
+				// query: k:v,k:v
+				if v := customerNumberSearch; v != "" {
+					for _, cond := range strings.Split(v, ",") {
+						kv := strings.SplitN(cond, ":", 2)
+						if len(kv) != 2 {
+							c.Data["json"] = errors.New("Error: invalid query key/value pair")
+							c.ServeJSON()
+							return
+						}
+						k, v := kv[0], kv[1]
+						query[k] = v
 					}
-				} else {
-					responseText, err := json.Marshal(response.Result)
-					if err != nil {
-						logs.Error("Error marshalling response result: ", err)
-						responseText = []byte("[]")
+				}
+				logs.Debug("Query for customer corporatives is ", query)
+
+				if customerCorporatives, err := models.GetAllCustomer_corporatives(query, fields, sortby, order, offset, limit); err == nil {
+					for _, v := range customerCorporatives {
+						logs.Debug("Returned customer corporative data is ", v)
+						// Convert to DTO
+						var corpDTO models.Customer_corporatives
+						corpBytes, err := json.Marshal(v)
+						if err != nil {
+							logs.Error("Error marshalling customer corporative data: ", err)
+							continue
+						}
+						if err := json.Unmarshal(corpBytes, &corpDTO); err != nil {
+							logs.Error("Error unmarshalling customer corporative data: ", err)
+						}
+						logs.Info("Customer corporative DTO: ", corpDTO)
+
+						if corpDTO.IsActive == 0 {
+							if corp, err := models.GetClientsById(corpDTO.CorpId.Id); err == nil {
+								corpCode := corp.ClientCode
+
+								req := requests.NumberExistsApiRequest{
+									MobileNumber: phoneNumber,
+									ClientId:     corpCode,
+								}
+
+								listAccountResponse := apifunctions.ListCustomerAccounts(&c.Controller, req)
+
+								if listAccountResponse.StatusCode == 200 {
+									logs.Info("Accounts fetched successfully for corporative ", corp.ClientName)
+									if listAccountResponse.Result != nil && len(*listAccountResponse.Result) > 0 {
+										for _, account := range *listAccountResponse.Result {
+											logs.Info("Processing account: ", account)
+
+											accountAlias := account.AccountNumber
+											addAccountRequest := requests.CreateCustomerAccountApiRequest{
+												AccountNumber: account.AccountNumber,
+												AccountAlias:  accountAlias,
+												CreatedBy:     int(customerData.CustomerId),
+												Active:        1,
+											}
+
+											addAccountResponse := apifunctions.AddCustomerAccount(&c.Controller, addAccountRequest)
+
+											if addAccountResponse.StatusCode == "200" {
+												logs.Info("Account added successfully: ", addAccountResponse.Result)
+											} else {
+												logs.Error("Error adding account: ", addAccountResponse.StatusMessage)
+											}
+										}
+									}
+								} else {
+									logs.Error("Error fetching accounts for corporative ", corp.ClientName, ": ", listAccountResponse.StatusDesc)
+								}
+							}
+						}
 					}
-					v.RequestResponse = string(responseText)
-					v.DateModified = time.Now()
-					v.ResponseDate = time.Now()
-					if err := models.UpdateApi_requestsById(&v); err != nil {
-						logs.Error("Error updating API request with response: ", err)
+
+					resp := apifunctions.GetCustomerAccounts(&c.Controller, strconv.FormatInt(customerData.CustomerId, 10))
+					logs.Info("Response from customer accounts API: ", resp)
+
+					if resp.StatusCode != 200 {
+						response = responses.CustomerAccountsResponse{
+							StatusCode:    false,
+							StatusMessage: resp.StatusDesc,
+							Result:        nil,
+						}
 					} else {
-						logs.Info("API request updated with response successfully: ", v)
+						responseText, err := json.Marshal(response.Result)
+						if err != nil {
+							logs.Error("Error marshalling response result: ", err)
+							responseText = []byte("[]")
+						}
+						v.RequestResponse = string(responseText)
+						v.DateModified = time.Now()
+						v.ResponseDate = time.Now()
+						if err := models.UpdateApi_requestsById(&v); err != nil {
+							logs.Error("Error updating API request with response: ", err)
+						} else {
+							logs.Info("API request updated with response successfully: ", v)
+						}
+						response = responses.CustomerAccountsResponse{
+							StatusCode:    true,
+							StatusMessage: "Accounts fetched successfully",
+							Result:        resp.Result,
+						}
 					}
-					response = responses.CustomerAccountsResponse{
-						StatusCode:    true,
-						StatusMessage: "Accounts fetched successfully",
-						Result:        resp.Result,
-					}
+				}
+			default:
+				response = responses.CustomerAccountsResponse{
+					StatusCode:    false,
+					StatusMessage: "Customer is not active",
+					Result:        nil,
 				}
 			}
 
@@ -428,15 +517,28 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 // RegisterAccount ...
 // @Title Register Account
 // @Description Register customer
+// @Param	Authorization		header 	string true		"header for User"
 // @Param	SourceSystem		header 	string true		"header for Source system"
+// @Param	PhoneNumber		header 	string true		"header for Customer's phone number"
 // @Param	body		body 	requests.OpenAccountRequest	true		"body for Request content"
 // @Success 201 {int} models.Api_requests
 // @Failure 403 body is empty
 // @router /register-account [post]
 func (c *Api_requestsController) RegisterAccount() {
 	// Extract headers
-	// phoneNumber := c.Ctx.Input.Header("PhoneNumber")
+	phoneNumber := c.Ctx.Input.Header("PhoneNumber")
 	sourceSystem := c.Ctx.Input.Header("SourceSystem")
+
+	cust := c.Ctx.Input.GetData("customer")
+
+	logs.Info("Customer details: %s", cust)
+	customerData, ok := cust.(*responses.Customer)
+	if !ok {
+		logs.Error("Error asserting customer data")
+		c.Data["json"] = "Invalid customer data"
+		c.ServeJSON()
+		return
+	}
 
 	var req requests.OpenAccountRequest
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &req); err != nil {
@@ -462,9 +564,11 @@ func (c *Api_requestsController) RegisterAccount() {
 		c.ServeJSON()
 		return
 	}
+
+	var response responses.RegisterAccountResponse
 	var v models.Api_requests = models.Api_requests{
 		Request:      string(reqText),
-		PhoneNumber:  req.MobileNumber,
+		PhoneNumber:  phoneNumber,
 		RequestType:  "Register Account",
 		RequestDate:  time.Now(),
 		DateCreated:  time.Now(),
@@ -473,96 +577,83 @@ func (c *Api_requestsController) RegisterAccount() {
 	if _, err := models.AddApi_requests(&v); err == nil {
 		logs.Info("API request logged successfully: ", v)
 
-		mobileNumberValidation := requests.MobileNumberRequest{
-			MobileNumber: req.MobileNumber,
-		}
+		logs.Info("Customer exists: ", customerData.CustomerNumber)
 
-		checkCustomer := apifunctions.GetCustomer(&c.Controller, mobileNumberValidation)
+		if client, err := models.GetClientsById(req.ClientId); err != nil {
+			logs.Error("Error getting client by ID: ", err)
+			response = responses.RegisterAccountResponse{
+				StatusCode:    false,
+				StatusMessage: "Error getting client by ID: " + err.Error(),
+				Result:        nil,
+			}
+		} else {
+			// logs.Info("Mobile Number: ", req.MobileNumber)
+			// logs.Info("First Name: ", req.FirstName)
+			// logs.Info("Last Name: ", req.LastName)
+			// registerAccountRequest := requests.OpenAccountApiRequest{
+			// 	FirstName:    req.FirstName,
+			// 	LastName:     req.LastName,
+			// 	Gender:       req.Gender,
+			// 	MobileNumber: req.MobileNumber,
+			// 	ClientId:     client.ClientCorpId,
+			// }
 
-		var response responses.RegisterAccountResponse = responses.RegisterAccountResponse{
-			StatusCode:    false,
-			StatusMessage: "Something went wrong",
-			Result:        nil,
-		}
+			// logs.Info("Formatted request for Register account: ", registerAccountRequest)
+			// resp := apifunctions.OpenAccount(&c.Controller, registerAccountRequest)
+			// logs.Info("Response from Register account API: ", resp)
 
-		if checkCustomer.StatusCode == 200 && checkCustomer.Customer != nil {
-			logs.Info("Customer exists: ", checkCustomer.Customer)
+			logs.Info("Mobile Number: ", customerData.PhoneNumber)
+			logs.Info("First Name: ", customerData.FullName)
+			logs.Info("Last Name: ", customerData.FullName)
+			logs.Info("Gender: ", customerData.Dob)
 
-			if client, err := models.GetClientsById(req.ClientId); err != nil {
-				logs.Error("Error getting client by ID: ", err)
+			gender := "N"
+			switch genderStr := strings.ToLower(customerData.Gender); genderStr {
+			case "male":
+				gender = "M"
+			case "female":
+				gender = "F"
+			case "m":
+				gender = "M"
+			case "f":
+				gender = "F"
+			}
+
+			firstName := ""
+			lastName := ""
+
+			nameParts := strings.Fields(customerData.FullName)
+			if len(nameParts) > 0 {
+				firstName = nameParts[0]
+			}
+			if len(nameParts) > 1 {
+				lastName = strings.Join(nameParts[1:], " ")
+			}
+			registerAccountRequest := requests.OpenAccountApiRequest{
+				FirstName:    firstName,
+				LastName:     lastName,
+				Gender:       gender,
+				MobileNumber: customerData.PhoneNumber,
+				ClientId:     client.ClientCorpId,
+			}
+
+			logs.Info("Formatted request for Register account: ", registerAccountRequest)
+			resp := apifunctions.OpenAccount(&c.Controller, registerAccountRequest)
+			logs.Info("Response from Register account API: ", resp)
+
+			if resp.Data.StatusCode != 200 {
 				response = responses.RegisterAccountResponse{
 					StatusCode:    false,
-					StatusMessage: "Error getting client by ID: " + err.Error(),
+					StatusMessage: resp.Data.StatusMessage,
 					Result:        nil,
 				}
 			} else {
-				// logs.Info("Mobile Number: ", req.MobileNumber)
-				// logs.Info("First Name: ", req.FirstName)
-				// logs.Info("Last Name: ", req.LastName)
-				// registerAccountRequest := requests.OpenAccountApiRequest{
-				// 	FirstName:    req.FirstName,
-				// 	LastName:     req.LastName,
-				// 	Gender:       req.Gender,
-				// 	MobileNumber: req.MobileNumber,
-				// 	ClientId:     client.ClientCorpId,
-				// }
-
-				// logs.Info("Formatted request for Register account: ", registerAccountRequest)
-				// resp := apifunctions.OpenAccount(&c.Controller, registerAccountRequest)
-				// logs.Info("Response from Register account API: ", resp)
-
-				logs.Info("Mobile Number: ", req.MobileNumber)
-				logs.Info("First Name: ", req.FirstName)
-				logs.Info("Last Name: ", req.LastName)
-
-				gender := "N"
-				switch genderStr := strings.ToLower(req.Gender); genderStr {
-				case "male":
-					gender = "M"
-				case "female":
-					gender = "F"
-				case "m":
-					gender = "M"
-				case "f":
-					gender = "F"
-				}
-				registerAccountRequest := requests.OpenAccountApiRequest{
-					FirstName:    req.FirstName,
-					LastName:     req.LastName,
-					Gender:       gender,
-					MobileNumber: req.MobileNumber,
-					ClientId:     client.ClientCorpId,
-				}
-
-				logs.Info("Formatted request for Register account: ", registerAccountRequest)
-				resp := apifunctions.OpenAccount(&c.Controller, registerAccountRequest)
-				logs.Info("Response from Register account API: ", resp)
-
-				if resp.Data.StatusCode != 200 {
-					response = responses.RegisterAccountResponse{
-						StatusCode:    false,
-						StatusMessage: resp.Data.StatusMessage,
-						Result:        nil,
-					}
-				} else {
-					response = responses.RegisterAccountResponse{
-						StatusCode:    true,
-						StatusMessage: resp.Data.StatusMessage,
-						Result:        &resp.Data.Result,
-					}
+				response = responses.RegisterAccountResponse{
+					StatusCode:    true,
+					StatusMessage: resp.Data.StatusMessage,
+					Result:        &resp.Data.Result,
 				}
 			}
-
-		} else {
-			response = responses.RegisterAccountResponse{
-				StatusCode:    false,
-				StatusMessage: "Something went wrong:: " + checkCustomer.StatusDesc,
-				Result:        nil,
-			}
-			c.Ctx.Output.SetStatus(400)
-			c.Data["json"] = response
-			c.ServeJSON()
-			return
 		}
 
 		c.Ctx.Output.SetStatus(200)

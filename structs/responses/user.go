@@ -38,6 +38,12 @@ type CustAccountsData struct {
 	MobileNumber string
 }
 
+type CustCorpAccountsData struct {
+	Username      string
+	MobileNumber  string
+	AccountNumber string
+}
+
 type CustAccountsDataResponseResult struct {
 	StatusCode    int
 	StatusMessage string
@@ -49,6 +55,18 @@ type CustAccountsApiResponse struct {
 	StatusCode int
 	StatusDesc string
 	Result     *[]CustAccountsData
+}
+
+type ListCustAccountsApiResponse struct {
+	StatusCode int
+	StatusDesc string
+	Result     *[]CustCorpAccountsData
+}
+
+type CustomerAccountApiResponse struct {
+	StatusCode    string                      `json:"statusCode"`
+	StatusMessage string                      `json:"statusMessage"`
+	Result        *CustomerAccountResponseObj `json:"result,omitempty"`
 }
 
 type Identification_types struct {
@@ -75,6 +93,7 @@ type Customer struct {
 	FullName             string
 	Email                string
 	PhoneNumber          string
+	Gender               string
 	Location             string
 	IdentificationType   *Identification_types
 	IdentificationNumber string
@@ -133,6 +152,7 @@ type CustomerGateway struct {
 	ImagePath            string
 	Email                string
 	PhoneNumber          string
+	Gender               string
 	Location             string
 	IdentificationType   *Identification_types
 	IdentificationNumber string

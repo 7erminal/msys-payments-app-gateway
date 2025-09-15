@@ -228,6 +228,55 @@ func OpenAccount(c *beego.Controller, req requests.OpenAccountApiRequest) (resp 
 	return data
 }
 
+func AddAccount(c *beego.Controller, req requests.AddCustomerAccountApiRequest) (resp responses.CustomerAccountApiResponse) {
+	host, _ := beego.AppConfig.String("accountBaseUrl")
+
+	logs.Info("Adding account for user ", req.AccountNumber, " with alias ", req.AccountAlias)
+
+	request := api.NewRequest(
+		host,
+		"/v1/customer-accounts/add-account",
+		api.POST)
+	// request.Params["username"] = username
+	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+
+	request.InterfaceParams["account_number"] = req.AccountNumber
+	request.InterfaceParams["account_alias"] = req.AccountAlias
+	request.InterfaceParams["created_by"] = req.CreatedBy
+	request.InterfaceParams["active"] = req.Active
+
+	client := api.Client{
+		Request: request,
+		Type_:   "body",
+	}
+	res, err := client.SendRequest()
+	if err != nil {
+		logs.Error("client.Error: %v", err)
+		c.Data["json"] = err.Error()
+	}
+	defer res.Body.Close()
+	read, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	}
+
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, read, "", "  "); err != nil {
+		logs.Info("Raw response received is ", string(read))
+	} else {
+		logs.Info("Raw response received is \n", prettyJSON.String())
+	}
+	// data := map[string]interface{}{}
+	var data responses.CustomerAccountApiResponse
+	json.Unmarshal(read, &data)
+	c.Data["json"] = data
+
+	logs.Info("Resp is ", data)
+	// logs.Info("Resp is ", data.User)
+
+	return data
+}
+
 func VerifyCustomer(c *beego.Controller, req requests.VerifyCustomerApiRequest) (resp responses.VerifyCustomerApiResponse) {
 	host, _ := beego.AppConfig.String("clientBaseUrl")
 
@@ -329,7 +378,7 @@ func ActivateVerifiedCustomer(c *beego.Controller, req requests.ActivateVerified
 	logs.Info("Activating verified customer ", req.MobileNumber, " with username ", req.Username)
 	request := api.NewRequest(
 		host,
-		"/v2/api/verify-customer",
+		"/v2/api/activate-verified-customers",
 		api.POST)
 	// request.Params["username"] = username
 	// request.Params = {"UserId": strconv.Itoa(int(userid))}
@@ -550,13 +599,13 @@ func GetAccountBalance(c *beego.Controller, req requests.AccountBalanceApiReques
 	return data
 }
 
-func ListCustomerAccounts(c *beego.Controller, req requests.NumberExistsApiRequest) (resp responses.CustAccountsApiResponse) {
+func ListCustomerAccounts(c *beego.Controller, req requests.NumberExistsApiRequest) (resp responses.ListCustAccountsApiResponse) {
 	host, _ := beego.AppConfig.String("clientBaseUrl")
 
 	logs.Info("Listing customer accounts for number ", req.MobileNumber)
 	request := api.NewRequest(
 		host,
-		"/v2/api/list-cust-accounts",
+		"/v2/api/v2/list-cust-accounts",
 		api.POST)
 	// request.Params["username"] = username
 	// request.Params = {"UserId": strconv.Itoa(int(userid))}
@@ -586,7 +635,7 @@ func ListCustomerAccounts(c *beego.Controller, req requests.NumberExistsApiReque
 		logs.Info("Raw response received is \n", prettyJSON.String())
 	}
 	// data := map[string]interface{}{}
-	var data responses.CustAccountsApiResponse
+	var data responses.ListCustAccountsApiResponse
 	json.Unmarshal(read, &data)
 	c.Data["json"] = data
 

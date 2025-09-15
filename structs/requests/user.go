@@ -37,11 +37,7 @@ type RegisterApiRequest struct {
 }
 
 type OpenAccountRequest struct {
-	ClientId     int64  `validate:"required"`
-	FirstName    string `validate:"required"`
-	LastName     string `validate:"required"`
-	Gender       string `validate:"required"`
-	MobileNumber string `validate:"required"`
+	ClientId int64 `validate:"required"`
 }
 
 type OpenAccountApiRequest struct {
@@ -50,6 +46,13 @@ type OpenAccountApiRequest struct {
 	Gender       string
 	MobileNumber string
 	ClientId     string
+}
+
+type AddCustomerAccountApiRequest struct {
+	AccountNumber string `json:"account_number" validate:"required"`
+	AccountAlias  string `json:"account_alias" validate:"required"`
+	CreatedBy     int    `json:"created_by" validate:"required"`
+	Active        int    `json:"active" validate:"required,oneof=0 1"`
 }
 
 type VerifyCustomerApiRequest struct {

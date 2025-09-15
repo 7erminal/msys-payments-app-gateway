@@ -167,6 +167,8 @@ func CheckProfileCompletion(c *beego.Controller, customerData *responses.Custome
 						}
 					}
 
+				} else {
+					logs.Error("Error fetching client by ID: ", err)
 				}
 			}
 
