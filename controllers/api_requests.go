@@ -362,26 +362,27 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 		DateCreated:  time.Now(),
 		DateModified: time.Now(),
 	}
+
+	var response responses.CustomerAccountsResponse = responses.CustomerAccountsResponse{
+		StatusCode:    false,
+		StatusMessage: "Something went wrong",
+		Result:        nil,
+	}
+
 	if _, err := models.AddApi_requests(&v); err == nil {
 		logs.Info("API request logged successfully: ", v)
 
-		var response responses.CustomerAccountsResponse = responses.CustomerAccountsResponse{
-			StatusCode:    false,
-			StatusMessage: "Something went wrong",
-			Result:        nil,
-		}
-
 		if customerData != nil {
 			logs.Info("Customer exists: ", customerData.CustomerNumber)
-			switch customerData.Active {
-			case 1:
-				var fields []string
-				var sortby []string
-				var order []string
-				var query = make(map[string]string)
-				var limit int64 = 10
-				var offset int64
+			var fields []string
+			var sortby []string
+			var order []string
+			var query = make(map[string]string)
+			var limit int64 = 10
+			var offset int64
 
+			switch customerData.Active {
+			case 1, 2:
 				customerNumberSearch := "CustomerNumber:" + customerData.CustomerNumber
 
 				// query: k:v,k:v
@@ -467,17 +468,15 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 		}
 
 		c.Ctx.Output.SetStatus(200)
-		c.Data["json"] = response
-
 	} else {
-		var response responses.CustomerAccountsResponse = responses.CustomerAccountsResponse{
+		response = responses.CustomerAccountsResponse{
 			StatusCode:    false,
 			StatusMessage: "Something went wrong:: " + err.Error(),
 			Result:        nil,
 		}
-
-		c.Data["json"] = response
 	}
+
+	c.Data["json"] = response
 	c.ServeJSON()
 }
 
