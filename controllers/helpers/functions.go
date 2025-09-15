@@ -105,6 +105,9 @@ func CheckProfileCompletion(c *beego.Controller, customerData *responses.Custome
 										CustomerId:  customerData.CustomerId,
 										Status:      active,
 									}
+
+									logs.Info("Updating customer status to active: ", updateCustomer)
+									logs.Info("Customer status is ", active)
 									updateCustomerResp := apifunctions.UpdateCustomer(c, updateCustomer)
 									logs.Info("Update customer response: ", updateCustomerResp)
 									if updateCustomerResp.StatusCode != 200 {
