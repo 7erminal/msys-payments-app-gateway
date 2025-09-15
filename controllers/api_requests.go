@@ -372,6 +372,7 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 		}
 
 		if customerData != nil {
+			logs.Info("Customer exists: ", customerData.CustomerNumber)
 			switch customerData.Active {
 			case 1:
 				var fields []string
