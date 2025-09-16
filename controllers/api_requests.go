@@ -454,10 +454,10 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 					resp := apifunctions.GetCustomerAccounts(&c.Controller, strconv.FormatInt(customerData.CustomerId, 10))
 					logs.Info("Response from customer accounts API: ", resp)
 
-					if resp.StatusCode != 200 {
+					if resp.StatusCode != "200" {
 						response = responses.CustomerAccountsResponse{
 							StatusCode:    false,
-							StatusMessage: resp.StatusDesc,
+							StatusMessage: resp.StatusMessage,
 							Result:        nil,
 						}
 					} else {
@@ -474,10 +474,27 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 						} else {
 							logs.Info("API request updated with response successfully: ", v)
 						}
+
+						custAccounts := make([]responses.CustomerAccountResponse, 0)
+						for _, acc := range resp.Result {
+							// Map each account to the response object
+
+							custAccount := responses.CustomerAccountResponse{
+								CustomerAccountId: acc.CustomerAccountId,
+								AccountNumber:     acc.AccountNumber,
+								AccountAlias:      acc.AccountAlias,
+								Balance:           acc.Balance,
+								FrozenAmount:      acc.FrozenAmount,
+								BalanceBefore:     acc.BalanceBefore,
+								DateCreated:       acc.DateCreated,
+								Active:            acc.Active,
+							}
+							custAccounts = append(custAccounts, custAccount)
+						}
 						response = responses.CustomerAccountsResponse{
 							StatusCode:    true,
 							StatusMessage: "Accounts fetched successfully",
-							Result:        resp.Result,
+							Result:        &custAccounts,
 						}
 					}
 				}

@@ -239,10 +239,21 @@ type CustomerAccountsApiResponse struct {
 	Data CustomerAccountsDataResponseResult `json:"data"`
 }
 
+type CustomerAccountResponse struct {
+	CustomerAccountId int64
+	AccountNumber     string
+	AccountAlias      string
+	Balance           float64
+	FrozenAmount      float64
+	BalanceBefore     float64
+	DateCreated       string
+	Active            int
+}
+
 type CustomerAccountsResponse struct {
 	StatusCode    bool
 	StatusMessage string
-	Result        *[]CustAccountsData
+	Result        *[]CustomerAccountResponse
 }
 
 type CustomerCorporativeAccountsResponse struct {
