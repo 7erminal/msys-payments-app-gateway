@@ -280,6 +280,35 @@ func (c *Api_requestsController) GetCustomerDetails() {
 
 				helpers.CheckProfileCompletion(&c.Controller, customerData)
 
+				logs.Info("Date customer was created is ", customerData.DateCreated)
+
+				if customerData.Active == 2 && customerData.DateCreated != (time.Time{}) && time.Since(customerData.DateCreated) > 20*time.Minute {
+					// Do your logic here
+					logs.Info("Customer was created over 20 minutes ago")
+
+					status := 1
+
+					updatedcustmer := requests.UpdateCustomer{
+						Name:        customerData.FullName,
+						Email:       customerData.Email,
+						PhoneNumber: customerData.PhoneNumber,
+						IdNumber:    customerData.IdentificationNumber,
+						Location:    customerData.Location,
+						Branch:      1, // Assuming default branch
+						UserId:      1, // Assuming system user
+						CustomerId:  customerData.CustomerId,
+						Status:      status,
+					}
+
+					updateCustomerResp := apifunctions.UpdateCustomer(&c.Controller, updatedcustmer)
+					logs.Info("Update customer response: ", updateCustomerResp)
+					if updateCustomerResp.StatusCode != 200 {
+						logs.Error("Error updating customer status: ", updateCustomerResp.StatusDesc)
+					} else {
+						logs.Info("Customer status updated successfully: ", updateCustomerResp.Customer)
+					}
+				}
+
 			}
 		} else {
 			logs.Error("Error fetching customer corporatives: ", err)
