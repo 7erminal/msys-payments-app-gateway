@@ -616,11 +616,6 @@ func (c *Api_requestsController) RegisterAccount() {
 			// resp := apifunctions.OpenAccount(&c.Controller, registerAccountRequest)
 			// logs.Info("Response from Register account API: ", resp)
 
-			logs.Info("Mobile Number: ", customerData.PhoneNumber)
-			logs.Info("First Name: ", customerData.FullName)
-			logs.Info("Last Name: ", customerData.FullName)
-			logs.Info("Gender: ", customerData.Dob)
-
 			gender := "N"
 			switch genderStr := strings.ToLower(customerData.Gender); genderStr {
 			case "male":
@@ -643,6 +638,12 @@ func (c *Api_requestsController) RegisterAccount() {
 			if len(nameParts) > 1 {
 				lastName = strings.Join(nameParts[1:], " ")
 			}
+
+			logs.Info("Mobile Number: ", customerData.PhoneNumber)
+			logs.Info("First Name: ", firstName)
+			logs.Info("Last Name: ", lastName)
+			logs.Info("Gender: ", customerData.Gender)
+
 			registerAccountRequest := requests.OpenAccountApiRequest{
 				FirstName:    firstName,
 				LastName:     lastName,
