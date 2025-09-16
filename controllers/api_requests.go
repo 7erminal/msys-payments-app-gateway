@@ -649,7 +649,7 @@ func (c *Api_requestsController) RegisterAccount() {
 				LastName:     lastName,
 				Gender:       gender,
 				MobileNumber: customerData.PhoneNumber,
-				ClientId:     client.ClientCorpId,
+				ClientId:     client.ClientCode,
 			}
 
 			logs.Info("Formatted request for Register account: ", registerAccountRequest)
