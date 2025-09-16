@@ -616,7 +616,7 @@ func (c *Api_requestsController) RegisterAccount() {
 			// resp := apifunctions.OpenAccount(&c.Controller, registerAccountRequest)
 			// logs.Info("Response from Register account API: ", resp)
 
-			gender := "N"
+			gender := "M"
 			switch genderStr := strings.ToLower(customerData.Gender); genderStr {
 			case "male":
 				gender = "M"
