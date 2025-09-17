@@ -45,6 +45,21 @@ func GetCustomer_corporativesById(id int64) (v *Customer_corporatives, err error
 	return nil, err
 }
 
+// GetCustomer_corporativesById retrieves Customer_corporatives by Id. Returns error if
+// Id doesn't exist
+func GetCustomer_corporativesByClient(customerNumber string, id int64) (v *Customer_corporatives, err error) {
+	o := orm.NewOrm()
+	v = &Customer_corporatives{Id: id}
+	if err = o.QueryTable(new(Customer_corporatives)).
+		Filter("CorpId", id).
+		Filter("CustomerNumber", customerNumber).
+		RelatedSel().
+		One(v); err == nil {
+		return v, nil
+	}
+	return nil, err
+}
+
 // GetAllCustomer_corporatives retrieves all Customer_corporatives matches certain condition. Returns empty list if
 // no records exist
 func GetAllCustomer_corporatives(query map[string]string, fields []string, sortby []string, order []string,

@@ -663,11 +663,39 @@ func (c *Api_requestsController) RegisterAccount() {
 					Result:        nil,
 				}
 			} else {
-				response = responses.RegisterAccountResponse{
-					StatusCode:    true,
-					StatusMessage: resp.Data.StatusMessage,
-					Result:        &resp.Data.Result,
+				customerCorporative := models.Customer_corporatives{
+					CustomerNumber: customerData.CustomerNumber,
+					CorpId:         client, // Assuming default corp ID, can be changed later
+					IsActive:       0,      // Set to inactive until verified
+					CreatedBy:      1,
+					ModifiedBy:     1,
+					IsDefault:      1,
 				}
+
+				if cl, err := models.GetCustomer_corporativesByClient(customerData.CustomerNumber, client.Id); err == nil && cl.Id > 0 {
+					if _, err := models.AddCustomer_corporatives(&customerCorporative); err != nil {
+						logs.Error("An error occurred adding customer corporative ", err.Error())
+						response = responses.RegisterAccountResponse{
+							StatusCode:    false,
+							StatusMessage: "An error occurred adding customer corporative. " + err.Error(),
+							Result:        nil,
+						}
+					} else {
+						response = responses.RegisterAccountResponse{
+							StatusCode:    true,
+							StatusMessage: resp.Data.StatusMessage,
+							Result:        &resp.Data.Result,
+						}
+					}
+				} else {
+					logs.Info("Customer corporative already exists: ", cl)
+					response = responses.RegisterAccountResponse{
+						StatusCode:    true,
+						StatusMessage: "Customer corporative already exists",
+						Result:        &resp.Data.Result,
+					}
+				}
+
 			}
 		}
 
