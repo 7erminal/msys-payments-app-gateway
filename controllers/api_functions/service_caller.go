@@ -602,7 +602,7 @@ func GetAccountBalance(c *beego.Controller, req requests.AccountBalanceApiReques
 func ListCustomerAccounts(c *beego.Controller, req requests.NumberExistsApiRequest) (resp responses.ListCustAccountsApiResponse) {
 	host, _ := beego.AppConfig.String("clientBaseUrl")
 
-	logs.Info("Listing customer accounts for number ", req.MobileNumber)
+	logs.Info("Listing customer accounts for number ", req.MobileNumber, " for client ", req.ClientId)
 	request := api.NewRequest(
 		host,
 		"/v2/api/v2/list-cust-accounts",
