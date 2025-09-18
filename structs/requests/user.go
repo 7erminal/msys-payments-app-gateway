@@ -220,6 +220,8 @@ type AddCustomerCredential struct {
 type CreateCustomerAccountApiRequest struct {
 	AccountNumber string
 	AccountAlias  string
+	AccountType   string
+	Reference     string
 	Balance       float64
 	CreatedBy     int
 	Active        int

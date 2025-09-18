@@ -7,6 +7,7 @@ import (
 	"msys_payment_app_gateway/models"
 	"msys_payment_app_gateway/structs/requests"
 	"msys_payment_app_gateway/structs/responses"
+	"strconv"
 	"strings"
 
 	"github.com/beego/beego/v2/core/logs"
@@ -173,7 +174,9 @@ func FetchCustomerAccounts(c *beego.Controller, customerData *responses.Customer
 					accountAlias := account.Product
 					addAccountRequest := requests.CreateCustomerAccountApiRequest{
 						AccountNumber: account.AccountNumber,
-						AccountAlias:  accountAlias,
+						AccountAlias:  accountAlias + " - " + customerData.FullName,
+						AccountType:   accountAlias,
+						Reference:     strconv.FormatInt(corp.Id, 10),
 						CreatedBy:     int(customerData.CustomerId),
 						Active:        1,
 						CustomerId:    customerData.CustomerId,
