@@ -305,6 +305,13 @@
                     },
                     {
                         "in": "header",
+                        "name": "PhoneNumber",
+                        "description": "header for Customer's phone number",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
                         "name": "SourceSystem",
                         "description": "header for Source system",
                         "required": true,
@@ -730,8 +737,22 @@
                 "parameters": [
                     {
                         "in": "header",
+                        "name": "Authorization",
+                        "description": "header for User",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
                         "name": "SourceSystem",
                         "description": "header for Source system",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "PhoneNumber",
+                        "description": "header for Customer's phone number",
                         "required": true,
                         "type": "string"
                     },
@@ -1361,18 +1382,6 @@
                 "ClientId": {
                     "type": "integer",
                     "format": "int64"
-                },
-                "FirstName": {
-                    "type": "string"
-                },
-                "Gender": {
-                    "type": "string"
-                },
-                "LastName": {
-                    "type": "string"
-                },
-                "MobileNumber": {
-                    "type": "string"
                 }
             }
         },

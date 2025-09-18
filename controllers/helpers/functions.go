@@ -176,6 +176,7 @@ func FetchCustomerAccounts(c *beego.Controller, customerData *responses.Customer
 						AccountAlias:  accountAlias,
 						CreatedBy:     int(customerData.CustomerId),
 						Active:        1,
+						CustomerId:    customerData.CustomerId,
 					}
 
 					addAccountResponse := apifunctions.AddCustomerAccount(c, addAccountRequest)

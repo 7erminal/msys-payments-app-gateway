@@ -223,4 +223,5 @@ type CreateCustomerAccountApiRequest struct {
 	Balance       float64
 	CreatedBy     int
 	Active        int
+	CustomerId    int64
 }
