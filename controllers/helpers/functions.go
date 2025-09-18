@@ -170,7 +170,7 @@ func FetchCustomerAccounts(c *beego.Controller, customerData *responses.Customer
 				for _, account := range *listAccountResponse.Result {
 					logs.Info("Processing account: ", account)
 
-					accountAlias := account.AccountNumber
+					accountAlias := account.Product
 					addAccountRequest := requests.CreateCustomerAccountApiRequest{
 						AccountNumber: account.AccountNumber,
 						AccountAlias:  accountAlias,

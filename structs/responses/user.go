@@ -39,8 +39,7 @@ type CustAccountsData struct {
 }
 
 type CustCorpAccountsData struct {
-	Username      string
-	MobileNumber  string
+	Product       string
 	AccountNumber string
 }
 
