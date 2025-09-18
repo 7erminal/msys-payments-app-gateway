@@ -7,7 +7,6 @@ import (
 	"msys_payment_app_gateway/api"
 	"msys_payment_app_gateway/structs/requests"
 	"msys_payment_app_gateway/structs/responses"
-	"strconv"
 
 	"github.com/beego/beego/v2/core/logs"
 	beego "github.com/beego/beego/v2/server/web"
@@ -521,7 +520,7 @@ func AddCustomerAccount(c *beego.Controller, req requests.CreateCustomerAccountA
 	request.InterfaceParams["account_alias"] = req.AccountAlias
 	request.InterfaceParams["active"] = req.Active
 	request.InterfaceParams["created_by"] = "1"
-	request.InterfaceParams["customer_id"] = strconv.FormatInt(req.CustomerId, 10)
+	request.InterfaceParams["customer_id"] = req.CustomerId
 
 	client := api.Client{
 		Request: request,
