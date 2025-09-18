@@ -447,6 +447,7 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 						logs.Info("Customer corporative DTO: ", corpDTO)
 
 						if corpDTO.IsActive == 0 {
+							logs.Info("Customer corporative is inactive, fetching accounts skipped")
 							helpers.FetchCustomerAccounts(&c.Controller, customerData, corpDTO, phoneNumber)
 						}
 					}
