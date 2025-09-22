@@ -1513,7 +1513,7 @@ func (c *Api_requestsController) BuyAirtime() {
 func (c *Api_requestsController) AccountQuery() {
 	// Extract headers
 	phoneNumber := c.Ctx.Input.Header("PhoneNumber")
-	accountNumber := c.Ctx.Input.Header("AccountNumber")
+	// accountNumber := c.Ctx.Input.Header("AccountNumber")
 	sourceSystem := c.Ctx.Input.Header("SourceSystem")
 	billerCode := c.Ctx.Input.Header("BillerCode")
 
@@ -1583,10 +1583,6 @@ func (c *Api_requestsController) AccountQuery() {
 				logs.Error("Error updating API request with response: ", err)
 			} else {
 				logs.Info("API request updated with response successfully: ", v)
-			}
-
-			if accountNumber != "" {
-				helpers.LogAccountActivity(&c.Controller, accountNumber, "Airtime Purchase", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
 			}
 
 			response = responses.AccountQueryAPIResponse{
