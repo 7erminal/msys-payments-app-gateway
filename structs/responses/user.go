@@ -714,6 +714,7 @@ type CustomerAccountHistoryData struct {
 	DebitAmount              float64
 	CreditAmount             float64
 	TransactionDate          string
+	Reference                string
 	CreatedBy                int
 	ModifiedBy               int
 }
