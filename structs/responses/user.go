@@ -244,6 +244,7 @@ type CustomerAccountResponse struct {
 	AccountAlias      string
 	AccountType       string
 	Reference         string
+	ClientId          string
 	Balance           float64
 	FrozenAmount      float64
 	BalanceBefore     float64

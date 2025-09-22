@@ -512,6 +512,7 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 									AccountAlias:      acc.AccountAlias,
 									AccountType:       acc.AccountType,
 									Reference:         reference,
+									ClientId:          acc.Reference,
 									Balance:           acc.Balance,
 									FrozenAmount:      acc.FrozenAmount,
 									BalanceBefore:     acc.BalanceBefore,
