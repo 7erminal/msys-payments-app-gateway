@@ -1724,7 +1724,7 @@ func (c *Api_requestsController) PayDSTV() {
 			}
 
 			if accountNumber != "" {
-				helpers.LogAccountActivity(&c.Controller, accountNumber, "Airtime Purchase", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
+				helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay DSTV", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
 			}
 			response = responses.DSTVBillPaymentApiResponse{
 				StatusCode:    true,
@@ -1837,7 +1837,7 @@ func (c *Api_requestsController) PayGOTV() {
 			}
 
 			if accountNumber != "" {
-				helpers.LogAccountActivity(&c.Controller, accountNumber, "Airtime Purchase", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
+				helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay GOTV", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
 			}
 
 			response = responses.GoTvBillPaymentResponse{
@@ -1952,7 +1952,7 @@ func (c *Api_requestsController) PayECG() {
 			}
 
 			if accountNumber != "" {
-				helpers.LogAccountActivity(&c.Controller, accountNumber, "Airtime Purchase", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
+				helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay ECG", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
 			}
 
 			response = responses.ECGBillPaymentApiResponse{
@@ -2067,7 +2067,7 @@ func (c *Api_requestsController) PayWaterBill() {
 			}
 
 			if accountNumber != "" {
-				helpers.LogAccountActivity(&c.Controller, accountNumber, "Airtime Purchase", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
+				helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay Water", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
 			}
 
 			response = responses.GhanaWaterBillPaymentApiResponse{

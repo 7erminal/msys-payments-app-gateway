@@ -743,12 +743,15 @@ func DebitAccountPro(c *beego.Controller, req requests.DebitAccountRequestV2) (r
 	host, _ := beego.AppConfig.String("clientBaseUrl")
 
 	logs.Info("Creating customer account for account number ", req.AccountNumber)
+	logs.Info("Clien ID ", req.ClientId)
 	request := api.NewRequest(
 		host,
 		"/v2/api/v2/debit-account",
 		api.POST)
 	// request.Params["username"] = username
 	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+	request.HeaderField["clientId"] = req.ClientId
+
 	request.InterfaceParams["AccountNumber"] = req.AccountNumber
 	request.InterfaceParams["Amount"] = req.Amount
 	request.InterfaceParams["Reference"] = req.Reference
@@ -841,6 +844,8 @@ func CreditAccountPro(c *beego.Controller, req requests.CreditAccountRequestV2) 
 		api.POST)
 	// request.Params["username"] = username
 	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+	request.HeaderField["clientId"] = req.ClientId
+
 	request.InterfaceParams["AccountNumber"] = req.AccountNumber
 	request.InterfaceParams["Amount"] = req.Amount
 	request.InterfaceParams["Reference"] = req.Reference

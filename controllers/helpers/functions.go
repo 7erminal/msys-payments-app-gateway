@@ -384,6 +384,7 @@ func LogAccountActivity(c *beego.Controller, accountNumber string, reference str
 				Amount:        amount,
 				Reference:     reference,
 				Channel:       channel,
+				ClientId:      clientid,
 			}
 			debitResp := apifunctions.DebitAccountPro(c, debitReq)
 			logs.Info("Debit account response: ", debitResp)
@@ -414,6 +415,7 @@ func LogAccountActivity(c *beego.Controller, accountNumber string, reference str
 				Amount:        amount,
 				Reference:     reference,
 				Channel:       channel,
+				ClientId:      clientid,
 			}
 			creditResp := apifunctions.CreditAccountPro(c, creditReq)
 			logs.Info("Credit account response: ", creditResp)
