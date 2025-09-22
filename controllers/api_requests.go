@@ -477,28 +477,52 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 							logs.Info("API request updated with response successfully: ", v)
 						}
 
-						custAccounts := make([]responses.CustomerAccountResponse, 0)
-						for _, acc := range resp.Result {
-							// Map each account to the response object
+						corps := apifunctions.GetCorporatives(&c.Controller)
+						logs.Info("Response from Get corporatives API: ", resp)
 
-							custAccount := responses.CustomerAccountResponse{
-								CustomerAccountId: acc.CustomerAccountId,
-								AccountNumber:     acc.AccountNumber,
-								AccountAlias:      acc.AccountAlias,
-								AccountType:       acc.AccountType,
-								Reference:         acc.Reference,
-								Balance:           acc.Balance,
-								FrozenAmount:      acc.FrozenAmount,
-								BalanceBefore:     acc.BalanceBefore,
-								DateCreated:       acc.DateCreated,
-								Active:            acc.Active,
+						reference := ""
+						if corps.StatusCode != 200 {
+							logs.Error("Error fetching corporatives: ", corps.StatusMessage)
+						} else {
+							logs.Info("Corporatives fetched successfully: ", corps.Result)
+
+							if corps.Result == nil || len(*corps.Result) == 0 {
+								logs.Error("No corporatives found")
 							}
-							custAccounts = append(custAccounts, custAccount)
-						}
-						response = responses.CustomerAccountsResponse{
-							StatusCode:    true,
-							StatusMessage: "Accounts fetched successfully",
-							Result:        &custAccounts,
+
+							custAccounts := make([]responses.CustomerAccountResponse, 0)
+							for _, acc := range resp.Result {
+								// Map each account to the response object
+								reference = acc.Reference
+
+								// Find the matching corporate for the customer
+								for _, corp := range *corps.Result {
+									corpIdStr := strings.TrimSpace(strconv.FormatInt(corp.Id, 10))
+									if corpIdStr == acc.Reference {
+										reference = corp.ClientCode
+										break
+									}
+								}
+
+								custAccount := responses.CustomerAccountResponse{
+									CustomerAccountId: acc.CustomerAccountId,
+									AccountNumber:     acc.AccountNumber,
+									AccountAlias:      acc.AccountAlias,
+									AccountType:       acc.AccountType,
+									Reference:         reference,
+									Balance:           acc.Balance,
+									FrozenAmount:      acc.FrozenAmount,
+									BalanceBefore:     acc.BalanceBefore,
+									DateCreated:       acc.DateCreated,
+									Active:            acc.Active,
+								}
+								custAccounts = append(custAccounts, custAccount)
+							}
+							response = responses.CustomerAccountsResponse{
+								StatusCode:    true,
+								StatusMessage: "Accounts fetched successfully",
+								Result:        &custAccounts,
+							}
 						}
 					}
 				}
