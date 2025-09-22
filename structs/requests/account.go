@@ -5,6 +5,7 @@ type DebitAccountRequestV2 struct {
 	Amount        string
 	Reference     string
 	Channel       string
+	ClientId      string
 }
 
 type CreditAccountRequestV2 struct {
@@ -12,6 +13,7 @@ type CreditAccountRequestV2 struct {
 	Amount        string
 	Reference     string
 	Channel       string
+	ClientId      string
 }
 
 type DebitAccountRequest struct {
