@@ -504,6 +504,8 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 									}
 								}
 
+								logs.Info("Account reference mapped to corporate code: ", reference)
+
 								custAccount := responses.CustomerAccountResponse{
 									CustomerAccountId: acc.CustomerAccountId,
 									AccountNumber:     acc.AccountNumber,
