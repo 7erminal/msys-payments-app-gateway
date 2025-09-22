@@ -296,13 +296,23 @@ type AccountBalanceDataResponseResult struct {
 }
 
 type AccountBalanceApiResponse struct {
-	Data AccountBalanceDataResponseResult `json:"data"`
+	StatusCode int                 `json:"StatusCode"`
+	StatusDesc string              `json:"StatusDesc"`
+	Result     *AccountBalanceData `json:"Result,omitempty"`
+	Client     string              `json:"Client,omitempty"`
 }
 
 type AccountBalanceResponse struct {
 	StatusCode    bool
 	StatusMessage string
 	Result        *AccountBalanceData
+}
+
+type CustAccountBalanceResponse struct {
+	StatusCode      bool
+	StatusMessage   string
+	Result          *AccountBalanceData
+	CustomerAccount *CustomerAccountResponseObj
 }
 
 type CorporativeData struct {
@@ -695,4 +705,26 @@ type CustomerApprovalAccountsResponse struct {
 	StatusCode    string                        `json:"statusCode"`
 	StatusMessage string                        `json:"statusMessage"`
 	Result        []*CustomerAccountResponseObj `json:"result,omitempty"`
+}
+
+type CustomerAccountHistoryData struct {
+	CustomerAccountHistoryId int64
+	CustomerAccount          string
+	DebitAmount              float64
+	CreditAmount             float64
+	TransactionDate          string
+	CreatedBy                int
+	ModifiedBy               int
+}
+
+type CustomersAccountHistoryResponseDTO struct {
+	Success    bool
+	Result     []*CustomerAccountHistoryData
+	StatusDesc string
+}
+
+type CustomersAccountHistoryApiResponseDTO struct {
+	StatusCode    string
+	Result        []*CustomerAccountHistoryData
+	StatusMessage string
 }

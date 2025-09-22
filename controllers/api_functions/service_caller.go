@@ -3,6 +3,7 @@ package apifunctions
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"msys_payment_app_gateway/api"
 	"msys_payment_app_gateway/structs/requests"
@@ -506,6 +507,49 @@ func GetCustomerAccounts(c *beego.Controller, customerId string) (resp responses
 	return data
 }
 
+func GetCustomerAccount(c *beego.Controller, accountNumber string) (resp responses.CreateCustomerAccountApiResponse) {
+	host, _ := beego.AppConfig.String("accountBaseUrl")
+
+	logs.Info("Getting customer accounts for account number::: ", accountNumber)
+	request := api.NewRequest(
+		host,
+		"/v1/customer-accounts/account/"+accountNumber,
+		api.GET)
+	// request.Params["username"] = username
+	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+
+	client := api.Client{
+		Request: request,
+		Type_:   "params",
+	}
+	res, err := client.SendRequest()
+	if err != nil {
+		logs.Error("client.Error: %v", err)
+		c.Data["json"] = err.Error()
+	}
+	defer res.Body.Close()
+	read, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	}
+
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, read, "", "  "); err != nil {
+		logs.Info("Raw response received is ", string(read))
+	} else {
+		logs.Info("Raw response received is \n", prettyJSON.String())
+	}
+	// data := map[string]interface{}{}
+	var data responses.CreateCustomerAccountApiResponse
+	json.Unmarshal(read, &data)
+	c.Data["json"] = data
+
+	logs.Info("Resp is ", data)
+	// logs.Info("Resp is ", data.User)
+
+	return data
+}
+
 func AddCustomerAccount(c *beego.Controller, req requests.CreateCustomerAccountApiRequest) (resp responses.CreateCustomerAccountApiResponse) {
 	host, _ := beego.AppConfig.String("accountBaseUrl")
 
@@ -554,13 +598,108 @@ func AddCustomerAccount(c *beego.Controller, req requests.CreateCustomerAccountA
 	return data
 }
 
+func GetCustomerAccountHistory(c *beego.Controller, accountNumber string) (resp responses.CustomersAccountHistoryApiResponseDTO) {
+	host, _ := beego.AppConfig.String("accountBaseUrl")
+
+	logs.Info("Getting customer accounts for account number::: ", accountNumber)
+	request := api.NewRequest(
+		host,
+		"/v1/customer-accounts/account-history/"+accountNumber,
+		api.GET)
+	// request.Params["username"] = username
+	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+
+	client := api.Client{
+		Request: request,
+		Type_:   "params",
+	}
+	res, err := client.SendRequest()
+	if err != nil {
+		logs.Error("client.Error: %v", err)
+		c.Data["json"] = err.Error()
+	}
+	defer res.Body.Close()
+	read, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	}
+
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, read, "", "  "); err != nil {
+		logs.Info("Raw response received is ", string(read))
+	} else {
+		logs.Info("Raw response received is \n", prettyJSON.String())
+	}
+	// data := map[string]interface{}{}
+	var data responses.CustomersAccountHistoryApiResponseDTO
+	json.Unmarshal(read, &data)
+	c.Data["json"] = data
+
+	logs.Info("Resp is ", data)
+	// logs.Info("Resp is ", data.User)
+
+	return data
+}
+
+func ReportAccountAnomaly(c *beego.Controller, req requests.CustomerAccountAnomaliesRequest) (resp responses.CreateCustomerAccountApiResponse) {
+	host, _ := beego.AppConfig.String("accountBaseUrl")
+
+	logs.Info("Creating customer account for account number ", req.AccountNumber)
+	request := api.NewRequest(
+		host,
+		"/v1/customer-account-anomalies/",
+		api.POST)
+	// request.Params["username"] = username
+	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+	request.InterfaceParams["AccountNumber"] = req.AccountNumber
+	request.InterfaceParams["Amount"] = req.Amount
+	request.InterfaceParams["Desc"] = req.Desc
+	request.InterfaceParams["Balance"] = req.Balance
+	request.InterfaceParams["CheckedBalance"] = req.CheckedBalance
+	request.InterfaceParams["CreatedBy"] = 1
+	request.InterfaceParams["ModifiedBy"] = 1
+	request.InterfaceParams["Active"] = req.Active
+	//
+
+	client := api.Client{
+		Request: request,
+		Type_:   "body",
+	}
+	res, err := client.SendRequest()
+	if err != nil {
+		logs.Error("client.Error: %v", err)
+		c.Data["json"] = err.Error()
+	}
+	defer res.Body.Close()
+	read, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	}
+
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, read, "", "  "); err != nil {
+		logs.Info("Raw response received is ", string(read))
+	} else {
+		logs.Info("Raw response received is \n", prettyJSON.String())
+	}
+	// data := map[string]interface{}{}
+	var data responses.CreateCustomerAccountApiResponse
+	json.Unmarshal(read, &data)
+	c.Data["json"] = data
+
+	logs.Info("Resp is ", data)
+	// logs.Info("Resp is ", data.User)
+
+	return data
+}
+
 func GetAccountBalance(c *beego.Controller, req requests.AccountBalanceApiRequest) (resp responses.AccountBalanceApiResponse) {
 	host, _ := beego.AppConfig.String("clientBaseUrl")
 
 	logs.Info("Getting account balance for ", req.AccountNumber)
 	request := api.NewRequest(
 		host,
-		"/v2/api/account-balance",
+		"/v2/api/v2/account-balance",
 		api.POST)
 	// request.Params["username"] = username
 	// request.Params = {"UserId": strconv.Itoa(int(userid))}
@@ -591,6 +730,191 @@ func GetAccountBalance(c *beego.Controller, req requests.AccountBalanceApiReques
 	}
 	// data := map[string]interface{}{}
 	var data responses.AccountBalanceApiResponse
+	json.Unmarshal(read, &data)
+	c.Data["json"] = data
+
+	logs.Info("Resp is ", data)
+	// logs.Info("Resp is ", data.User)
+
+	return data
+}
+
+func DebitAccountPro(c *beego.Controller, req requests.DebitAccountRequestV2) (resp responses.DebitAccountV2Response) {
+	host, _ := beego.AppConfig.String("clientBaseUrl")
+
+	logs.Info("Creating customer account for account number ", req.AccountNumber)
+	request := api.NewRequest(
+		host,
+		"/v2/api/v2/debit-account",
+		api.POST)
+	// request.Params["username"] = username
+	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+	request.InterfaceParams["AccountNumber"] = req.AccountNumber
+	request.InterfaceParams["Amount"] = req.Amount
+	request.InterfaceParams["Reference"] = req.Reference
+	request.InterfaceParams["Channel"] = req.Channel
+
+	client := api.Client{
+		Request: request,
+		Type_:   "body",
+	}
+	res, err := client.SendRequest()
+	if err != nil {
+		logs.Error("client.Error: %v", err)
+		c.Data["json"] = err.Error()
+	}
+	defer res.Body.Close()
+	read, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	}
+
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, read, "", "  "); err != nil {
+		logs.Info("Raw response received is ", string(read))
+	} else {
+		logs.Info("Raw response received is \n", prettyJSON.String())
+	}
+	// data := map[string]interface{}{}
+	var data responses.DebitAccountV2Response
+	json.Unmarshal(read, &data)
+	c.Data["json"] = data
+
+	logs.Info("Resp is ", data)
+	// logs.Info("Resp is ", data.User)
+
+	return data
+}
+
+func DebitAccount(c *beego.Controller, req requests.DebitAccountRequest) (resp responses.CreateCustomerAccountApiResponse) {
+	host, _ := beego.AppConfig.String("accountBaseUrl")
+
+	logs.Info("Creating customer account for account number ", req.AccountId)
+	request := api.NewRequest(
+		host,
+		"/v1/customer-accounts/debit-account/"+fmt.Sprintf("%d", req.AccountId),
+		api.PUT)
+	// request.Params["username"] = username
+	request.Params["amount"] = fmt.Sprintf("%v", req.Amount)
+	request.Params["modified_by"] = fmt.Sprintf("%v", req.ModifiedBy)
+	request.Params["reason"] = req.Reason
+
+	client := api.Client{
+		Request: request,
+		Type_:   "params",
+	}
+	res, err := client.SendRequest()
+	if err != nil {
+		logs.Error("client.Error: %v", err)
+		c.Data["json"] = err.Error()
+	}
+	defer res.Body.Close()
+	read, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	}
+
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, read, "", "  "); err != nil {
+		logs.Info("Raw response received is ", string(read))
+	} else {
+		logs.Info("Raw response received is \n", prettyJSON.String())
+	}
+	// data := map[string]interface{}{}
+	var data responses.CreateCustomerAccountApiResponse
+	json.Unmarshal(read, &data)
+	c.Data["json"] = data
+
+	logs.Info("Resp is ", data)
+	// logs.Info("Resp is ", data.User)
+
+	return data
+}
+
+func CreditAccountPro(c *beego.Controller, req requests.CreditAccountRequestV2) (resp responses.CreditAccountV2Response) {
+	host, _ := beego.AppConfig.String("clientBaseUrl")
+
+	logs.Info("Creating customer account for account number ", req.AccountNumber)
+	request := api.NewRequest(
+		host,
+		"/v2/api/v2/credit-account",
+		api.POST)
+	// request.Params["username"] = username
+	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+	request.InterfaceParams["AccountNumber"] = req.AccountNumber
+	request.InterfaceParams["Amount"] = req.Amount
+	request.InterfaceParams["Reference"] = req.Reference
+	request.InterfaceParams["Channel"] = req.Channel
+
+	client := api.Client{
+		Request: request,
+		Type_:   "body",
+	}
+	res, err := client.SendRequest()
+	if err != nil {
+		logs.Error("client.Error: %v", err)
+		c.Data["json"] = err.Error()
+	}
+	defer res.Body.Close()
+	read, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	}
+
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, read, "", "  "); err != nil {
+		logs.Info("Raw response received is ", string(read))
+	} else {
+		logs.Info("Raw response received is \n", prettyJSON.String())
+	}
+	// data := map[string]interface{}{}
+	var data responses.CreditAccountV2Response
+	json.Unmarshal(read, &data)
+	c.Data["json"] = data
+
+	logs.Info("Resp is ", data)
+	// logs.Info("Resp is ", data.User)
+
+	return data
+}
+
+func CreditAccount(c *beego.Controller, req requests.CreditAccountRequest) (resp responses.CreateCustomerAccountApiResponse) {
+	host, _ := beego.AppConfig.String("accountBaseUrl")
+
+	logs.Info("Creating customer account for account number ", req.AccountId)
+	request := api.NewRequest(
+		host,
+		"/v1/customer-accounts/credit-account/"+fmt.Sprintf("%d", req.AccountId),
+		api.PUT)
+	// request.Params["username"] = username
+	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+	request.Params["amount"] = fmt.Sprintf("%v", req.Amount)
+	request.Params["modified_by"] = fmt.Sprintf("%v", req.ModifiedBy)
+	request.Params["reason"] = req.Reason
+
+	client := api.Client{
+		Request: request,
+		Type_:   "body",
+	}
+	res, err := client.SendRequest()
+	if err != nil {
+		logs.Error("client.Error: %v", err)
+		c.Data["json"] = err.Error()
+	}
+	defer res.Body.Close()
+	read, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	}
+
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, read, "", "  "); err != nil {
+		logs.Info("Raw response received is ", string(read))
+	} else {
+		logs.Info("Raw response received is \n", prettyJSON.String())
+	}
+	// data := map[string]interface{}{}
+	var data responses.CreateCustomerAccountApiResponse
 	json.Unmarshal(read, &data)
 	c.Data["json"] = data
 

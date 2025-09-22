@@ -1,0 +1,15 @@
+package responses
+
+type DebitAccountV2Response struct {
+	StatusCode int    `json:"StatusCode"`
+	StatusDesc string `json:"StatusDesc"`
+	Result     string `json:"Result,omitempty"`
+	Client     string `json:"Client,omitempty"`
+}
+
+type CreditAccountV2Response struct {
+	StatusCode int    `json:"StatusCode"`
+	StatusDesc string `json:"StatusDesc"`
+	Result     string `json:"Result,omitempty"`
+	Client     string `json:"Client,omitempty"`
+}

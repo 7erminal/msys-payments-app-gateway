@@ -339,3 +339,197 @@ func CheckAccountsStatus(c *beego.Controller, customerData *responses.Customer) 
 
 	}
 }
+
+func LogAccountActivity(c *beego.Controller, accountNumber string, reference string, amount string, clientid string, activityType string) {
+	// type DebitAccountRequestV2 struct {
+	// 	AccountNumber string
+	// 	Amount        string
+	// 	Reference     string
+	// 	Channel       string
+	// }
+
+	channel := "GHCOOPS"
+
+	req := requests.AccountBalanceApiRequest{
+		AccountNumber: accountNumber,
+		ClientId:      clientid,
+	}
+
+	logs.Info("Fetching account balance for account number: ", accountNumber)
+	resp := GetAccountBalance(c, req)
+
+	response := responses.AccountBalanceResponse{}
+
+	if resp.StatusCode {
+		logs.Info("Account balance fetched successfully: ", resp.Result)
+
+		balance := resp.Result.AvailableBalance
+		ClearBalance := resp.Result.ClearBalance
+
+		logs.Info("Available balance: ", balance)
+		logs.Info("Clear balance: ", ClearBalance)
+
+		response = responses.AccountBalanceResponse{
+			StatusCode:    true,
+			StatusMessage: "Account balance fetched successfully",
+			Result:        resp.Result,
+		}
+
+		// Debit/Credit the account
+		logs.Info("Logging account activity of type ", activityType, " for account number: ", accountNumber)
+
+		if strings.EqualFold(activityType, "debit") {
+			debitReq := requests.DebitAccountRequestV2{
+				AccountNumber: accountNumber,
+				Amount:        amount,
+				Reference:     reference,
+				Channel:       channel,
+			}
+			debitResp := apifunctions.DebitAccountPro(c, debitReq)
+			logs.Info("Debit account response: ", debitResp)
+
+			if debitResp.StatusCode != 200 {
+				logs.Error("Error debiting account: ", debitResp.StatusDesc)
+			} else {
+				logs.Info("Account debited successfully: ", debitResp.Result)
+
+				debitAccReq := requests.DebitAccountRequest{
+					Amount:     *balance,
+					ModifiedBy: 1, // System user
+					Reason:     reference,
+					AccountId:  resp.CustomerAccount.CustomerAccountId,
+				}
+				debitAccResp := apifunctions.DebitAccount(c, debitAccReq)
+				logs.Info("Debit account internal response: ", debitAccResp)
+				if debitAccResp.StatusCode != "200" {
+					logs.Error("Error debiting account internally: ", debitAccResp.StatusMessage)
+				} else {
+					logs.Info("Account debited internally successfully: ", debitAccResp.Result)
+				}
+
+			}
+		} else if strings.EqualFold(activityType, "credit") {
+			creditReq := requests.CreditAccountRequestV2{
+				AccountNumber: accountNumber,
+				Amount:        amount,
+				Reference:     reference,
+				Channel:       channel,
+			}
+			creditResp := apifunctions.CreditAccountPro(c, creditReq)
+			logs.Info("Credit account response: ", creditResp)
+
+			if creditResp.StatusCode != 200 {
+				logs.Error("Error crediting account: ", creditResp.StatusDesc)
+			} else {
+				logs.Info("Account credited successfully: ", creditResp.Result)
+				creditAccReq := requests.CreditAccountRequest{
+					Amount:     *balance,
+					ModifiedBy: 1, // System user
+					Reason:     reference,
+					AccountId:  resp.CustomerAccount.CustomerAccountId,
+				}
+				creditAccResp := apifunctions.CreditAccount(c, creditAccReq)
+				logs.Info("Credit account internal response: ", creditAccResp)
+				if creditAccResp.StatusCode != "200" {
+					logs.Error("Error crediting account internally: ", creditAccResp.StatusMessage)
+				} else {
+					logs.Info("Account credited internally successfully: ", creditAccResp.Result)
+				}
+			}
+		} else {
+			logs.Error("Invalid activity type specified for account activity logging")
+		}
+
+		logs.Info("Final response for account balance: ", response)
+
+		// Log the activity
+	}
+	logs.Info("Account activity logging completed for account number: ", accountNumber)
+
+}
+
+func GetAccountBalance(c *beego.Controller, req requests.AccountBalanceApiRequest) (data responses.CustAccountBalanceResponse) {
+	logs.Info("Fetching account balance for account number: ", req.AccountNumber)
+	resp := apifunctions.GetAccountBalance(c, req)
+
+	response := responses.CustAccountBalanceResponse{}
+
+	if resp.StatusCode == 200 {
+		logs.Info("Account balance fetched successfully: ", resp.Result)
+
+		balance := resp.Result.AvailableBalance
+		ClearBalance := resp.Result.ClearBalance
+
+		logs.Info("Available balance: ", balance)
+		logs.Info("Clear balance: ", ClearBalance)
+
+		accountsResp := apifunctions.GetCustomerAccount(c, req.AccountNumber)
+
+		if accountsResp.StatusCode == "200" && accountsResp.Result != nil {
+			logs.Info("Account details fetched successfully: ", accountsResp.Result)
+			if accountsResp.Result.Balance != *balance {
+				// Log the anomaly
+				logs.Info("Balance mismatch detected. Logging account anomaly.")
+
+				amountDifference := *balance - accountsResp.Result.Balance
+				amountFloat, err := strconv.ParseFloat(strconv.FormatFloat(amountDifference, 'f', 2, 64), 64)
+				if err != nil {
+					logs.Error("Error parsing amount to float: ", err)
+					amountFloat = 0.0
+				}
+
+				req := requests.CustomerAccountAnomaliesRequest{
+					AccountNumber:  req.AccountNumber,
+					Amount:         amountFloat,
+					Desc:           "Balance mismatch detected during transaction. System Balance: " + strconv.FormatFloat(accountsResp.Result.Balance, 'f', 2, 64) + ", Actual Balance: " + strconv.FormatFloat(*balance, 'f', 2, 64),
+					Balance:        accountsResp.Result.Balance,
+					CheckedBalance: *balance,
+					CreatedBy:      1, // System user
+					ModifiedBy:     1, // System user
+					Active:         1,
+				}
+
+				addAnomalyResp := apifunctions.ReportAccountAnomaly(c, req)
+
+				if addAnomalyResp.StatusCode == "200" {
+					logs.Info("Account anomaly logged successfully: ", addAnomalyResp.Result)
+				} else {
+					logs.Error("Error logging account anomaly: ", addAnomalyResp.StatusMessage)
+				}
+
+			}
+
+			response = responses.CustAccountBalanceResponse{
+				StatusCode:      true,
+				StatusMessage:   "Account balance fetched successfully",
+				Result:          resp.Result,
+				CustomerAccount: accountsResp.Result,
+			}
+
+		} else {
+			logs.Error("Error fetching account balance: ", resp.StatusDesc)
+			response = responses.CustAccountBalanceResponse{
+				StatusCode:    false,
+				StatusMessage: resp.StatusDesc,
+				Result:        nil,
+			}
+		}
+
+		response = responses.CustAccountBalanceResponse{
+			StatusCode:    true,
+			StatusMessage: "Account balance fetched successfully",
+			Result:        resp.Result,
+		}
+	} else {
+		logs.Error("Error fetching account balance: ", resp.StatusDesc)
+		response = responses.CustAccountBalanceResponse{
+			StatusCode:    false,
+			StatusMessage: resp.StatusDesc,
+			Result:        nil,
+		}
+	}
+
+	logs.Info("Final response for account balance: ", response)
+
+	return response
+}

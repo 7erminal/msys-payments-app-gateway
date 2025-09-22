@@ -39,6 +39,7 @@ func (c *Api_requestsController) URLMapping() {
 	c.Mapping("ResetPin", c.ResetPin)
 	c.Mapping("GetCustomerDetails", c.GetCustomerDetails)
 	c.Mapping("RegisterAccount", c.RegisterAccount)
+	// c.Mapping("TransferFunds", c.TransferFunds)
 
 }
 
@@ -717,6 +718,134 @@ func (c *Api_requestsController) RegisterAccount() {
 	c.ServeJSON()
 }
 
+// GetCustomerAccountHistory ...
+// @Title Get Customer Account History
+// @Description Get customer account history
+// @Param	Authorization		header 	string true		"header for User"
+// @Param	PhoneNumber		header 	string true		"header for Customer's phone number"
+// @Param	SourceSystem		header 	string true		"header for Source system"
+// @Param	body		body 	requests.AccountNumberRequest	true		"body for Request content"
+// @Success 201 {int} models.Api_requests
+// @Failure 403 body is empty
+// @router /get-customer-account-history [post]
+func (c *Api_requestsController) GetCustomerAccountHistory() {
+	// Extract headers
+	// phoneNumber := c.Ctx.Input.Header("PhoneNumber")
+	sourceSystem := c.Ctx.Input.Header("SourceSystem")
+
+	cust := c.Ctx.Input.GetData("customer")
+
+	logs.Info("Customer details: %s", cust)
+	// customerData, ok := cust.(*responses.Customer)
+	// if !ok {
+	// 	logs.Error("Error asserting customer data")
+	// 	c.Data["json"] = "Invalid customer data"
+	// 	c.ServeJSON()
+	// 	return
+	// }
+
+	var req requests.AccountNumberRequest
+	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
+
+	accountNumber := req.AccountNumber
+
+	phoneNumber := c.Ctx.Input.Header("PhoneNumber")
+
+	logs.Info("Get customer account history called with Account Number: %s, SourceSystem: %s", accountNumber, sourceSystem)
+	reqBody := c.Ctx.Input.RequestBody
+	reqHeaders := c.Ctx.Request.Header
+
+	requestMap := map[string]interface{}{
+		"headers": reqHeaders,
+		"body":    string(reqBody),
+	}
+
+	reqText, err := json.Marshal(requestMap)
+	if err != nil {
+		logs.Error("Error marshalling request input: ", err)
+		c.Data["json"] = err.Error()
+		c.ServeJSON()
+		return
+	}
+	var v models.Api_requests = models.Api_requests{
+		Request:      string(reqText),
+		PhoneNumber:  phoneNumber,
+		RequestType:  "Get Customer Account History",
+		RequestDate:  time.Now(),
+		DateCreated:  time.Now(),
+		DateModified: time.Now(),
+	}
+
+	var response responses.CustomersAccountHistoryResponseDTO = responses.CustomersAccountHistoryResponseDTO{
+		Success:    false,
+		StatusDesc: "Something went wrong",
+		Result:     nil,
+	}
+
+	if _, err := models.AddApi_requests(&v); err == nil {
+		logs.Info("API request logged successfully: ", v)
+
+		resp := apifunctions.GetCustomerAccountHistory(&c.Controller, accountNumber)
+		logs.Info("Response from customer account history API: ", resp)
+
+		if resp.StatusCode != "200" {
+			response = responses.CustomersAccountHistoryResponseDTO{
+				Success:    false,
+				StatusDesc: resp.StatusMessage,
+				Result:     nil,
+			}
+		} else {
+			responseText, err := json.Marshal(response.Result)
+			if err != nil {
+				logs.Error("Error marshalling response result: ", err)
+				responseText = []byte("[]")
+			}
+			v.RequestResponse = string(responseText)
+			v.DateModified = time.Now()
+			v.ResponseDate = time.Now()
+			if err := models.UpdateApi_requestsById(&v); err != nil {
+				logs.Error("Error updating API request with response: ", err)
+			} else {
+				logs.Info("API request updated with response successfully: ", v)
+			}
+
+			accountHistory := make([]*responses.CustomerAccountHistoryData, 0)
+
+			for _, ah := range resp.Result {
+				// Map each account history to the response object
+
+				accHistory := &responses.CustomerAccountHistoryData{
+					CustomerAccountHistoryId: ah.CustomerAccountHistoryId,
+					CustomerAccount:          ah.CustomerAccount,
+					DebitAmount:              ah.DebitAmount,
+					CreditAmount:             ah.CreditAmount,
+					TransactionDate:          ah.TransactionDate,
+					CreatedBy:                ah.CreatedBy,
+					ModifiedBy:               ah.ModifiedBy,
+				}
+				accountHistory = append(accountHistory, accHistory)
+			}
+
+			response = responses.CustomersAccountHistoryResponseDTO{
+				Success:    true,
+				StatusDesc: "Account history fetched successfully",
+				Result:     accountHistory,
+			}
+		}
+
+		c.Ctx.Output.SetStatus(200)
+	} else {
+		response = responses.CustomersAccountHistoryResponseDTO{
+			Success:    false,
+			StatusDesc: "Something went wrong:: " + err.Error(),
+			Result:     nil,
+		}
+	}
+
+	c.Data["json"] = response
+	c.ServeJSON()
+}
+
 // NameInquiry ...
 // @Title Name Inquiry
 // @Description Name Inquiry with number
@@ -881,10 +1010,10 @@ func (c *Api_requestsController) AccountBalance() {
 			Result:        nil,
 		}
 
-		if resp.Data.StatusCode != 200 {
+		if resp.StatusCode != 200 {
 			response = responses.AccountBalanceResponse{
 				StatusCode:    false,
-				StatusMessage: resp.Data.StatusMessage,
+				StatusMessage: resp.StatusDesc,
 				Result:        nil,
 			}
 		} else {
@@ -904,7 +1033,7 @@ func (c *Api_requestsController) AccountBalance() {
 			response = responses.AccountBalanceResponse{
 				StatusCode:    true,
 				StatusMessage: "Account balance fetched succeefully",
-				Result:        resp.Data.Result,
+				Result:        resp.Result,
 			}
 		}
 
