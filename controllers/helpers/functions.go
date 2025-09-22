@@ -518,9 +518,10 @@ func GetAccountBalance(c *beego.Controller, req requests.AccountBalanceApiReques
 		}
 
 		response = responses.CustAccountBalanceResponse{
-			StatusCode:    true,
-			StatusMessage: "Account balance fetched successfully",
-			Result:        resp.Result,
+			StatusCode:      true,
+			StatusMessage:   "Account balance fetched successfully",
+			Result:          resp.Result,
+			CustomerAccount: accountsResp.Result,
 		}
 	} else {
 		logs.Error("Error fetching account balance: ", resp.StatusDesc)
