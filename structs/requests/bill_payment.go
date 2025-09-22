@@ -6,6 +6,7 @@ type DSTVAccountQueryApiRequest struct {
 
 type BillPaymentAccountQueryRequest struct {
 	AccountNumber string `json:"account_number" valid:"required~Account number is required"`
+	ClientId      string `json:"client_id"`
 }
 
 type AccountQueryRequest struct {
@@ -40,12 +41,14 @@ type DSTVPaymentApiRequest struct {
 	DestinationAccount string  `json:"destination_account" valid:"required~Destination account is required"`
 	Amount             float64 `json:"amount" valid:"required~Amount is required"`
 	PackageType        string  `json:"package_type" valid:"required~Package type is required"`
+	ClientId           string  `json:"client_id"`
 }
 
 type ECGPaymentRequest struct {
 	DestinationAccount string  `json:"destination_account" valid:"required~Destination account is required"`
 	Amount             float64 `json:"amount" valid:"required~Amount is required"`
 	PackageType        string  `json:"package_type" valid:"required~Package type is required"`
+	ClientId           string  `json:"client_id"`
 }
 
 type ECGPaymentApiRequest struct {
@@ -63,6 +66,7 @@ type GhanaWaterPaymentRequest struct {
 	PackageType        string
 	PhoneNumber        string
 	SourceSystem       string
+	ClientId           string
 }
 
 type GhanaWaterPaymentApiRequest struct {
@@ -89,6 +93,7 @@ type GoTvPaymentApiRequest struct {
 	PackageType        string
 	PhoneNumber        string
 	SourceSystem       string
+	ClientId           string `json:"client_id"`
 }
 
 type StartimesPaymentRequest struct {
@@ -97,6 +102,7 @@ type StartimesPaymentRequest struct {
 	PackageType        string
 	PhoneNumber        string
 	SourceSystem       string
+	ClientId           string
 }
 
 type StartimesPaymentApiRequest struct {

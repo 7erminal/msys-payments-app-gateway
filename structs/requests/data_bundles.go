@@ -31,6 +31,7 @@ type BuyDataBundleAPIRequest struct {
 	Destination string  `json:"destination"`
 	Amount      float64 `json:"amount"`
 	BundleId    string  `json:"bundle_id"`
+	ClientId    string  `json:"client_id"`
 }
 
 // type GetClientsRequest struct {

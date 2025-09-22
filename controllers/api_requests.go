@@ -1269,6 +1269,7 @@ func (c *Api_requestsController) GetBundles() {
 // @Description Buy Data Bundle Available
 // @Param	Authorization		header 	string true		"header for User"
 // @Param	PhoneNumber		header 	string true		"header for Customer's phone number"
+// @Param	AccountNumber		header 	string true		"header for Customer's account number"
 // @Param	SourceSystem		header 	string true		"header for Source system"
 // @Param	Network		header 	string true		"header for network"
 // @Param	body		body 	requests.BuyDataBundleAPIRequest	true		"body for Request content"
@@ -1278,6 +1279,7 @@ func (c *Api_requestsController) GetBundles() {
 func (c *Api_requestsController) BuyDataBundle() {
 	// Extract headers
 	phoneNumber := c.Ctx.Input.Header("PhoneNumber")
+	accountNumber := c.Ctx.Input.Header("AccountNumber")
 	sourceSystem := c.Ctx.Input.Header("SourceSystem")
 	network := c.Ctx.Input.Header("Network")
 
@@ -1353,6 +1355,10 @@ func (c *Api_requestsController) BuyDataBundle() {
 			} else {
 				logs.Info("API request updated with response successfully: ", v)
 			}
+
+			if accountNumber != "" {
+				helpers.LogAccountActivity(&c.Controller, accountNumber, "Data Bundle Purchase", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
+			}
 			response = responses.BuyDataBundleAPIResponse{
 				StatusCode:    true,
 				StatusMessage: "Data bundle purchase is being processed",
@@ -1380,6 +1386,7 @@ func (c *Api_requestsController) BuyDataBundle() {
 // @Description Buy Airtime
 // @Param	Authorization		header 	string true		"header for User"
 // @Param	PhoneNumber		header 	string true		"header for Customer's phone number"
+// @Param	AccountNumber		header 	string true		"header for Customer's account number"
 // @Param	SourceSystem		header 	string true		"header for Source system"
 // @Param	Network		header 	string true		"header for network"
 // @Param	body		body 	requests.BuyAirtimeAPIRequest	true		"body for Request content"
@@ -1389,6 +1396,7 @@ func (c *Api_requestsController) BuyDataBundle() {
 func (c *Api_requestsController) BuyAirtime() {
 	// Extract headers
 	phoneNumber := c.Ctx.Input.Header("PhoneNumber")
+	accountNumber := c.Ctx.Input.Header("AccountNumber")
 	sourceSystem := c.Ctx.Input.Header("SourceSystem")
 	network := c.Ctx.Input.Header("Network")
 
@@ -1463,6 +1471,11 @@ func (c *Api_requestsController) BuyAirtime() {
 			} else {
 				logs.Info("API request updated with response successfully: ", v)
 			}
+
+			if accountNumber != "" {
+				helpers.LogAccountActivity(&c.Controller, accountNumber, "Airtime Purchase", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
+			}
+
 			response = responses.BuyAirtimeAPIResponse{
 				StatusCode:    true,
 				StatusMessage: "Airtime purchase is being processed",
@@ -1490,6 +1503,7 @@ func (c *Api_requestsController) BuyAirtime() {
 // @Description Account Query
 // @Param	Authorization		header 	string true		"header for User"
 // @Param	PhoneNumber		header 	string true		"header for Customer's phone number"
+// @Param	AccountNumber		header 	string true		"header for Customer's account number"
 // @Param	SourceSystem		header 	string true		"header for Source system"
 // @Param	BillerCode		header 	string true		"header for network"
 // @Param	body		body 	requests.DSTVAccountQueryApiRequest	true		"body for Request content"
@@ -1499,15 +1513,16 @@ func (c *Api_requestsController) BuyAirtime() {
 func (c *Api_requestsController) AccountQuery() {
 	// Extract headers
 	phoneNumber := c.Ctx.Input.Header("PhoneNumber")
+	accountNumber := c.Ctx.Input.Header("AccountNumber")
 	sourceSystem := c.Ctx.Input.Header("SourceSystem")
 	billerCode := c.Ctx.Input.Header("BillerCode")
 
 	var req requests.BillPaymentAccountQueryRequest
 	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
 
-	accountNumber := req.AccountNumber
+	accountNumber_ := req.AccountNumber
 
-	logs.Info("AccountQuery called with PhoneNumber: %s, SourceSystem: %s, Network: %s, AccountNumber: %s", phoneNumber, sourceSystem, accountNumber)
+	logs.Info("AccountQuery called with PhoneNumber: %s, SourceSystem: %s, Network: %s, AccountNumber: %s", phoneNumber, sourceSystem, accountNumber_)
 	reqBody := c.Ctx.Input.RequestBody
 	reqHeaders := c.Ctx.Request.Header
 
@@ -1533,7 +1548,7 @@ func (c *Api_requestsController) AccountQuery() {
 	if _, err := models.AddApi_requests(&v); err == nil {
 		logs.Info("API request logged successfully: ", v)
 		accountQueryRequest := requests.BillPaymentAccountQueryApiRequest{
-			AccountNumber: accountNumber,
+			AccountNumber: accountNumber_,
 			SourceSystem:  sourceSystem,
 			PhoneNumber:   phoneNumber,
 			BillerCode:    billerCode,
@@ -1569,6 +1584,11 @@ func (c *Api_requestsController) AccountQuery() {
 			} else {
 				logs.Info("API request updated with response successfully: ", v)
 			}
+
+			if accountNumber != "" {
+				helpers.LogAccountActivity(&c.Controller, accountNumber, "Airtime Purchase", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
+			}
+
 			response = responses.AccountQueryAPIResponse{
 				StatusCode:    true,
 				StatusMessage: "Accounts queried successfully",
@@ -1596,6 +1616,7 @@ func (c *Api_requestsController) AccountQuery() {
 // @Description Pay DSTV
 // @Param	Authorization		header 	string true		"header for User"
 // @Param	PhoneNumber		header 	string true		"header for Customer's phone number"
+// @Param	AccountNumber		header 	string true		"header for Customer's account number"
 // @Param	SourceSystem		header 	string true		"header for Source system"
 // @Param	body		body 	requests.DSTVPaymentApiRequest	true		"body for Request content"
 // @Success 201 {int} models.Api_requests
@@ -1604,6 +1625,7 @@ func (c *Api_requestsController) AccountQuery() {
 func (c *Api_requestsController) PayDSTV() {
 	// Extract headers
 	phoneNumber := c.Ctx.Input.Header("PhoneNumber")
+	accountNumber := c.Ctx.Input.Header("AccountNumber")
 	sourceSystem := c.Ctx.Input.Header("SourceSystem")
 	// network := c.Ctx.Input.Header("Network")
 
@@ -1677,6 +1699,10 @@ func (c *Api_requestsController) PayDSTV() {
 			} else {
 				logs.Info("API request updated with response successfully: ", v)
 			}
+
+			if accountNumber != "" {
+				helpers.LogAccountActivity(&c.Controller, accountNumber, "Airtime Purchase", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
+			}
 			response = responses.DSTVBillPaymentApiResponse{
 				StatusCode:    true,
 				StatusMessage: "DSTV payment successful",
@@ -1704,6 +1730,7 @@ func (c *Api_requestsController) PayDSTV() {
 // @Description Pay GOTV
 // @Param	Authorization		header 	string true		"header for User"
 // @Param	PhoneNumber		header 	string true		"header for Customer's phone number"
+// @Param	AccountNumber		header 	string true		"header for Customer's account number"
 // @Param	SourceSystem		header 	string true		"header for Source system"
 // @Param	body		body 	requests.BuyDataBundleAPIRequest	true		"body for Request content"
 // @Success 201 {int} models.Api_requests
@@ -1712,6 +1739,7 @@ func (c *Api_requestsController) PayDSTV() {
 func (c *Api_requestsController) PayGOTV() {
 	// Extract headers
 	phoneNumber := c.Ctx.Input.Header("PhoneNumber")
+	accountNumber := c.Ctx.Input.Header("AccountNumber")
 	sourceSystem := c.Ctx.Input.Header("SourceSystem")
 	// network := c.Ctx.Input.Header("Network")
 
@@ -1784,6 +1812,11 @@ func (c *Api_requestsController) PayGOTV() {
 			} else {
 				logs.Info("API request updated with response successfully: ", v)
 			}
+
+			if accountNumber != "" {
+				helpers.LogAccountActivity(&c.Controller, accountNumber, "Airtime Purchase", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
+			}
+
 			response = responses.GoTvBillPaymentResponse{
 				StatusCode:    true,
 				StatusMessage: "Go TV payment successful",
@@ -1811,6 +1844,7 @@ func (c *Api_requestsController) PayGOTV() {
 // @Description Pay ECG
 // @Param	Authorization		header 	string true		"header for User"
 // @Param	PhoneNumber		header 	string true		"header for Customer's phone number"
+// @Param	AccountNumber		header 	string true		"header for Customer's account number"
 // @Param	SourceSystem		header 	string true		"header for Source system"
 // @Param	body		body 	requests.ECGPaymentRequest	true		"body for Request content"
 // @Success 201 {int} models.Api_requests
@@ -1819,6 +1853,7 @@ func (c *Api_requestsController) PayGOTV() {
 func (c *Api_requestsController) PayECG() {
 	// Extract headers
 	phoneNumber := c.Ctx.Input.Header("PhoneNumber")
+	accountNumber := c.Ctx.Input.Header("AccountNumber")
 	sourceSystem := c.Ctx.Input.Header("SourceSystem")
 	// network := c.Ctx.Input.Header("Network")
 
@@ -1892,6 +1927,11 @@ func (c *Api_requestsController) PayECG() {
 			} else {
 				logs.Info("API request updated with response successfully: ", v)
 			}
+
+			if accountNumber != "" {
+				helpers.LogAccountActivity(&c.Controller, accountNumber, "Airtime Purchase", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
+			}
+
 			response = responses.ECGBillPaymentApiResponse{
 				StatusCode:    true,
 				StatusMessage: "Payment is being processed",
@@ -1919,6 +1959,7 @@ func (c *Api_requestsController) PayECG() {
 // @Description Pay Water Bill
 // @Param	Authorization		header 	string true		"header for User"
 // @Param	PhoneNumber		header 	string true		"header for Customer's phone number"
+// @Param	AccountNumber		header 	string true		"header for Customer's account number"
 // @Param	SourceSystem		header 	string true		"header for Source system"
 // @Param	body		body 	requests.GhanaWaterPaymentRequest	true		"body for Request content"
 // @Success 201 {int} models.Api_requests
@@ -1927,6 +1968,7 @@ func (c *Api_requestsController) PayECG() {
 func (c *Api_requestsController) PayWaterBill() {
 	// Extract headers
 	phoneNumber := c.Ctx.Input.Header("PhoneNumber")
+	accountNumber := c.Ctx.Input.Header("AccountNumber")
 	sourceSystem := c.Ctx.Input.Header("SourceSystem")
 	// network := c.Ctx.Input.Header("Network")
 
@@ -2000,6 +2042,11 @@ func (c *Api_requestsController) PayWaterBill() {
 			} else {
 				logs.Info("API request updated with response successfully: ", v)
 			}
+
+			if accountNumber != "" {
+				helpers.LogAccountActivity(&c.Controller, accountNumber, "Airtime Purchase", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
+			}
+
 			response = responses.GhanaWaterBillPaymentApiResponse{
 				StatusCode:    true,
 				StatusMessage: "Payment is being processed",
@@ -2027,6 +2074,7 @@ func (c *Api_requestsController) PayWaterBill() {
 // @Description Pay Startimes Bill
 // @Param	Authorization		header 	string true		"header for User"
 // @Param	PhoneNumber		header 	string true		"header for Customer's phone number"
+// @Param	AccountNumber		header 	string true		"header for Customer's account number"
 // @Param	SourceSystem		header 	string true		"header for Source system"
 // @Param	body		body 	requests.StartimesPaymentRequest	true		"body for Request content"
 // @Success 201 {int} models.Api_requests
@@ -2035,6 +2083,7 @@ func (c *Api_requestsController) PayWaterBill() {
 func (c *Api_requestsController) PayStartimesTvBill() {
 	// Extract headers
 	phoneNumber := c.Ctx.Input.Header("PhoneNumber")
+	accountNumber := c.Ctx.Input.Header("AccountNumber")
 	sourceSystem := c.Ctx.Input.Header("SourceSystem")
 	// network := c.Ctx.Input.Header("Network")
 
@@ -2108,6 +2157,11 @@ func (c *Api_requestsController) PayStartimesTvBill() {
 			} else {
 				logs.Info("API request updated with response successfully: ", v)
 			}
+
+			if accountNumber != "" {
+				helpers.LogAccountActivity(&c.Controller, accountNumber, "Airtime Purchase", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
+			}
+
 			response = responses.StartimesBillPaymentApiResponse{
 				StatusCode:    true,
 				StatusMessage: "Payment is being processed",
@@ -2135,6 +2189,7 @@ func (c *Api_requestsController) PayStartimesTvBill() {
 // @Description Validate Customer
 // @Param	Authorization		header 	string true		"header for User"
 // @Param	PhoneNumber		header 	string true		"header for Customer's phone number"
+// @Param	AccountNumber		header 	string true		"header for Customer's account number"
 // @Param	SourceSystem		header 	string true		"header for Source system"
 // @Success 201 {int} models.Api_requests
 // @Failure 403 body is empty
