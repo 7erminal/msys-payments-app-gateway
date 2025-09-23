@@ -690,7 +690,7 @@ func GetCustomerBillPaymentHistory(c *beego.Controller, query string) (resp resp
 	logs.Info("Getting bill payment transactions::: ", query)
 	request := api.NewRequest(
 		host,
-		"/v1/requests/bil-transactions",
+		"/v1/bill-payment/bil-transactions",
 		api.GET)
 	request.Params["query"] = query
 	// request.Params = {"UserId": strconv.Itoa(int(userid))}
