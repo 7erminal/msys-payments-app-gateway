@@ -39,8 +39,8 @@ func (c *Api_requestsController) URLMapping() {
 	c.Mapping("ResetPin", c.ResetPin)
 	c.Mapping("GetCustomerDetails", c.GetCustomerDetails)
 	c.Mapping("RegisterAccount", c.RegisterAccount)
+	c.Mapping("GetBilTransactions", c.GetBilTransactions)
 	// c.Mapping("TransferFunds", c.TransferFunds)
-
 }
 
 // GetCorporatives ...
@@ -863,6 +863,137 @@ func (c *Api_requestsController) GetCustomerAccountHistory() {
 		c.Ctx.Output.SetStatus(200)
 	} else {
 		response = responses.CustomersAccountHistoryResponseDTO{
+			Success:    false,
+			StatusDesc: "Something went wrong:: " + err.Error(),
+			Result:     nil,
+		}
+	}
+
+	c.Data["json"] = response
+	c.ServeJSON()
+}
+
+// GetBilTransactions ...
+// @Title Get Biller Transaction History
+// @Description Get customer biller transaction history
+// @Param	Authorization		header 	string true		"header for User"
+// @Param	PhoneNumber		header 	string true		"header for Customer's phone number"
+// @Param	SourceSystem		header 	string true		"header for Source system"
+// @Success 201 {int} models.Api_requests
+// @Failure 403 body is empty
+// @router /get-biller-transaction-history [post]
+func (c *Api_requestsController) GetBilTransactions() {
+	// Extract headers
+	// phoneNumber := c.Ctx.Input.Header("PhoneNumber")
+	sourceSystem := c.Ctx.Input.Header("SourceSystem")
+
+	cust := c.Ctx.Input.GetData("customer")
+
+	logs.Info("Customer details: %s", cust)
+	// customerData, ok := cust.(*responses.Customer)
+	// if !ok {
+	// 	logs.Error("Error asserting customer data")
+	// 	c.Data["json"] = "Invalid customer data"
+	// 	c.ServeJSON()
+	// 	return
+	// }
+
+	phoneNumber := c.Ctx.Input.Header("PhoneNumber")
+
+	logs.Info("Get customer account biller transaction history called with Account Number: %s, SourceSystem: %s", phoneNumber, sourceSystem)
+	reqBody := c.Ctx.Input.RequestBody
+	reqHeaders := c.Ctx.Request.Header
+
+	requestMap := map[string]interface{}{
+		"headers": reqHeaders,
+		"body":    string(reqBody),
+	}
+
+	reqText, err := json.Marshal(requestMap)
+	if err != nil {
+		logs.Error("Error marshalling request input: ", err)
+		c.Data["json"] = err.Error()
+		c.ServeJSON()
+		return
+	}
+	var v models.Api_requests = models.Api_requests{
+		Request:      string(reqText),
+		PhoneNumber:  phoneNumber,
+		RequestType:  "Get Customer Account History",
+		RequestDate:  time.Now(),
+		DateCreated:  time.Now(),
+		DateModified: time.Now(),
+	}
+
+	var response responses.BilTransactionsResponse = responses.BilTransactionsResponse{
+		Success:    false,
+		StatusDesc: "Something went wrong",
+		Result:     nil,
+	}
+
+	if _, err := models.AddApi_requests(&v); err == nil {
+		logs.Info("API request logged successfully: ", v)
+
+		query := "BilTransactionId__TransactionBy__PhoneNumber:" + phoneNumber
+
+		resp := apifunctions.GetCustomerBillPaymentHistory(&c.Controller, query)
+		logs.Info("Response from customer bill payment history API: ", resp)
+
+		if resp.StatusCode != "200" {
+			response = responses.BilTransactionsResponse{
+				Success:    false,
+				StatusDesc: resp.StatusMessage,
+				Result:     nil,
+			}
+		} else {
+			responseText, err := json.Marshal(response.Result)
+			if err != nil {
+				logs.Error("Error marshalling response result: ", err)
+				responseText = []byte("[]")
+			}
+			v.RequestResponse = string(responseText)
+			v.DateModified = time.Now()
+			v.ResponseDate = time.Now()
+			if err := models.UpdateApi_requestsById(&v); err != nil {
+				logs.Error("Error updating API request with response: ", err)
+			} else {
+				logs.Info("API request updated with response successfully: ", v)
+			}
+
+			billPaymentHist := make([]*responses.BilTransactionsData, 0)
+
+			for _, ah := range resp.Result {
+				// Map each account history to the response object
+
+				billPayment := &responses.BilTransactionsData{
+					TransactionId:           ah.TransactionId,
+					TransactionBy:           ah.TransactionBy,
+					TransactionDate:         ah.DateCreated,
+					Amount:                  ah.Amount,
+					TransactionRefNumber:    ah.TransactionRefNumber,
+					Status:                  ah.Status,
+					TransactingCurrency:     ah.TransactingCurrency,
+					Source:                  ah.Source,
+					Destination:             ah.Destination,
+					Charge:                  ah.Charge,
+					BillerName:              ah.BillerName,
+					NetworkName:             ah.NetworkName,
+					ExternalReferenceNumber: ah.ExternalReferenceNumber,
+					Service:                 ah.Service,
+				}
+				billPaymentHist = append(billPaymentHist, billPayment)
+			}
+
+			response = responses.BilTransactionsResponse{
+				Success:    true,
+				StatusDesc: "Account history fetched successfully",
+				Result:     billPaymentHist,
+			}
+		}
+
+		c.Ctx.Output.SetStatus(200)
+	} else {
+		response = responses.BilTransactionsResponse{
 			Success:    false,
 			StatusDesc: "Something went wrong:: " + err.Error(),
 			Result:     nil,

@@ -641,6 +641,92 @@ func GetCustomerAccountHistory(c *beego.Controller, accountNumber string) (resp 
 	return data
 }
 
+func GetCustomerAirtimeBundleBillPayHistory(c *beego.Controller, query string) (resp responses.BilTransactionsApiResponse) {
+	host, _ := beego.AppConfig.String("airtimeBaseUrl")
+
+	logs.Info("Getting airtime and bundle history::: ", query)
+	request := api.NewRequest(
+		host,
+		"/v1/requests/bil-transactions",
+		api.GET)
+	request.Params["query"] = query
+	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+
+	client := api.Client{
+		Request: request,
+		Type_:   "params",
+	}
+	res, err := client.SendRequest()
+	if err != nil {
+		logs.Error("client.Error: %v", err)
+		c.Data["json"] = err.Error()
+	}
+	defer res.Body.Close()
+	read, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	}
+
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, read, "", "  "); err != nil {
+		logs.Info("Raw response received is ", string(read))
+	} else {
+		logs.Info("Raw response received is \n", prettyJSON.String())
+	}
+	// data := map[string]interface{}{}
+	var data responses.BilTransactionsApiResponse
+	json.Unmarshal(read, &data)
+	c.Data["json"] = data
+
+	logs.Info("Resp is ", data)
+	// logs.Info("Resp is ", data.User)
+
+	return data
+}
+
+func GetCustomerBillPaymentHistory(c *beego.Controller, query string) (resp responses.BilTransactionsApiResponse) {
+	host, _ := beego.AppConfig.String("billpaymentBaseUrl")
+
+	logs.Info("Getting bill payment transactions::: ", query)
+	request := api.NewRequest(
+		host,
+		"/v1/requests/bil-transactions",
+		api.GET)
+	request.Params["query"] = query
+	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+
+	client := api.Client{
+		Request: request,
+		Type_:   "params",
+	}
+	res, err := client.SendRequest()
+	if err != nil {
+		logs.Error("client.Error: %v", err)
+		c.Data["json"] = err.Error()
+	}
+	defer res.Body.Close()
+	read, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	}
+
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, read, "", "  "); err != nil {
+		logs.Info("Raw response received is ", string(read))
+	} else {
+		logs.Info("Raw response received is \n", prettyJSON.String())
+	}
+	// data := map[string]interface{}{}
+	var data responses.BilTransactionsApiResponse
+	json.Unmarshal(read, &data)
+	c.Data["json"] = data
+
+	logs.Info("Resp is ", data)
+	// logs.Info("Resp is ", data.User)
+
+	return data
+}
+
 func ReportAccountAnomaly(c *beego.Controller, req requests.CustomerAccountAnomaliesRequest) (resp responses.CreateCustomerAccountApiResponse) {
 	host, _ := beego.AppConfig.String("accountBaseUrl")
 
