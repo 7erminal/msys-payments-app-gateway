@@ -284,6 +284,7 @@ func (c *Api_requestsController) GetCustomerDetails() {
 				logs.Info("Date customer was created is ", customerData.DateCreated)
 
 				if customerData.Active == 2 && customerData.DateCreated != (time.Time{}) && time.Since(customerData.DateCreated) > 20*time.Minute {
+					logs.Info("Date created is ", customerData.DateCreated)
 					logs.Info("Time since customer was created is more than 20 minutes::: ", time.Since(customerData.DateCreated).Minutes(), " minutes. Its is over ", 20*time.Minute, " minutes")
 					// Do your logic here
 					logs.Info("Customer was created over 20 minutes ago")
