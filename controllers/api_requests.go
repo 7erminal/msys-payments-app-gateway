@@ -279,8 +279,10 @@ func (c *Api_requestsController) GetCustomerDetails() {
 				logs.Info("Customer is pending activation, checking accounts and profile completion")
 				// Fetch customer corporatives
 
+				logs.Info("Before update, Customer was created on ", customerData.DateCreated)
 				helpers.CheckProfileCompletion(&c.Controller, customerData)
 
+				logs.Info("Is customer completed? ", customerData.Active)
 				logs.Info("Date customer was created is ", customerData.DateCreated)
 
 				if customerData.Active == 2 && customerData.DateCreated != (time.Time{}) && time.Since(customerData.DateCreated) > 20*time.Minute {
@@ -303,8 +305,11 @@ func (c *Api_requestsController) GetCustomerDetails() {
 						Status:      status,
 					}
 
+					logs.Info("About to update customer status to active")
+
 					updateCustomerResp := apifunctions.UpdateCustomer(&c.Controller, updatedcustmer)
 					logs.Info("Update customer response: ", updateCustomerResp)
+					logs.Info("After update, Customer was created on ", customerData.DateCreated)
 					if updateCustomerResp.StatusCode != 200 {
 						logs.Error("Error updating customer status: ", updateCustomerResp.StatusDesc)
 					} else {

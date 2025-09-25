@@ -134,12 +134,15 @@ func CheckProfileCompletion(c *beego.Controller, customerData *responses.Custome
 							CustomerId:  customerData.CustomerId,
 							Status:      status,
 						}
+						logs.Info("About to update customer status to ", status)
+						logs.Info("Before update, Customer was created on ", customerData.DateCreated)
 						updateCustomerResp := apifunctions.UpdateCustomer(c, updatedcustmer)
 						logs.Info("Update customer response: ", updateCustomerResp)
 						if updateCustomerResp.StatusCode != 200 {
 							logs.Error("Error updating customer status: ", updateCustomerResp.StatusDesc)
 						} else {
 							logs.Info("Customer status updated successfully: ", updateCustomerResp.Customer)
+							logs.Info("After update, Customer was created on ", customerData.DateCreated)
 						}
 					}
 

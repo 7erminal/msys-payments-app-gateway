@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"encoding/json"
 	apifunctions "msys_payment_app_gateway/controllers/api_functions"
 	"strings"
 
@@ -41,7 +42,12 @@ func AuthMiddleware(ctx *context.Context) {
 		verifyToken := apifunctions.VerifyTokenNew(token[1])
 		if verifyToken.StatusCode == 200 {
 			logs.Info("Token is valid")
-			logs.Info("Customer details are ", verifyToken.Result)
+			customerJson, err := json.Marshal(verifyToken.Result)
+			if err != nil {
+				logs.Error("Failed to marshal customer details: %v", err)
+			} else {
+				logs.Info("Customer details are %s", customerJson)
+			}
 			// logs.Info("Customer name is ", verifyToken.Customer.FullName)
 			ctx.Input.SetData("customer", verifyToken.Result)
 
