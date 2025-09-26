@@ -169,10 +169,10 @@ type CustomerGatewayResponseDTO struct {
 }
 
 type RegisterDataResponseResult struct {
-	StatusCode    int
-	StatusMessage string
-	Result        bool
-	Client        string
+	StatusCode int
+	StatusDesc string
+	Result     bool
+	Client     string
 }
 
 type RegisterApiResponse struct {
