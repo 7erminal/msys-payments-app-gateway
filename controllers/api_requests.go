@@ -695,10 +695,10 @@ func (c *Api_requestsController) RegisterAccount() {
 			logs.Info("Response from Register account API: ", resp)
 
 			if resp.Data.StatusCode != 200 {
-				logs.Info("Response returned is not successful...")
+				logs.Info("Response returned is not successful...", resp.Data.StatusDesc)
 				response = responses.RegisterAccountResponse{
 					StatusCode:    false,
-					StatusMessage: resp.Data.StatusMessage,
+					StatusMessage: resp.Data.StatusDesc,
 					Result:        nil,
 				}
 			} else {
@@ -722,7 +722,7 @@ func (c *Api_requestsController) RegisterAccount() {
 					} else {
 						response = responses.RegisterAccountResponse{
 							StatusCode:    true,
-							StatusMessage: resp.Data.StatusMessage,
+							StatusMessage: resp.Data.StatusDesc,
 							Result:        &resp.Data.Result,
 						}
 					}
