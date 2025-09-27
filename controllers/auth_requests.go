@@ -213,7 +213,7 @@ func (c *Auth_requestsController) Register() {
 				StatusMessage: "Username already exists",
 				Result:        nil,
 			}
-			c.Ctx.Output.SetStatus(400)
+			c.Ctx.Output.SetStatus(200)
 			c.Data["json"] = response
 			c.ServeJSON()
 			return
@@ -277,7 +277,7 @@ func (c *Auth_requestsController) Register() {
 					StatusMessage: "Error saving customer credentials: " + credentialResp.StatusDesc,
 					Result:        nil,
 				}
-				c.Ctx.Output.SetStatus(400)
+				c.Ctx.Output.SetStatus(200)
 				c.Data["json"] = response
 				c.ServeJSON()
 				return
