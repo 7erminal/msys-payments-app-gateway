@@ -483,6 +483,14 @@ func (c *Auth_requestsController) ResetPassword() {
 
 		c.Ctx.Output.SetStatus(200)
 		c.Data["json"] = response
+	} else {
+		var response responses.StringResponseDTO = responses.StringResponseDTO{
+			Success:    false,
+			StatusDesc: "Something went wrong:: " + err.Error(),
+			Result:     nil,
+		}
+
+		c.Data["json"] = response
 	}
 
 	c.ServeJSON()
