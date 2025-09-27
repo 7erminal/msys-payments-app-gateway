@@ -461,12 +461,14 @@ func (c *Auth_requestsController) ResetPassword() {
 		}
 
 		if resp.StatusCode != 200 {
+			logs.Error("Error resetting password: ", resp.StatusDesc)
 			response = responses.StringResponseDTO{
 				Success:    false,
 				StatusDesc: resp.StatusDesc,
 				Result:     nil,
 			}
 		} else {
+			logs.Info("Password reset successful")
 			response = responses.StringResponseDTO{
 				Success:    true,
 				StatusDesc: "Password reset successful",
