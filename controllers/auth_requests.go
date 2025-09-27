@@ -194,7 +194,7 @@ func (c *Auth_requestsController) Register() {
 				StatusMessage: "Customer already exists",
 				Result:        nil,
 			}
-			c.Ctx.Output.SetStatus(400)
+			c.Ctx.Output.SetStatus(200)
 			c.Data["json"] = response
 			c.ServeJSON()
 			return
