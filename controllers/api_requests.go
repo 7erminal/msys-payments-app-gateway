@@ -1218,6 +1218,110 @@ func (c *Api_requestsController) AccountBalance() {
 	c.ServeJSON()
 }
 
+// ChangePassword ...
+// @Title Change Password
+// @Description change password
+// @Param	Authorization		header 	string true		"header for User"
+// @Param	PhoneNumber		header 	string true		"header for Customer's phone number"
+// @Param	body		body 	models.Auth_requests	true		"body for Auth_requests content"
+// @Success 201 {object} models.Auth_requests
+// @Failure 403 body is empty
+// @router /change-password [post]
+func (c *Auth_requestsController) ChangePassword() {
+	sourceSystem := c.Ctx.Input.Header("SourceSystem")
+	phoneNumber := c.Ctx.Input.Header("PhoneNumber")
+
+	cust := c.Ctx.Input.GetData("customer")
+
+	logs.Info("Customer details: %s", cust)
+	customerData, ok := cust.(*responses.Customer)
+	if !ok {
+		logs.Error("Error asserting customer data")
+		c.Data["json"] = "Invalid customer data"
+		c.ServeJSON()
+		return
+	}
+
+	logs.Info("Change Password called with PhoneNumber: %s, SourceSystem: %s", phoneNumber, sourceSystem)
+
+	var req requests.ChangePasswordRequest
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &req); err != nil {
+		logs.Error("Error unmarshalling request body: ", err)
+		c.Data["json"] = "Invalid request body"
+		c.ServeJSON()
+		return
+	}
+
+	reqBody := c.Ctx.Input.RequestBody
+	reqHeaders := c.Ctx.Request.Header
+
+	requestMap := map[string]interface{}{
+		"headers": reqHeaders,
+		"body":    string(reqBody),
+	}
+
+	reqText, err := json.Marshal(requestMap)
+	if err != nil {
+		logs.Error("Error marshalling request input: ", err)
+		c.Data["json"] = err.Error()
+		c.ServeJSON()
+		return
+	}
+	var v models.Api_requests = models.Api_requests{
+		Request:      string(reqText),
+		PhoneNumber:  phoneNumber,
+		RequestType:  "Change Password",
+		RequestDate:  time.Now(),
+		DateCreated:  time.Now(),
+		DateModified: time.Now(),
+	}
+	if _, err := models.AddApi_requests(&v); err == nil {
+		logs.Info("API request logged successfully: ", v)
+		changePasswordRequest := requests.ChangePassword{
+			OldPassword: req.OldPassword,
+			NewPassword: req.NewPassword,
+		}
+
+		logs.Info("Formatted request for change password: ", changePasswordRequest)
+		resp := apifunctions.ChangeCustomerPassword(&c.Controller, strconv.FormatInt(customerData.CustomerId, 10), changePasswordRequest)
+
+		logs.Info("Response from change password API: ", resp)
+
+		var response responses.StringResponseDTO = responses.StringResponseDTO{
+			Success:    false,
+			StatusDesc: "Something went wrong",
+			Result:     nil,
+		}
+		if resp.StatusCode != 200 {
+			response = responses.StringResponseDTO{
+				Success:    false,
+				StatusDesc: resp.StatusDesc,
+				Result:     nil,
+			}
+		} else {
+			responseText, err := json.Marshal(response.Result)
+			if err != nil {
+				logs.Error("Error marshalling response result: ", err)
+				responseText = []byte("[]")
+			}
+			v.RequestResponse = string(responseText)
+			v.DateModified = time.Now()
+			v.ResponseDate = time.Now()
+			if err := models.UpdateApi_requestsById(&v); err != nil {
+				logs.Error("Error updating API request with response: ", err)
+			} else {
+				logs.Info("API request updated with response successfully: ", v)
+			}
+			response = responses.StringResponseDTO{
+				Success:    true,
+				StatusDesc: "Password changed successfully",
+				Result:     &resp.Value,
+			}
+		}
+	}
+
+}
+
 // ResetPin ...
 // @Title Reset Pin
 // @Description Reset Customer Pin

@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"encoding/json"
+	"fmt"
 	apifunctions "msys_payment_app_gateway/controllers/api_functions"
 	"msys_payment_app_gateway/controllers/helpers"
 	"msys_payment_app_gateway/models"
@@ -380,15 +381,104 @@ func (c *Auth_requestsController) Register() {
 	c.ServeJSON()
 }
 
-// Post ...
-// @Title Create
-// @Description create Auth_requests
+// ResetPassword ...
+// @Title Reset Password
+// @Description reset password
+// @Param	SourceSystem		header 	string true		"header for Source system"
 // @Param	body		body 	models.Auth_requests	true		"body for Auth_requests content"
 // @Success 201 {object} models.Auth_requests
 // @Failure 403 body is empty
-// @router / [post]
-func (c *Auth_requestsController) Post() {
+// @router /reset-password [post]
+func (c *Auth_requestsController) ResetPassword() {
 
+	sourceSystem := c.Ctx.Input.Header("SourceSystem")
+
+	var req requests.ResetPassword
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &req); err != nil {
+		logs.Error("Error unmarshalling request body: ", err)
+
+		c.Ctx.Output.SetStatus(400)
+		c.Data["json"] = "Invalid request body"
+		c.ServeJSON()
+		return
+	}
+
+	logs.Info("ResetPassword called with SourceSystem: %s", sourceSystem)
+
+	reqBody := c.Ctx.Input.RequestBody
+	reqHeaders := c.Ctx.Request.Header
+
+	requestMap := map[string]interface{}{
+		"headers": reqHeaders,
+		"body":    string(reqBody),
+	}
+
+	reqText, err := json.Marshal(requestMap)
+	if err != nil {
+		logs.Error("Error marshalling request input: ", err)
+		c.Data["json"] = err.Error()
+		c.ServeJSON()
+		return
+	}
+	logs.Info("Request text: ", string(reqText))
+	var v models.Api_requests = models.Api_requests{
+		Request:      req.Username,
+		PhoneNumber:  req.Username,
+		RequestType:  "Reset Password",
+		RequestDate:  time.Now(),
+		DateCreated:  time.Now(),
+		DateModified: time.Now(),
+	}
+	if _, err := models.AddApi_requests(&v); err == nil {
+		logs.Info("API request logged successfully: ", v)
+
+		logs.Info("Get Customer")
+		customerData := apifunctions.GetCustomerByUsername(&c.Controller, requests.UsernameRequest{Username: req.Username})
+		if customerData.StatusCode != 200 || customerData.Customer == nil {
+			logs.Error("Customer not found: ", customerData.StatusDesc)
+			var response responses.StringOriResponseDTO = responses.StringOriResponseDTO{
+				StatusCode: 400,
+				StatusDesc: "Customer not found",
+				Value:      "",
+			}
+			c.Ctx.Output.SetStatus(200)
+			c.Data["json"] = response
+			c.ServeJSON()
+			return
+		}
+		resetPasswordRequest := requests.ChangePassword{
+			OldPassword: req.Username,
+			NewPassword: req.NewPassword,
+		}
+
+		resp := apifunctions.ResetCustomerPassword(&c.Controller, fmt.Sprintf("%d", customerData.Customer.CustomerId), resetPasswordRequest)
+		logs.Info("Response from ResetPassword API: ", resp)
+
+		var response responses.StringOriResponseDTO = responses.StringOriResponseDTO{
+			StatusCode: 400,
+			StatusDesc: "Something went wrong",
+			Value:      "",
+		}
+
+		if resp.StatusCode != 200 {
+			response = responses.StringOriResponseDTO{
+				StatusCode: resp.StatusCode,
+				StatusDesc: resp.StatusDesc,
+				Value:      "",
+			}
+		} else {
+			response = responses.StringOriResponseDTO{
+				StatusCode: 200,
+				StatusDesc: "Password reset successful",
+				Value:      resp.Value,
+			}
+		}
+
+		c.Ctx.Output.SetStatus(200)
+		c.Data["json"] = response
+	}
+
+	c.ServeJSON()
 }
 
 // GetOne ...

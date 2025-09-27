@@ -40,6 +40,19 @@ type OpenAccountRequest struct {
 	ClientId int64 `validate:"required"`
 }
 
+type ResetPassword struct {
+	Username    string `validate:"required"`
+	NewPassword string `validate:"required"`
+	ClientId    string `validate:"required"`
+}
+
+type ChangePasswordRequest struct {
+	Username    string `validate:"required"`
+	OldPassword string `validate:"required"`
+	NewPassword string `validate:"required"`
+	ClientId    string `validate:"required"`
+}
+
 type OpenAccountApiRequest struct {
 	FirstName    string
 	LastName     string

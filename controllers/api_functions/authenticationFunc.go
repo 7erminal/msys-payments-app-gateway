@@ -122,6 +122,79 @@ func ResetPassword(c *beego.Controller, userid string, req requests.ChangePasswo
 	return data
 }
 
+func ChangeCustomerPassword(c *beego.Controller, customerid string, req requests.ChangePassword) (resp responses.StringOriResponseDTO) {
+	host, _ := beego.AppConfig.String("authenticationBaseUrl")
+
+	logs.Info("Sending old password ", req.OldPassword)
+	logs.Info("Sending new password ", req.NewPassword)
+
+	request := api.NewRequest(
+		host,
+		"/v1/auth/change-customer-password/"+customerid,
+		api.PUT)
+	request.InterfaceParams["OldPassword"] = req.OldPassword
+	request.InterfaceParams["NewPassword"] = req.NewPassword
+	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+	client := api.Client{
+		Request: request,
+		Type_:   "body",
+	}
+	res, err := client.SendRequest()
+	if err != nil {
+		logs.Error("client.Error: %v", err)
+		c.Data["json"] = err.Error()
+	}
+	defer res.Body.Close()
+	read, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	}
+
+	logs.Info("Raw response received is ", res)
+	// data := map[string]interface{}{}
+	var data responses.StringOriResponseDTO
+	json.Unmarshal(read, &data)
+	c.Data["json"] = data
+
+	return data
+}
+
+func ResetCustomerPassword(c *beego.Controller, customerid string, req requests.ChangePassword) (resp responses.StringOriResponseDTO) {
+	host, _ := beego.AppConfig.String("authenticationBaseUrl")
+
+	logs.Info("Sending old password ", req.OldPassword)
+	logs.Info("Sending new password ", req.NewPassword)
+
+	request := api.NewRequest(
+		host,
+		"/v1/auth/reset-customer-password/"+customerid,
+		api.PUT)
+	request.InterfaceParams["NewPassword"] = req.NewPassword
+	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+	client := api.Client{
+		Request: request,
+		Type_:   "body",
+	}
+	res, err := client.SendRequest()
+	if err != nil {
+		logs.Error("client.Error: %v", err)
+		c.Data["json"] = err.Error()
+	}
+	defer res.Body.Close()
+	read, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	}
+
+	logs.Info("Raw response received is ", res)
+	// data := map[string]interface{}{}
+	var data responses.StringOriResponseDTO
+	json.Unmarshal(read, &data)
+	c.Data["json"] = data
+
+	return data
+}
+
 func VerifyToken(c *beego.Controller, token string) (resp responses.UserOriResponseDTO) {
 	host, _ := beego.AppConfig.String("authenticationBaseUrl")
 
