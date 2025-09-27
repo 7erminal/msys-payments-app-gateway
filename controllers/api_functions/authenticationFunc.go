@@ -132,12 +132,12 @@ func ChangeCustomerPassword(c *beego.Controller, customerid string, req requests
 		host,
 		"/v1/auth/change-customer-password/"+customerid,
 		api.PUT)
-	request.InterfaceParams["OldPassword"] = req.OldPassword
-	request.InterfaceParams["NewPassword"] = req.NewPassword
+	request.Params["OldPassword"] = req.OldPassword
+	request.Params["NewPassword"] = req.NewPassword
 	// request.Params = {"UserId": strconv.Itoa(int(userid))}
 	client := api.Client{
 		Request: request,
-		Type_:   "body",
+		Type_:   "params",
 	}
 	res, err := client.SendRequest()
 	if err != nil {
@@ -169,11 +169,11 @@ func ResetCustomerPassword(c *beego.Controller, customerid string, req requests.
 		host,
 		"/v1/auth/reset-customer-password/"+customerid,
 		api.PUT)
-	request.InterfaceParams["NewPassword"] = req.NewPassword
+	request.Params["NewPassword"] = req.NewPassword
 	// request.Params = {"UserId": strconv.Itoa(int(userid))}
 	client := api.Client{
 		Request: request,
-		Type_:   "body",
+		Type_:   "params",
 	}
 	res, err := client.SendRequest()
 	if err != nil {
