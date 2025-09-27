@@ -454,24 +454,31 @@ func (c *Auth_requestsController) ResetPassword() {
 		resp := apifunctions.ResetCustomerPassword(&c.Controller, fmt.Sprintf("%d", customerData.Customer.CustomerId), resetPasswordRequest)
 		logs.Info("Response from ResetPassword API: ", resp)
 
-		var response responses.StringOriResponseDTO = responses.StringOriResponseDTO{
-			StatusCode: 400,
+		var response responses.StringResponseDTO = responses.StringResponseDTO{
+			Success:    false,
 			StatusDesc: "Something went wrong",
-			Value:      "",
+			Result:     nil,
 		}
 
 		if resp.StatusCode != 200 {
-			response = responses.StringOriResponseDTO{
-				StatusCode: resp.StatusCode,
+			response = responses.StringResponseDTO{
+				Success:    false,
 				StatusDesc: resp.StatusDesc,
-				Value:      "",
+				Result:     nil,
 			}
 		} else {
-			response = responses.StringOriResponseDTO{
-				StatusCode: 200,
+			response = responses.StringResponseDTO{
+				Success:    true,
 				StatusDesc: "Password reset successful",
-				Value:      resp.Value,
+				Result:     &resp.Value,
 			}
+			responseText, err := json.Marshal(response.Result)
+			logs.Info("Response text: ", string(responseText))
+			if err != nil {
+				logs.Error("Error marshalling response result: ", err)
+				responseText = []byte("[]")
+			}
+
 		}
 
 		c.Ctx.Output.SetStatus(200)
