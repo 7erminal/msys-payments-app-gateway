@@ -730,3 +730,27 @@ type CustomersAccountHistoryApiResponseDTO struct {
 	Result        []*CustomerAccountHistoryData
 	StatusMessage string
 }
+
+type CustomerAccountStatementData struct {
+	TransactionDate   string
+	TransactionType   string
+	TransactionAmount float64
+	Reference         string
+	Narration         string
+	Description       string
+	DebitAmount       float64
+	CreditAmount      float64
+	Balance           float64
+}
+
+type CustomerAccountStatementApiResponseDTO struct {
+	StatusCode    string
+	Result        []*CustomerAccountStatementData
+	StatusMessage string
+}
+
+type CustomersAccountStatementResponseDTO struct {
+	Success    bool
+	Result     []*CustomerAccountStatementData
+	StatusDesc string
+}

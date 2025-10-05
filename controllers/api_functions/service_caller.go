@@ -598,6 +598,52 @@ func AddCustomerAccount(c *beego.Controller, req requests.CreateCustomerAccountA
 	return data
 }
 
+func GetCustomerAccountStatement(c *beego.Controller, accountNumber string) (resp responses.CustomerAccountStatementApiResponseDTO) {
+	host, _ := beego.AppConfig.String("clientBaseUrl")
+
+	logs.Info("Getting customer account statement for account number::: ", accountNumber)
+	request := api.NewRequest(
+		host,
+		"/v2/api/v2/account-statement",
+		api.POST)
+	// request.Params["username"] = username
+	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+	request.InterfaceParams["AccountNumber"] = accountNumber
+	request.InterfaceParams["FromDate"] = "2023-01-01"
+	request.InterfaceParams["ToDate"] = fmt.Sprintf("%d-%02d-%02d", 2024, 12, 31)
+
+	client := api.Client{
+		Request: request,
+		Type_:   "body",
+	}
+	res, err := client.SendRequest()
+	if err != nil {
+		logs.Error("client.Error: %v", err)
+		c.Data["json"] = err.Error()
+	}
+	defer res.Body.Close()
+	read, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	}
+
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, read, "", "  "); err != nil {
+		logs.Info("Raw response received is ", string(read))
+	} else {
+		logs.Info("Raw response received is \n", prettyJSON.String())
+	}
+	// data := map[string]interface{}{}
+	var data responses.CustomerAccountStatementApiResponseDTO
+	json.Unmarshal(read, &data)
+	c.Data["json"] = data
+
+	logs.Info("Resp is ", data)
+	// logs.Info("Resp is ", data.User)
+
+	return data
+}
+
 func GetCustomerAccountHistory(c *beego.Controller, accountNumber string) (resp responses.CustomersAccountHistoryApiResponseDTO) {
 	host, _ := beego.AppConfig.String("accountBaseUrl")
 
@@ -1028,6 +1074,52 @@ func ListCustomerAccounts(c *beego.Controller, req requests.NumberExistsApiReque
 	request.HeaderField["clientId"] = req.ClientId
 
 	request.InterfaceParams["Number"] = req.MobileNumber
+
+	client := api.Client{
+		Request: request,
+		Type_:   "body",
+	}
+	res, err := client.SendRequest()
+	if err != nil {
+		logs.Error("client.Error: %v", err)
+		c.Data["json"] = err.Error()
+	}
+	defer res.Body.Close()
+	read, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	}
+
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, read, "", "  "); err != nil {
+		logs.Info("Raw response received is ", string(read))
+	} else {
+		logs.Info("Raw response received is \n", prettyJSON.String())
+	}
+	// data := map[string]interface{}{}
+	var data responses.ListCustAccountsApiResponse
+	json.Unmarshal(read, &data)
+	c.Data["json"] = data
+
+	logs.Info("Resp is ", data)
+	// logs.Info("Resp is ", data.User)
+
+	return data
+}
+
+func CustomerAccountStatement(c *beego.Controller, req requests.AccountBalanceApiRequest) (resp responses.ListCustAccountsApiResponse) {
+	host, _ := beego.AppConfig.String("clientBaseUrl")
+
+	logs.Info("Getting statement ", req.AccountNumber, " for client ", req.ClientId)
+	request := api.NewRequest(
+		host,
+		"/v2/api/v2/account-statment",
+		api.POST)
+	// request.Params["username"] = username
+	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+	request.HeaderField["clientId"] = req.ClientId
+
+	request.InterfaceParams["AccountNumber"] = req.AccountNumber
 
 	client := api.Client{
 		Request: request,

@@ -67,6 +67,11 @@ paths:
         required: true
         type: string
       - in: header
+        name: AccountNumber
+        description: header for Customer's account number
+        required: true
+        type: string
+      - in: header
         name: SourceSystem
         description: header for Source system
         required: true
@@ -104,6 +109,11 @@ paths:
       - in: header
         name: PhoneNumber
         description: header for Customer's phone number
+        required: true
+        type: string
+      - in: header
+        name: AccountNumber
+        description: header for Customer's account number
         required: true
         type: string
       - in: header
@@ -147,6 +157,11 @@ paths:
         required: true
         type: string
       - in: header
+        name: AccountNumber
+        description: header for Customer's account number
+        required: true
+        type: string
+      - in: header
         name: SourceSystem
         description: header for Source system
         required: true
@@ -162,6 +177,35 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/requests.BuyDataBundleAPIRequest'
+      responses:
+        "201":
+          description: '{int} models.Api_requests'
+        "403":
+          description: body is empty
+  /api/get-biller-transaction-history:
+    post:
+      tags:
+      - api
+      description: |-
+        Get customer biller transaction history
+        <br>
+      operationId: Api_requestsController.Get Biller Transaction History
+      parameters:
+      - in: header
+        name: Authorization
+        description: header for User
+        required: true
+        type: string
+      - in: header
+        name: PhoneNumber
+        description: header for Customer's phone number
+        required: true
+        type: string
+      - in: header
+        name: SourceSystem
+        description: header for Source system
+        required: true
+        type: string
       responses:
         "201":
           description: '{int} models.Api_requests'
@@ -202,6 +246,76 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/requests.GetBundlesAPIRequest'
+      responses:
+        "201":
+          description: '{int} models.Api_requests'
+        "403":
+          description: body is empty
+  /api/get-customer-account-history:
+    post:
+      tags:
+      - api
+      description: |-
+        Get customer account history
+        <br>
+      operationId: Api_requestsController.Get Customer Account History
+      parameters:
+      - in: header
+        name: Authorization
+        description: header for User
+        required: true
+        type: string
+      - in: header
+        name: PhoneNumber
+        description: header for Customer's phone number
+        required: true
+        type: string
+      - in: header
+        name: SourceSystem
+        description: header for Source system
+        required: true
+        type: string
+      - in: body
+        name: body
+        description: body for Request content
+        required: true
+        schema:
+          $ref: '#/definitions/requests.AccountNumberRequest'
+      responses:
+        "201":
+          description: '{int} models.Api_requests'
+        "403":
+          description: body is empty
+  /api/get-customer-account-statement:
+    post:
+      tags:
+      - api
+      description: |-
+        Get customer account history
+        <br>
+      operationId: Api_requestsController.Get Customer Account History
+      parameters:
+      - in: header
+        name: Authorization
+        description: header for User
+        required: true
+        type: string
+      - in: header
+        name: PhoneNumber
+        description: header for Customer's phone number
+        required: true
+        type: string
+      - in: header
+        name: SourceSystem
+        description: header for Source system
+        required: true
+        type: string
+      - in: body
+        name: body
+        description: body for Request content
+        required: true
+        schema:
+          $ref: '#/definitions/requests.AccountNumberRequest'
       responses:
         "201":
           description: '{int} models.Api_requests'
@@ -366,6 +480,11 @@ paths:
         required: true
         type: string
       - in: header
+        name: AccountNumber
+        description: header for Customer's account number
+        required: true
+        type: string
+      - in: header
         name: SourceSystem
         description: header for Source system
         required: true
@@ -398,6 +517,11 @@ paths:
       - in: header
         name: PhoneNumber
         description: header for Customer's phone number
+        required: true
+        type: string
+      - in: header
+        name: AccountNumber
+        description: header for Customer's account number
         required: true
         type: string
       - in: header
@@ -436,6 +560,11 @@ paths:
         required: true
         type: string
       - in: header
+        name: AccountNumber
+        description: header for Customer's account number
+        required: true
+        type: string
+      - in: header
         name: SourceSystem
         description: header for Source system
         required: true
@@ -471,6 +600,11 @@ paths:
         required: true
         type: string
       - in: header
+        name: AccountNumber
+        description: header for Customer's account number
+        required: true
+        type: string
+      - in: header
         name: SourceSystem
         description: header for Source system
         required: true
@@ -503,6 +637,11 @@ paths:
       - in: header
         name: PhoneNumber
         description: header for Customer's phone number
+        required: true
+        type: string
+      - in: header
+        name: AccountNumber
+        description: header for Customer's account number
         required: true
         type: string
       - in: header
@@ -611,6 +750,11 @@ paths:
         required: true
         type: string
       - in: header
+        name: AccountNumber
+        description: header for Customer's account number
+        required: true
+        type: string
+      - in: header
         name: SourceSystem
         description: header for Source system
         required: true
@@ -661,27 +805,6 @@ paths:
             $ref: '#/definitions/models.Auth_requests'
         "403":
           description: ""
-    post:
-      tags:
-      - auth
-      description: |-
-        create Auth_requests
-        <br>
-      operationId: Auth_requestsController.Create
-      parameters:
-      - in: body
-        name: body
-        description: body for Auth_requests content
-        required: true
-        schema:
-          $ref: '#/definitions/models.Auth_requests'
-      responses:
-        "201":
-          description: ""
-          schema:
-            $ref: '#/definitions/models.Auth_requests'
-        "403":
-          description: body is empty
   /auth/{id}:
     get:
       tags:
@@ -747,6 +870,38 @@ paths:
           description: '{string} delete success!'
         "403":
           description: id is empty
+  /auth/change-password:
+    post:
+      tags:
+      - auth
+      description: |-
+        change password
+        <br>
+      operationId: Auth_requestsController.Change Password
+      parameters:
+      - in: header
+        name: Authorization
+        description: header for User
+        required: true
+        type: string
+      - in: header
+        name: PhoneNumber
+        description: header for Customer's phone number
+        required: true
+        type: string
+      - in: body
+        name: body
+        description: body for Auth_requests content
+        required: true
+        schema:
+          $ref: '#/definitions/models.Auth_requests'
+      responses:
+        "201":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.Auth_requests'
+        "403":
+          description: body is empty
   /auth/login:
     post:
       tags:
@@ -802,6 +957,33 @@ paths:
           description: '{int} models.Api_requests'
         "403":
           description: body is empty
+  /auth/reset-password:
+    post:
+      tags:
+      - auth
+      description: |-
+        reset password
+        <br>
+      operationId: Auth_requestsController.Reset Password
+      parameters:
+      - in: header
+        name: SourceSystem
+        description: header for Source system
+        required: true
+        type: string
+      - in: body
+        name: body
+        description: body for Auth_requests content
+        required: true
+        schema:
+          $ref: '#/definitions/models.Auth_requests'
+      responses:
+        "201":
+          description: ""
+          schema:
+            $ref: '#/definitions/models.Auth_requests'
+        "403":
+          description: body is empty
   /callback/:
     post:
       tags:
@@ -853,6 +1035,12 @@ definitions:
   models.Callback:
     title: Callback
     type: object
+  requests.AccountNumberRequest:
+    title: AccountNumberRequest
+    type: object
+    properties:
+      AccountNumber:
+        type: string
   requests.BuyAirtimeAPIRequest:
     title: BuyAirtimeAPIRequest
     type: object
@@ -860,6 +1048,8 @@ definitions:
       amount:
         type: number
         format: double
+      client_id:
+        type: string
       destination:
         type: string
   requests.BuyDataBundleAPIRequest:
@@ -870,6 +1060,8 @@ definitions:
         type: number
         format: double
       bundle_id:
+        type: string
+      client_id:
         type: string
       destination:
         type: string
@@ -925,6 +1117,8 @@ definitions:
       amount:
         type: number
         format: double
+      client_id:
+        type: string
       destination_account:
         type: string
       package_type:
@@ -936,6 +1130,8 @@ definitions:
       amount:
         type: number
         format: double
+      client_id:
+        type: string
       destination_account:
         type: string
       package_type:
@@ -953,6 +1149,8 @@ definitions:
       Amount:
         type: number
         format: double
+      ClientId:
+        type: string
       DestinationAccount:
         type: string
       PackageType:
@@ -1016,6 +1214,8 @@ definitions:
       Amount:
         type: number
         format: double
+      ClientId:
+        type: string
       DestinationAccount:
         type: string
       PackageType:

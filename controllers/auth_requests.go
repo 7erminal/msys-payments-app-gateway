@@ -446,6 +446,7 @@ func (c *Auth_requestsController) ResetPassword() {
 			c.ServeJSON()
 			return
 		}
+		logs.Info("New password send it")
 		resetPasswordRequest := requests.ChangePassword{
 			OldPassword: req.Username,
 			NewPassword: req.NewPassword,

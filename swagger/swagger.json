@@ -88,6 +88,13 @@
                     },
                     {
                         "in": "header",
+                        "name": "AccountNumber",
+                        "description": "header for Customer's account number",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
                         "name": "SourceSystem",
                         "description": "header for Source system",
                         "required": true,
@@ -139,6 +146,13 @@
                         "in": "header",
                         "name": "PhoneNumber",
                         "description": "header for Customer's phone number",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "AccountNumber",
+                        "description": "header for Customer's account number",
                         "required": true,
                         "type": "string"
                     },
@@ -200,6 +214,13 @@
                     },
                     {
                         "in": "header",
+                        "name": "AccountNumber",
+                        "description": "header for Customer's account number",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
                         "name": "SourceSystem",
                         "description": "header for Source system",
                         "required": true,
@@ -220,6 +241,46 @@
                         "schema": {
                             "$ref": "#/definitions/requests.BuyDataBundleAPIRequest"
                         }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "{int} models.Api_requests"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/api/get-biller-transaction-history": {
+            "post": {
+                "tags": [
+                    "api"
+                ],
+                "description": "Get customer biller transaction history\n\u003cbr\u003e",
+                "operationId": "Api_requestsController.Get Biller Transaction History",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "name": "Authorization",
+                        "description": "header for User",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "PhoneNumber",
+                        "description": "header for Customer's phone number",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "SourceSystem",
+                        "description": "header for Source system",
+                        "required": true,
+                        "type": "string"
                     }
                 ],
                 "responses": {
@@ -275,6 +336,104 @@
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/requests.GetBundlesAPIRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "{int} models.Api_requests"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/api/get-customer-account-history": {
+            "post": {
+                "tags": [
+                    "api"
+                ],
+                "description": "Get customer account history\n\u003cbr\u003e",
+                "operationId": "Api_requestsController.Get Customer Account History",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "name": "Authorization",
+                        "description": "header for User",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "PhoneNumber",
+                        "description": "header for Customer's phone number",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "SourceSystem",
+                        "description": "header for Source system",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Request content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.AccountNumberRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "{int} models.Api_requests"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/api/get-customer-account-statement": {
+            "post": {
+                "tags": [
+                    "api"
+                ],
+                "description": "Get customer account history\n\u003cbr\u003e",
+                "operationId": "Api_requestsController.Get Customer Account History",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "name": "Authorization",
+                        "description": "header for User",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "PhoneNumber",
+                        "description": "header for Customer's phone number",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "SourceSystem",
+                        "description": "header for Source system",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Request content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/requests.AccountNumberRequest"
                         }
                     }
                 ],
@@ -506,6 +665,13 @@
                     },
                     {
                         "in": "header",
+                        "name": "AccountNumber",
+                        "description": "header for Customer's account number",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
                         "name": "SourceSystem",
                         "description": "header for Source system",
                         "required": true,
@@ -550,6 +716,13 @@
                         "in": "header",
                         "name": "PhoneNumber",
                         "description": "header for Customer's phone number",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "AccountNumber",
+                        "description": "header for Customer's account number",
                         "required": true,
                         "type": "string"
                     },
@@ -604,6 +777,13 @@
                     },
                     {
                         "in": "header",
+                        "name": "AccountNumber",
+                        "description": "header for Customer's account number",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
                         "name": "SourceSystem",
                         "description": "header for Source system",
                         "required": true,
@@ -653,6 +833,13 @@
                     },
                     {
                         "in": "header",
+                        "name": "AccountNumber",
+                        "description": "header for Customer's account number",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
                         "name": "SourceSystem",
                         "description": "header for Source system",
                         "required": true,
@@ -697,6 +884,13 @@
                         "in": "header",
                         "name": "PhoneNumber",
                         "description": "header for Customer's phone number",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "AccountNumber",
+                        "description": "header for Customer's account number",
                         "required": true,
                         "type": "string"
                     },
@@ -849,6 +1043,13 @@
                     },
                     {
                         "in": "header",
+                        "name": "AccountNumber",
+                        "description": "header for Customer's account number",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
                         "name": "SourceSystem",
                         "description": "header for Source system",
                         "required": true,
@@ -921,14 +1122,30 @@
                         "description": ""
                     }
                 }
-            },
+            }
+        },
+        "/auth/change-password": {
             "post": {
                 "tags": [
                     "auth"
                 ],
-                "description": "create Auth_requests\n\u003cbr\u003e",
-                "operationId": "Auth_requestsController.Create",
+                "description": "change password\n\u003cbr\u003e",
+                "operationId": "Auth_requestsController.Change Password",
                 "parameters": [
+                    {
+                        "in": "header",
+                        "name": "Authorization",
+                        "description": "header for User",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "header",
+                        "name": "PhoneNumber",
+                        "description": "header for Customer's phone number",
+                        "required": true,
+                        "type": "string"
+                    },
                     {
                         "in": "body",
                         "name": "body",
@@ -1022,6 +1239,44 @@
                 "responses": {
                     "201": {
                         "description": "{int} models.Api_requests"
+                    },
+                    "403": {
+                        "description": "body is empty"
+                    }
+                }
+            }
+        },
+        "/auth/reset-password": {
+            "post": {
+                "tags": [
+                    "auth"
+                ],
+                "description": "reset password\n\u003cbr\u003e",
+                "operationId": "Auth_requestsController.Reset Password",
+                "parameters": [
+                    {
+                        "in": "header",
+                        "name": "SourceSystem",
+                        "description": "header for Source system",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "in": "body",
+                        "name": "body",
+                        "description": "body for Auth_requests content",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Auth_requests"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/models.Auth_requests"
+                        }
                     },
                     "403": {
                         "description": "body is empty"
@@ -1190,6 +1445,15 @@
             "title": "Callback",
             "type": "object"
         },
+        "requests.AccountNumberRequest": {
+            "title": "AccountNumberRequest",
+            "type": "object",
+            "properties": {
+                "AccountNumber": {
+                    "type": "string"
+                }
+            }
+        },
         "requests.BuyAirtimeAPIRequest": {
             "title": "BuyAirtimeAPIRequest",
             "type": "object",
@@ -1197,6 +1461,9 @@
                 "amount": {
                     "type": "number",
                     "format": "double"
+                },
+                "client_id": {
+                    "type": "string"
                 },
                 "destination": {
                     "type": "string"
@@ -1212,6 +1479,9 @@
                     "format": "double"
                 },
                 "bundle_id": {
+                    "type": "string"
+                },
+                "client_id": {
                     "type": "string"
                 },
                 "destination": {
@@ -1293,6 +1563,9 @@
                     "type": "number",
                     "format": "double"
                 },
+                "client_id": {
+                    "type": "string"
+                },
                 "destination_account": {
                     "type": "string"
                 },
@@ -1308,6 +1581,9 @@
                 "amount": {
                     "type": "number",
                     "format": "double"
+                },
+                "client_id": {
+                    "type": "string"
                 },
                 "destination_account": {
                     "type": "string"
@@ -1333,6 +1609,9 @@
                 "Amount": {
                     "type": "number",
                     "format": "double"
+                },
+                "ClientId": {
+                    "type": "string"
                 },
                 "DestinationAccount": {
                     "type": "string"
@@ -1426,6 +1705,9 @@
                 "Amount": {
                     "type": "number",
                     "format": "double"
+                },
+                "ClientId": {
+                    "type": "string"
                 },
                 "DestinationAccount": {
                     "type": "string"
