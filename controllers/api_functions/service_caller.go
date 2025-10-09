@@ -871,6 +871,52 @@ func GetAccountBalance(c *beego.Controller, req requests.AccountBalanceApiReques
 	return data
 }
 
+func UpdateAccountBalance(c *beego.Controller, req requests.AccountBalanceApiRequest) (resp responses.AccountBalanceApiResponse) {
+	host, _ := beego.AppConfig.String("clientBaseUrl")
+
+	logs.Info("Getting account balance for ", req.AccountNumber)
+	request := api.NewRequest(
+		host,
+		"/v2/api/v2/account-balance",
+		api.POST)
+	// request.Params["username"] = username
+	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+	request.HeaderField["clientId"] = req.ClientId
+
+	request.InterfaceParams["AccountNumber"] = req.AccountNumber
+
+	client := api.Client{
+		Request: request,
+		Type_:   "body",
+	}
+	res, err := client.SendRequest()
+	if err != nil {
+		logs.Error("client.Error: %v", err)
+		c.Data["json"] = err.Error()
+	}
+	defer res.Body.Close()
+	read, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	}
+
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, read, "", "  "); err != nil {
+		logs.Info("Raw response received is ", string(read))
+	} else {
+		logs.Info("Raw response received is \n", prettyJSON.String())
+	}
+	// data := map[string]interface{}{}
+	var data responses.AccountBalanceApiResponse
+	json.Unmarshal(read, &data)
+	c.Data["json"] = data
+
+	logs.Info("Resp is ", data)
+	// logs.Info("Resp is ", data.User)
+
+	return data
+}
+
 func DebitAccountPro(c *beego.Controller, req requests.DebitAccountRequestV2) (resp responses.DebitAccountV2Response) {
 	host, _ := beego.AppConfig.String("clientBaseUrl")
 
