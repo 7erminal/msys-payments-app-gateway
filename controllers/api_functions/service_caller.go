@@ -598,7 +598,7 @@ func AddCustomerAccount(c *beego.Controller, req requests.CreateCustomerAccountA
 	return data
 }
 
-func GetCustomerAccountStatement(c *beego.Controller, accountNumber string) (resp responses.CustomerAccountStatementApiResponseDTO) {
+func GetCustomerAccountStatement(c *beego.Controller, accountNumber string, clientId string) (resp responses.CustomerAccountStatementApiResponseDTO) {
 	host, _ := beego.AppConfig.String("clientBaseUrl")
 
 	logs.Info("Getting customer account statement for account number::: ", accountNumber)
@@ -608,6 +608,8 @@ func GetCustomerAccountStatement(c *beego.Controller, accountNumber string) (res
 		api.POST)
 	// request.Params["username"] = username
 	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+	request.HeaderField["clientId"] = clientId
+
 	request.InterfaceParams["AccountNumber"] = accountNumber
 	request.InterfaceParams["FromDate"] = "2023-01-01"
 	request.InterfaceParams["ToDate"] = fmt.Sprintf("%d-%02d-%02d", 2024, 12, 31)
@@ -877,7 +879,7 @@ func UpdateAccountBalance(c *beego.Controller, req requests.AccountBalanceApiReq
 	logs.Info("Getting account balance for ", req.AccountNumber)
 	request := api.NewRequest(
 		host,
-		"/v2/api/v2/account-balance",
+		"/v2/api/v2/update-balance",
 		api.POST)
 	// request.Params["username"] = username
 	// request.Params = {"UserId": strconv.Itoa(int(userid))}

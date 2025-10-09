@@ -254,4 +254,5 @@ type CustomerAccountAnomaliesRequest struct {
 
 type AccountNumberRequest struct {
 	AccountNumber string
+	ClientId      string
 }

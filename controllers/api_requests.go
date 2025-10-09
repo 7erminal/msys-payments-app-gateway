@@ -1046,7 +1046,7 @@ func (c *Api_requestsController) GetCustomerAccountStatement() {
 
 	phoneNumber := c.Ctx.Input.Header("PhoneNumber")
 
-	logs.Info("Get customer account history called with Account Number: %s, SourceSystem: %s", accountNumber, sourceSystem)
+	logs.Info("Get customer account statement called with Account Number: %s, SourceSystem: %s", accountNumber, sourceSystem)
 	reqBody := c.Ctx.Input.RequestBody
 	reqHeaders := c.Ctx.Request.Header
 
@@ -1080,7 +1080,7 @@ func (c *Api_requestsController) GetCustomerAccountStatement() {
 	if _, err := models.AddApi_requests(&v); err == nil {
 		logs.Info("API request logged successfully: ", v)
 
-		resp := apifunctions.GetCustomerAccountStatement(&c.Controller, accountNumber)
+		resp := apifunctions.GetCustomerAccountStatement(&c.Controller, accountNumber, req.ClientId)
 		logs.Info("Response from customer account history API: ", resp)
 
 		if resp.StatusCode != "200" {
