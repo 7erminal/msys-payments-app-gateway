@@ -1080,57 +1080,81 @@ func (c *Api_requestsController) GetCustomerAccountStatement() {
 	if _, err := models.AddApi_requests(&v); err == nil {
 		logs.Info("API request logged successfully: ", v)
 
-		resp := apifunctions.GetCustomerAccountStatement(&c.Controller, accountNumber, req.ClientId)
-		logs.Info("Response from customer account history API: ", resp)
+		clientId, err := strconv.ParseInt(req.ClientId, 10, 64)
 
-		if resp.StatusCode != "200" {
+		if err != nil {
+			logs.Error("Error parsing client ID: ", err)
 			response = responses.CustomersAccountStatementResponseDTO{
 				Success:    false,
-				StatusDesc: resp.StatusMessage,
+				StatusDesc: "Error parsing client ID: " + err.Error(),
 				Result:     nil,
 			}
-		} else {
-			responseText, err := json.Marshal(response.Result)
-			if err != nil {
-				logs.Error("Error marshalling response result: ", err)
-				responseText = []byte("[]")
-			}
-			v.RequestResponse = string(responseText)
-			v.DateModified = time.Now()
-			v.ResponseDate = time.Now()
-			if err := models.UpdateApi_requestsById(&v); err != nil {
-				logs.Error("Error updating API request with response: ", err)
-			} else {
-				logs.Info("API request updated with response successfully: ", v)
-			}
+		}
 
-			accountStatement := make([]*responses.CustomerAccountStatementData, 0)
-
-			for _, ah := range resp.Result {
-				// Map each account history to the response object
-
-				accStatement := &responses.CustomerAccountStatementData{
-					TransactionDate:   ah.TransactionDate,
-					Description:       ah.Description,
-					Reference:         ah.Reference,
-					TransactionAmount: ah.DebitAmount - ah.CreditAmount,
-					Balance:           0, // Balance not provided in the original response
-					TransactionType: func() string {
-						if ah.DebitAmount > 0 {
-							return "Debit"
-						} else if ah.CreditAmount > 0 {
-							return "Credit"
-						}
-						return "N/A"
-					}(),
-				}
-				accountStatement = append(accountStatement, accStatement)
-			}
-
+		if client, err := models.GetClientsById(clientId); err != nil {
+			logs.Error("Error getting client by ID: ", err)
 			response = responses.CustomersAccountStatementResponseDTO{
-				Success:    true,
-				StatusDesc: "Account history fetched successfully",
-				Result:     accountStatement,
+				Success:    false,
+				StatusDesc: "Error getting client by ID: " + err.Error(),
+				Result:     nil,
+			}
+
+			c.Data["json"] = response
+			c.ServeJSON()
+		} else {
+
+			resp := apifunctions.GetCustomerAccountStatement(&c.Controller, accountNumber, client.ClientCode)
+			logs.Info("Response from customer account history API: ", resp)
+
+			if resp.StatusCode != "200" {
+				response = responses.CustomersAccountStatementResponseDTO{
+					Success:    false,
+					StatusDesc: resp.StatusMessage,
+					Result:     nil,
+				}
+			} else {
+				responseText, err := json.Marshal(response.Result)
+				if err != nil {
+					logs.Error("Error marshalling response result: ", err)
+					responseText = []byte("[]")
+				}
+				v.RequestResponse = string(responseText)
+				v.DateModified = time.Now()
+				v.ResponseDate = time.Now()
+				if err := models.UpdateApi_requestsById(&v); err != nil {
+					logs.Error("Error updating API request with response: ", err)
+				} else {
+					logs.Info("API request updated with response successfully: ", v)
+				}
+
+				accountStatement := make([]*responses.CustomerAccountStatementData, 0)
+
+				for _, ah := range resp.Result {
+					// Map each account history to the response object
+
+					accStatement := &responses.CustomerAccountStatementData{
+						TransactionDate:   ah.TransactionDate,
+						Description:       ah.Description,
+						Reference:         ah.Reference,
+						TransactionAmount: ah.DebitAmount - ah.CreditAmount,
+						Balance:           0, // Balance not provided in the original response
+						TransactionType: func() string {
+							if ah.DebitAmount > 0 {
+								return "Debit"
+							} else if ah.CreditAmount > 0 {
+								return "Credit"
+							}
+							return "N/A"
+						}(),
+					}
+					accountStatement = append(accountStatement, accStatement)
+				}
+
+				response = responses.CustomersAccountStatementResponseDTO{
+					Success:    true,
+					StatusDesc: "Account history fetched successfully",
+					Result:     accountStatement,
+				}
 			}
 		}
 
