@@ -739,6 +739,7 @@ type CustomerAccountStatementApiData struct {
 }
 
 type CustomerAccountStatementData struct {
+	Account                string
 	TransactionDate        string
 	TransactionDescription string
 	Debit                  float64

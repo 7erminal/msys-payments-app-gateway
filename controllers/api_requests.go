@@ -1133,6 +1133,7 @@ func (c *Api_requestsController) GetCustomerAccountStatement() {
 					// Map each account history to the response object
 
 					accStatement := &responses.CustomerAccountStatementData{
+						Account:                req.AccountNumber,
 						TransactionDate:        ah.TransactionDate,
 						TransactionDescription: ah.TransactionDescription,
 						Credit:                 ah.Credit,
