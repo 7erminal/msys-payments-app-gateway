@@ -1133,15 +1133,15 @@ func (c *Api_requestsController) GetCustomerAccountStatement() {
 					// Map each account history to the response object
 
 					accStatement := &responses.CustomerAccountStatementData{
-						TransactionDate:   ah.TransactionDate,
-						Description:       ah.Description,
-						Reference:         ah.Reference,
-						TransactionAmount: ah.DebitAmount - ah.CreditAmount,
-						Balance:           0, // Balance not provided in the original response
+						TransactionDate:        ah.TransactionDate,
+						TransactionDescription: ah.TransactionDescription,
+						Credit:                 ah.Credit,
+						Debit:                  ah.Debit,
+						// Balance:           0, // Balance not provided in the original response
 						TransactionType: func() string {
-							if ah.DebitAmount > 0 {
+							if ah.Debit > 0 {
 								return "Debit"
-							} else if ah.CreditAmount > 0 {
+							} else if ah.Credit > 0 {
 								return "Credit"
 							}
 							return "N/A"
