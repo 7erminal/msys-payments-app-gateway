@@ -748,7 +748,7 @@ type CustomerAccountStatementData struct {
 }
 
 type CustomerAccountStatementApiResponseDTO struct {
-	StatusCode    string
+	StatusCode    int
 	Result        []*CustomerAccountStatementApiData
 	StatusMessage string
 }

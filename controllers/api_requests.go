@@ -1106,7 +1106,7 @@ func (c *Api_requestsController) GetCustomerAccountStatement() {
 			resp := apifunctions.GetCustomerAccountStatement(&c.Controller, accountNumber, client.ClientCode)
 			logs.Info("Response from customer account history API: ", resp)
 
-			if resp.StatusCode != "200" {
+			if resp.StatusCode != 200 {
 				response = responses.CustomersAccountStatementResponseDTO{
 					Success:    false,
 					StatusDesc: resp.StatusMessage,
