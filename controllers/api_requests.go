@@ -1603,7 +1603,7 @@ func (c *Api_requestsController) GetPaymentMethods() {
 	sourceSystem := c.Ctx.Input.Header("SourceSystem")
 	network := c.Ctx.Input.Header("Network")
 
-	logs.Info("GetBundles called with PhoneNumber: %s, SourceSystem: %s, Network: %s, DestinationPhoneNumber: %s", phoneNumber, sourceSystem, network, destinationPhoneNumber)
+	logs.Info("GetBundles called with PhoneNumber: %s, SourceSystem: %s, Network: %s", phoneNumber, sourceSystem, network)
 
 	reqBody := c.Ctx.Input.RequestBody
 	reqHeaders := c.Ctx.Request.Header
@@ -1674,6 +1674,7 @@ func (c *Api_requestsController) GetPaymentMethods() {
 				payMethod := &responses.Payment_methods{
 					PaymentMethodId: pm.PaymentMethodId,
 					PaymentMethod:   pm.PaymentMethod,
+					Networks:        pm.Networks,
 				}
 				paymentMethods = append(paymentMethods, payMethod)
 			}

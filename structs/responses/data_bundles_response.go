@@ -1,7 +1,5 @@
 package responses
 
-import "msys_payment_app_gateway/models"
-
 type DataBundleData struct {
 	Display string
 	Value   string
@@ -41,14 +39,24 @@ type BuyDataBundleAPIResponse struct {
 	Result        *BuyDataBundleResponseResult `json:"result"`
 }
 
+type NetworksResponse struct {
+	NetworkId          int64
+	NetworkName        string
+	NetworkCode        string
+	NetworkReferenceId string
+	Description        string
+	Active             int
+}
+
 type Payment_methods struct {
 	PaymentMethodId int64
 	PaymentMethod   string
+	Networks        []*NetworksResponse
 }
 
 type PaymentMethodsApiResponseDTO struct {
 	StatusCode     int
-	PaymentMethods *[]models.Payment_methods
+	PaymentMethods *[]Payment_methods
 	StatusDesc     string
 }
 
