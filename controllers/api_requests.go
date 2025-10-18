@@ -1596,7 +1596,7 @@ func (c *Api_requestsController) ResetPin() {
 // @Param	Network		header 	string true		"header for network"
 // @Success 201 {int} models.Api_requests
 // @Failure 403 body is empty
-// @router /get-payment-methods [post]
+// @router /get-payment-methods [get]
 func (c *Api_requestsController) GetPaymentMethods() {
 	// Extract headers
 	phoneNumber := c.Ctx.Input.Header("PhoneNumber")

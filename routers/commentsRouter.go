@@ -110,7 +110,7 @@ func init() {
         beego.ControllerComments{
             Method: "GetPaymentMethods",
             Router: `/get-payment-methods`,
-            AllowHTTPMethods: []string{"post"},
+            AllowHTTPMethods: []string{"get"},
             MethodParams: param.Make(),
             Filters: nil,
             Params: nil})
