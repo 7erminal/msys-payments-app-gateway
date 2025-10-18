@@ -1,6 +1,8 @@
 package responses
 
-import "time"
+import (
+	"time"
+)
 
 type LoginDataResponse struct {
 	PhoneNumber  string `json:"phone_number"`
@@ -380,6 +382,19 @@ type NameInquiryResponse struct {
 	Result        string
 }
 
+type NameInquiryApiResponseData struct {
+	IsRegistered string
+	Name         string
+	Status       string
+	Profile      string
+}
+
+type NameInquiryApiResponseDTO struct {
+	Success    bool
+	Result     *NameInquiryApiResponseData
+	StatusDesc string
+}
+
 type TokenDestructureResponseDTO struct {
 	Email    string
 	RoleId   string
@@ -757,4 +772,35 @@ type CustomersAccountStatementResponseDTO struct {
 	Success    bool
 	Result     []*CustomerAccountStatementData
 	StatusDesc string
+}
+
+type Status struct {
+	StatusId     int64     `orm:"auto"`
+	Status       string    `orm:"size(128)"`
+	StatusCode   string    `orm:"size(128)"`
+	DateCreated  time.Time `orm:"type(datetime)"`
+	DateModified time.Time `orm:"type(datetime)"`
+	CreatedBy    int
+	ModifiedBy   int
+	Active       int
+}
+
+type Payments struct {
+	PaymentId       int64 `orm:"auto"`
+	InitiatedBy     int64
+	Sender          *Customers `orm:"rel(fk);column(sender)"`
+	Reciever        *Users     `orm:"rel(fk);column(reciever)"`
+	Amount          float64
+	Commission      float64
+	Charge          float64
+	Narration       string  `orm:"size(255)"`
+	PaymentProof    string  `orm:"null"`
+	Status          *Status `orm:"rel(fk);column(status)"`
+	PaymentAccount  int
+	ReferenceNumber string
+	DateCreated     time.Time `orm:"type(datetime)"`
+	DateModified    time.Time `orm:"type(datetime)"`
+	CreatedBy       int64
+	ModifiedBy      int64
+	Active          int
 }

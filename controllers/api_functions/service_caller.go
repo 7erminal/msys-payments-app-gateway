@@ -1289,6 +1289,160 @@ func NameInquiry(c *beego.Controller, req requests.NumberExistsApiRequest) (resp
 	return data
 }
 
+func NameInquiryViaMobileMoney(c *beego.Controller, req requests.NameInquiryApiRequestDTO) (resp responses.NameInquiryApiResponseDTO) {
+	host, _ := beego.AppConfig.String("paymentBaseUrl")
+
+	logs.Info("Name inquiry ", req.CustomerMsisdn)
+	request := api.NewRequest(
+		host,
+		"/v1/payments/name-inquiry/",
+		api.POST)
+	// request.Params["username"] = username
+	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+	request.InterfaceParams["CustomerMsisdn"] = req.CustomerMsisdn
+	request.InterfaceParams["Channel"] = req.Channel
+
+	client := api.Client{
+		Request: request,
+		Type_:   "params",
+	}
+	res, err := client.SendRequest()
+	if err != nil {
+		logs.Error("client.Error: %v", err)
+		c.Data["json"] = err.Error()
+	}
+	defer res.Body.Close()
+	read, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	}
+
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, read, "", "  "); err != nil {
+		logs.Info("Raw response received is ", string(read))
+	} else {
+		logs.Info("Raw response received is \n", prettyJSON.String())
+	}
+	// data := map[string]interface{}{}
+	var data responses.NameInquiryApiResponseDTO
+	json.Unmarshal(read, &data)
+	c.Data["json"] = data
+
+	logs.Info("Resp is ", data)
+	// logs.Info("Resp is ", data.User)
+
+	return data
+}
+
+func MakePayment(c *beego.Controller, req requests.MakePaymentApiRequestDTO) (resp responses.PaymentApiResponseDTO) {
+	host, _ := beego.AppConfig.String("paymentBaseUrl")
+
+	logs.Info("Requesting Money ", req.Amount, " from ", req.InitiatedBy)
+	request := api.NewRequest(
+		host,
+		"/v1/payments/",
+		api.POST)
+	// request.Params["username"] = username
+	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+	request.InterfaceParams["InitiatedBy"] = req.InitiatedBy
+	request.InterfaceParams["Amount"] = req.Amount
+	request.InterfaceParams["Service"] = req.Service
+	request.InterfaceParams["Sender"] = req.Sender
+	request.InterfaceParams["PaymentMethod"] = req.PaymentMethod
+	request.InterfaceParams["SenderAccount"] = req.SenderAccount
+	request.InterfaceParams["ReceiverAccount"] = req.ReceiverAccount
+	request.InterfaceParams["Reciever"] = req.Reciever
+	request.InterfaceParams["TransactionId"] = req.TransactionId
+	request.InterfaceParams["PaymentProofUrl"] = req.PaymentProofUrl
+	request.InterfaceParams["ReferenceNumber"] = req.ReferenceNumber
+	request.InterfaceParams["CallThirdParty"] = req.CallThirdParty
+	request.InterfaceParams["Operator"] = req.Operator
+	request.InterfaceParams["Network"] = req.Network
+
+	client := api.Client{
+		Request: request,
+		Type_:   "params",
+	}
+	res, err := client.SendRequest()
+	if err != nil {
+		logs.Error("client.Error: %v", err)
+		c.Data["json"] = err.Error()
+	}
+	defer res.Body.Close()
+	read, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	}
+
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, read, "", "  "); err != nil {
+		logs.Info("Raw response received is ", string(read))
+	} else {
+		logs.Info("Raw response received is \n", prettyJSON.String())
+	}
+	// data := map[string]interface{}{}
+	var data responses.PaymentApiResponseDTO
+	json.Unmarshal(read, &data)
+	c.Data["json"] = data
+
+	logs.Info("Resp is ", data)
+	// logs.Info("Resp is ", data.User)
+
+	return data
+}
+
+func RequestMoneyViaMobileMoney(c *beego.Controller, req requests.MomoPaymentApiRequestDTO) (resp responses.PaymentApiResponseDTO) {
+	host, _ := beego.AppConfig.String("paymentBaseUrl")
+
+	logs.Info("Requesting Money ", req.Amount, " from ", req.CustomerMsisdn)
+	request := api.NewRequest(
+		host,
+		"/v1/request-money/momo",
+		api.POST)
+	// request.Params["username"] = username
+	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+	request.InterfaceParams["CustomerMsisdn"] = req.CustomerMsisdn
+	request.InterfaceParams["CustomerEmail"] = req.CustomerEmail
+	request.InterfaceParams["CustomerName"] = req.CustomerName
+	request.InterfaceParams["Amount"] = req.Amount
+	request.InterfaceParams["PrimaryCallbackUrl"] = req.PrimaryCallbackUrl
+	request.InterfaceParams["Description"] = req.Description
+	request.InterfaceParams["ClientReference"] = req.ClientReference
+	request.InterfaceParams["Operator"] = req.Operator
+	request.InterfaceParams["Channel"] = req.Channel
+
+	client := api.Client{
+		Request: request,
+		Type_:   "params",
+	}
+	res, err := client.SendRequest()
+	if err != nil {
+		logs.Error("client.Error: %v", err)
+		c.Data["json"] = err.Error()
+	}
+	defer res.Body.Close()
+	read, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	}
+
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, read, "", "  "); err != nil {
+		logs.Info("Raw response received is ", string(read))
+	} else {
+		logs.Info("Raw response received is \n", prettyJSON.String())
+	}
+	// data := map[string]interface{}{}
+	var data responses.PaymentApiResponseDTO
+	json.Unmarshal(read, &data)
+	c.Data["json"] = data
+
+	logs.Info("Resp is ", data)
+	// logs.Info("Resp is ", data.User)
+
+	return data
+}
+
 func ResetPin(c *beego.Controller, req requests.ResetPinApiRequest) (resp responses.ResetPinApiResponse) {
 	host, _ := beego.AppConfig.String("clientBaseUrl")
 
@@ -1372,6 +1526,110 @@ func GetBundles(c *beego.Controller, req requests.DataBundlesListFormulatedReque
 	}
 	// data := map[string]interface{}{}
 	var data responses.DataBundlesListResponse
+	json.Unmarshal(read, &data)
+	c.Data["json"] = data
+
+	logs.Info("Resp is ", data)
+	// logs.Info("Resp is ", data.User)
+
+	return data
+}
+
+func RequestMoney(c *beego.Controller, req requests.PaymentApiRequestDTO) (resp responses.BuyAirtimeResponse) {
+	host, _ := beego.AppConfig.String("paymentBaseUrl")
+
+	logs.Info("Requesting Money ", req.Amount, " from ", req.PaymentMethod)
+
+	request := api.NewRequest(
+		host,
+		"/v1/payments/request",
+		api.POST)
+	// request.Params["username"] = username
+	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+
+	request.InterfaceParams["InitiatedBy"] = req.InitiatedBy
+	request.InterfaceParams["Amount"] = req.Amount
+	request.InterfaceParams["Service"] = req.Service
+	request.InterfaceParams["Sender"] = req.Sender
+	request.InterfaceParams["PaymentMethod"] = req.PaymentMethod
+	request.InterfaceParams["Reciever"] = req.Reciever
+	request.InterfaceParams["TransactionId"] = req.TransactionId
+	request.InterfaceParams["PaymentProofUrl"] = req.PaymentProofUrl
+	request.InterfaceParams["ReferenceNumber"] = req.ReferenceNumber
+	request.InterfaceParams["CallThirdParty"] = req.CallThirdParty
+	client := api.Client{
+		Request: request,
+		Type_:   "body",
+	}
+	res, err := client.SendRequest()
+	if err != nil {
+		logs.Error("client.Error: %v", err)
+		c.Data["json"] = err.Error()
+	}
+	defer res.Body.Close()
+	read, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	}
+
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, read, "", "  "); err != nil {
+		logs.Info("Raw response received is ", string(read))
+	} else {
+		logs.Info("Raw response received is \n", prettyJSON.String())
+	}
+	// data := map[string]interface{}{}
+	var data responses.BuyAirtimeResponse
+	json.Unmarshal(read, &data)
+	c.Data["json"] = data
+
+	logs.Info("Resp is ", data)
+	// logs.Info("Resp is ", data.User)
+
+	return data
+}
+
+func NameInquiryPhoneNumber(c *beego.Controller, req requests.BuyAirtimeFormulatedRequest) (resp responses.BuyAirtimeResponse) {
+	host, _ := beego.AppConfig.String("paymentBaseUrl")
+
+	logs.Info("Buying Airtime ", req.Amount, " for ", req.Destination)
+
+	request := api.NewRequest(
+		host,
+		"/v1/requests/buy-airtime",
+		api.POST)
+	// request.Params["username"] = username
+	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+	request.HeaderField["PhoneNumber"] = req.PhoneNumber
+	request.HeaderField["SourceSystem"] = req.SourceSystem
+
+	request.InterfaceParams["destination"] = req.Destination
+	request.InterfaceParams["amount"] = req.Amount
+	request.InterfaceParams["network"] = req.Network
+	request.InterfaceParams["request_id"] = req.RequestId
+	client := api.Client{
+		Request: request,
+		Type_:   "body",
+	}
+	res, err := client.SendRequest()
+	if err != nil {
+		logs.Error("client.Error: %v", err)
+		c.Data["json"] = err.Error()
+	}
+	defer res.Body.Close()
+	read, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	}
+
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, read, "", "  "); err != nil {
+		logs.Info("Raw response received is ", string(read))
+	} else {
+		logs.Info("Raw response received is \n", prettyJSON.String())
+	}
+	// data := map[string]interface{}{}
+	var data responses.BuyAirtimeResponse
 	json.Unmarshal(read, &data)
 	c.Data["json"] = data
 
@@ -1521,6 +1779,61 @@ func Callback(c *beego.Controller, req requests.CallbackFormulateRequest) (resp 
 	}
 	// data := map[string]interface{}{}
 	var data responses.CallbackResponse
+	json.Unmarshal(read, &data)
+	c.Data["json"] = data
+
+	logs.Info("Resp is ", data)
+	// logs.Info("Resp is ", data.User)
+
+	return data
+}
+
+func ReceivePaymentCallback(c *beego.Controller, req requests.PaymentCallbackData) (resp responses.CallbackAPIResponse) {
+	host, _ := beego.AppConfig.String("paymentBaseUrl")
+
+	request := api.NewRequest(
+		host,
+		"/v1/callback/process",
+		api.POST)
+	// request.Params["username"] = username
+	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+
+	request.InterfaceParams["AmountCharged"] = req.AmountCharged
+	request.InterfaceParams["ClientReference"] = req.ClientReference
+	request.InterfaceParams["TransactionId"] = req.TransactionId
+	request.InterfaceParams["Description"] = req.Description
+	request.InterfaceParams["ExternalTransactionId"] = req.ExternalTransactionId
+	request.InterfaceParams["Amount"] = req.Amount
+	request.InterfaceParams["Charges"] = req.Charges
+	request.InterfaceParams["AmountAfterCharges"] = req.AmountAfterCharges
+	request.InterfaceParams["PaymentDate"] = req.PaymentDate
+	request.InterfaceParams["OrderId"] = req.OrderId
+	request.InterfaceParams["Status"] = req.Status
+
+	client := api.Client{
+		Request: request,
+		Type_:   "body",
+	}
+	res, err := client.SendRequest()
+	if err != nil {
+		logs.Error("client.Error: %v", err)
+		c.Data["json"] = err.Error()
+	}
+	defer res.Body.Close()
+	read, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	}
+
+	// logs.Info("Raw response received is ", res)
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, read, "", "  "); err != nil {
+		logs.Info("Raw response received is ", string(read))
+	} else {
+		logs.Info("Raw response received is \n", prettyJSON.String())
+	}
+	// data := map[string]interface{}{}
+	var data responses.CallbackAPIResponse
 	json.Unmarshal(read, &data)
 	c.Data["json"] = data
 

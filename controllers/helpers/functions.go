@@ -539,3 +539,222 @@ func GetAccountBalance(c *beego.Controller, req requests.AccountBalanceApiReques
 
 	return response
 }
+
+func UpdateAccountBalance(c *beego.Controller, req requests.AccountBalanceApiRequest) (data responses.CustAccountBalanceResponse) {
+	logs.Info("Fetching account balance for account number: ", req.AccountNumber)
+	resp := apifunctions.GetAccountBalance(c, req)
+
+	response := responses.CustAccountBalanceResponse{}
+
+	if resp.StatusCode == 200 {
+		logs.Info("Account balance fetched successfully: ", resp.Result)
+
+		balance := resp.Result.AvailableBalance
+		ClearBalance := resp.Result.ClearBalance
+
+		logs.Info("Available balance: ", balance)
+		logs.Info("Clear balance: ", ClearBalance)
+
+		accountsResp := apifunctions.GetCustomerAccount(c, req.AccountNumber)
+
+		if accountsResp.StatusCode == "200" && accountsResp.Result != nil {
+			logs.Info("Account details fetched successfully: ", accountsResp.Result)
+			if accountsResp.Result.Balance != *balance {
+				// Log the anomaly
+				logs.Info("Balance mismatch detected. Logging account anomaly.")
+
+				amountDifference := *balance - accountsResp.Result.Balance
+				amountFloat, err := strconv.ParseFloat(strconv.FormatFloat(amountDifference, 'f', 2, 64), 64)
+				if err != nil {
+					logs.Error("Error parsing amount to float: ", err)
+					amountFloat = 0.0
+				}
+
+				req := requests.CustomerAccountAnomaliesRequest{
+					AccountNumber:  req.AccountNumber,
+					Amount:         amountFloat,
+					Desc:           "Balance mismatch detected during transaction. System Balance: " + strconv.FormatFloat(accountsResp.Result.Balance, 'f', 2, 64) + ", Actual Balance: " + strconv.FormatFloat(*balance, 'f', 2, 64),
+					Balance:        accountsResp.Result.Balance,
+					CheckedBalance: *balance,
+					CreatedBy:      1, // System user
+					ModifiedBy:     1, // System user
+					Active:         1,
+				}
+
+				addAnomalyResp := apifunctions.ReportAccountAnomaly(c, req)
+
+				if addAnomalyResp.StatusCode == "200" {
+					logs.Info("Account anomaly logged successfully: ", addAnomalyResp.Result)
+				} else {
+					logs.Error("Error logging account anomaly: ", addAnomalyResp.StatusMessage)
+				}
+
+			}
+
+			response = responses.CustAccountBalanceResponse{
+				StatusCode:      true,
+				StatusMessage:   "Account balance fetched successfully",
+				Result:          resp.Result,
+				CustomerAccount: accountsResp.Result,
+			}
+
+		} else {
+			logs.Error("Error fetching account balance: ", resp.StatusDesc)
+			response = responses.CustAccountBalanceResponse{
+				StatusCode:    false,
+				StatusMessage: resp.StatusDesc,
+				Result:        nil,
+			}
+		}
+
+		response = responses.CustAccountBalanceResponse{
+			StatusCode:      true,
+			StatusMessage:   "Account balance fetched successfully",
+			Result:          resp.Result,
+			CustomerAccount: accountsResp.Result,
+		}
+	} else {
+		logs.Error("Error fetching account balance: ", resp.StatusDesc)
+		response = responses.CustAccountBalanceResponse{
+			StatusCode:    false,
+			StatusMessage: resp.StatusDesc,
+			Result:        nil,
+		}
+	}
+
+	logs.Info("Final response for account balance: ", response)
+
+	return response
+}
+
+func TempRegisterCustomer(c *beego.Controller, mobileNumber string, channel string) (responses.CustomerResponseDTO, error) {
+	logs.Info("Registering new customer with phone number: ", mobileNumber)
+
+	responseStatus := 402
+	responseMessage := "Error processing request"
+	customer := responses.Customer{}
+	resp := responses.CustomerResponseDTO{
+		StatusCode: responseStatus,
+		StatusDesc: responseMessage,
+		Customer:   nil,
+	}
+
+	custDetails := apifunctions.GetCustomerDetailsWithPhoneNumber(c, mobileNumber)
+
+	if custDetails.StatusCode != 200 {
+		logs.Error("Error fetching customer details for phone number: ", mobileNumber)
+		logs.Info("Register Customer")
+
+		// Check phone number name inquiry
+		nameInquiryReq := requests.NameInquiryApiRequestDTO{
+			CustomerMsisdn: mobileNumber,
+			Channel:        channel,
+		}
+		nameInquiryResp := apifunctions.NameInquiryViaMobileMoney(c, nameInquiryReq)
+		logs.Info("Response from name inquiry API: ", nameInquiryResp)
+
+		if nameInquiryResp.Success {
+			// Register customer
+			newCustomer := requests.AddCustomer{
+				PhoneNumber:  mobileNumber,
+				Name:         nameInquiryResp.Result.Name,
+				Email:        "",
+				Location:     "",
+				IdType:       "",
+				IdNumber:     "",
+				ImagePath:    "",
+				AddedBy:      "1",
+				CustomerType: "Individual", // Assuming default customer type
+				Branch:       "1",
+				Dob:          "",
+				Status:       "Pending",
+			}
+			regResp := apifunctions.Register(c, newCustomer)
+			logs.Info("Response from register customer API: ", regResp)
+
+			if regResp.StatusCode == 200 {
+				logs.Info("Customer registered successfully with phone number: ", mobileNumber)
+
+				customer = *regResp.Customer
+				responseStatus = 200
+				responseMessage = "Customer registered successfully"
+			} else {
+				logs.Error("Error registering customer for phone number: ", mobileNumber)
+				responseMessage = "Error registering customer for phone number"
+			}
+		} else {
+			logs.Error("Error in name inquiry for phone number: ", mobileNumber)
+			responseMessage = "Error in name inquiry for phone number"
+			responseStatus = 600
+		}
+	} else {
+		logs.Info("Customer already exists with phone number: ", mobileNumber)
+
+		customer = *custDetails.Customer
+		responseStatus = 200
+		responseMessage = "Customer fetched successfully"
+	}
+
+	resp = responses.CustomerResponseDTO{
+		StatusCode: responseStatus,
+		StatusDesc: responseMessage,
+		Customer:   &customer,
+	}
+
+	return resp, nil
+}
+
+func PaymentRequestMoney(c *beego.Controller, req requests.RequestMoneyApiRequestDTO) (resp responses.PaymentApiResponseDTO, err error) {
+	logs.Info("Requesting Money ", req.Amount, " from ", req.InitiatedBy)
+	makePayment := requests.MakePaymentApiRequestDTO{
+		InitiatedBy:     req.InitiatedBy,
+		Amount:          req.Amount,
+		Service:         req.Service,
+		Sender:          req.Sender,
+		SenderAccount:   req.SenderAccount,
+		ReceiverAccount: req.ReceiverAccount,
+		Reciever:        req.Reciever,
+		PaymentMethod:   req.PaymentMethod,
+		TransactionId:   req.TransactionId,
+		PaymentProofUrl: req.PaymentProofUrl,
+		ReferenceNumber: req.ReferenceNumber,
+		CallThirdParty:  req.CallThirdParty,
+		Operator:        req.Operator,
+		Network:         req.ServiceNetwork,
+	}
+
+	resp = apifunctions.MakePayment(c, makePayment)
+
+	if resp.StatusCode != 200 {
+		logs.Error("Error making payment request: ", resp.StatusDesc)
+		return resp, errors.New(resp.StatusDesc)
+	} else {
+		logs.Info("Payment request made successfully: ", resp.Payment)
+
+		momoRequest := requests.MomoPaymentApiRequestDTO{
+			PaymentId:          resp.Payment.PaymentId,
+			Amount:             resp.Payment.Amount,
+			CustomerName:       resp.Payment.Sender,
+			CustomerMsisdn:     req.CustomerMsisdn,
+			CustomerEmail:      req.CustomerEmail,
+			Operator:           req.Operator,
+			PrimaryCallbackUrl: resp.Payment.CallbackUrl,
+			Description:        "Payment Request for " + strconv.FormatFloat(resp.Payment.Amount, 'f', 2, 64),
+			ClientReference:    resp.Payment.PaymentId,
+			Channel:            req.Network,
+		}
+
+		momoResp := apifunctions.RequestMoneyViaMobileMoney(c, momoRequest)
+
+		if momoResp.StatusCode != 200 {
+			logs.Error("Error initiating momo payment: ", momoResp.StatusDesc)
+			return resp, errors.New(momoResp.StatusDesc)
+		} else {
+			logs.Info("Momo payment initiated successfully: ", momoResp.Payment)
+
+			logs.Info("Updated payment with momo details: ", resp.Payment)
+		}
+	}
+	return resp, nil
+
+}

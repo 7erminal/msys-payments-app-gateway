@@ -95,6 +95,11 @@ type NumberExistsApiRequest struct {
 	ClientId     string
 }
 
+type NameInquiryApiRequestDTO struct {
+	CustomerMsisdn string
+	Channel        string
+}
+
 type AccountBalanceApiRequest struct {
 	AccountNumber string
 	ClientId      string

@@ -5,6 +5,7 @@ import (
 	"errors"
 	apifunctions "msys_payment_app_gateway/controllers/api_functions"
 	"msys_payment_app_gateway/controllers/helpers"
+	"msys_payment_app_gateway/controllers/services"
 	"msys_payment_app_gateway/models"
 	"msys_payment_app_gateway/structs/requests"
 	"msys_payment_app_gateway/structs/responses"
@@ -1835,7 +1836,7 @@ func (c *Api_requestsController) BuyAirtime() {
 
 	destinationPhoneNumber := req.Destination
 
-	logs.Info("GetBundles called with PhoneNumber: %s, SourceSystem: %s, Network: %s, DestinationPhoneNumber: %s", phoneNumber, sourceSystem, network, destinationPhoneNumber)
+	logs.Info("GetAirtime called with PhoneNumber: %s, SourceSystem: %s, Network: %s, DestinationPhoneNumber: %s", phoneNumber, sourceSystem, network, destinationPhoneNumber)
 
 	reqBody := c.Ctx.Input.RequestBody
 	reqHeaders := c.Ctx.Request.Header
@@ -1865,51 +1866,123 @@ func (c *Api_requestsController) BuyAirtime() {
 		buyAirtimeRequest := requests.BuyAirtimeFormulatedRequest{
 			RequestId:    v.Id,
 			Amount:       req.Amount,
-			Network:      network,
+			Network:      req.Network,
 			Destination:  destinationPhoneNumber,
 			SourceSystem: sourceSystem,
 			PhoneNumber:  phoneNumber,
 		}
 
-		logs.Info("Formatted request for Buy Airtime: ", buyAirtimeRequest)
-		resp := apifunctions.BuyAirtime(&c.Controller, buyAirtimeRequest)
-		logs.Info("Response from Buy Airtime API: ", resp)
-
 		var response responses.BuyAirtimeAPIResponse = responses.BuyAirtimeAPIResponse{
 			StatusCode:    false,
 			StatusMessage: "Something went wrong",
-			Result:        resp.Result,
+			Result:        nil,
 		}
 
-		if !resp.StatusCode {
-			response = responses.BuyAirtimeAPIResponse{
-				StatusCode:    false,
-				StatusMessage: resp.StatusMessage,
-				Result:        resp.Result,
+		if accountNumber != "" {
+			accountResp := apifunctions.GetCustomerAccount(&c.Controller, accountNumber)
+
+			proceed := false
+			if accountResp.StatusCode == "200" {
+				helpers.LogAccountActivity(&c.Controller, accountNumber, "Airtime Purchase", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
+				proceed = true
+			} else {
+				logs.Error("Error fetching account details for account number: ", accountNumber)
+				logs.Info("Register Customer")
+				regCustResp, err := helpers.TempRegisterCustomer(&c.Controller, accountNumber, req.ClientId)
+				if err != nil {
+					logs.Error("Error registering customer: ", err)
+				} else {
+					logs.Info("Customer registered successfully: ", regCustResp)
+
+					requestMoney := requests.RequestMoneyApiRequestDTO{
+						InitiatedBy:     regCustResp.Customer.CustomerId,
+						Amount:          req.Amount,
+						Service:         "AIRTIME",
+						Sender:          regCustResp.Customer.CustomerId,
+						Reciever:        1,
+						PhoneNumber:     destinationPhoneNumber,
+						CustomerName:    regCustResp.Customer.FullName,
+						CustomerMsisdn:  regCustResp.Customer.PhoneNumber,
+						CustomerEmail:   regCustResp.Customer.Email,
+						Currency:        "GHS",
+						SenderAccount:   accountNumber,
+						ReceiverAccount: destinationPhoneNumber,
+						PaymentMethod:   "MOBILEMONEY",
+						TransactionId:   0,
+						PaymentProofUrl: "",
+						ReferenceNumber: "",
+						CallThirdParty:  true,
+						Operator:        "HUBTEL",
+						Network:         network,
+						ServiceNetwork:  req.Network,
+					}
+					logs.Info("Requesting money from customer for airtime purchase: ", requestMoney)
+
+					reqMoneyResp, err := helpers.PaymentRequestMoney(&c.Controller, requestMoney)
+
+					if err != nil {
+						logs.Error("Error requesting money from customer: ", err)
+						response = responses.BuyAirtimeAPIResponse{
+							StatusCode:    false,
+							StatusMessage: "Error requesting money from customer: " + err.Error(),
+							Result:        nil,
+						}
+					} else {
+						if reqMoneyResp.StatusCode == 200 {
+							response = responses.BuyAirtimeAPIResponse{
+								StatusCode:    true,
+								StatusMessage: "Airtime purchase is being processed",
+								Result:        nil,
+							}
+						} else {
+							response = responses.BuyAirtimeAPIResponse{
+								StatusCode:    false,
+								StatusMessage: "Error requesting money from customer: " + reqMoneyResp.StatusDesc,
+								Result:        nil,
+							}
+						}
+					}
+				}
+			}
+
+			if proceed {
+				logs.Info("Formatted request for Buy Airtime: ", buyAirtimeRequest)
+				resp := services.BuyAirtime(&c.Controller, buyAirtimeRequest)
+				logs.Info("Response from Buy Airtime API: ", resp)
+
+				if !resp.StatusCode {
+					response = responses.BuyAirtimeAPIResponse{
+						StatusCode:    false,
+						StatusMessage: resp.StatusMessage,
+						Result:        resp.Result,
+					}
+				} else {
+					responseText, err := json.Marshal(response.Result)
+					if err != nil {
+						logs.Error("Error marshalling response result: ", err)
+						responseText = []byte("[]")
+					}
+					v.RequestResponse = string(responseText)
+					v.DateModified = time.Now()
+					v.ResponseDate = time.Now()
+					if err := models.UpdateApi_requestsById(&v); err != nil {
+						logs.Error("Error updating API request with response: ", err)
+					} else {
+						logs.Info("API request updated with response successfully: ", v)
+					}
+
+					response = responses.BuyAirtimeAPIResponse{
+						StatusCode:    true,
+						StatusMessage: "Airtime purchase is being processed",
+						Result:        resp.Result,
+					}
+				}
 			}
 		} else {
-			responseText, err := json.Marshal(response.Result)
-			if err != nil {
-				logs.Error("Error marshalling response result: ", err)
-				responseText = []byte("[]")
-			}
-			v.RequestResponse = string(responseText)
-			v.DateModified = time.Now()
-			v.ResponseDate = time.Now()
-			if err := models.UpdateApi_requestsById(&v); err != nil {
-				logs.Error("Error updating API request with response: ", err)
-			} else {
-				logs.Info("API request updated with response successfully: ", v)
-			}
-
-			if accountNumber != "" {
-				helpers.LogAccountActivity(&c.Controller, accountNumber, "Airtime Purchase", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
-			}
-
 			response = responses.BuyAirtimeAPIResponse{
-				StatusCode:    true,
-				StatusMessage: "Airtime purchase is being processed",
-				Result:        resp.Result,
+				StatusCode:    false,
+				StatusMessage: "Account number is required to process this request",
+				Result:        nil,
 			}
 		}
 

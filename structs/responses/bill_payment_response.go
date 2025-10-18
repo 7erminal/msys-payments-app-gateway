@@ -1,5 +1,55 @@
 package responses
 
+import (
+	"msys_payment_app_gateway/models"
+	"time"
+)
+
+type PaymentResponse struct {
+	PaymentId       string
+	Sender          string
+	Reciever        string
+	Amount          float64
+	Commission      float64
+	Charge          float64
+	OtherCharge     float64
+	PaymentAmount   float64
+	PaymentMethod   *models.Payment_methods
+	PaymentProof    string
+	Status          *Status
+	Service         string
+	SenderAccount   string
+	ReceiverAccount string
+	ReferenceNumber string
+	DateCreated     time.Time `orm:"type(datetime)"`
+	DateModified    time.Time `orm:"type(datetime)"`
+	ProcessedDate   time.Time `orm:"type(datetime);null"`
+	Active          int
+	CallbackUrl     string
+	ClientReference string
+	PaymentHistory  *[]PaymentHistoryResponse
+}
+
+type PaymentHistoryResponse struct {
+	PaymentHistoryId int64
+	PaymentId        int64
+	Status           string
+	Service          string
+	Narration        string
+	Reference        string
+	DateCreated      time.Time
+	DateModified     time.Time
+	CreatedBy        int64
+	ModifiedBy       int64
+	Active           int
+}
+
+type PaymentApiResponseDTO struct {
+	StatusCode int
+	Payment    *PaymentResponse
+	StatusDesc string
+}
+
 type AccountQueryData struct {
 	Display string
 	Value   string

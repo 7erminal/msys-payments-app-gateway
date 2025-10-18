@@ -18,5 +18,6 @@ type BuyAirtimeRequest struct {
 type BuyAirtimeAPIRequest struct {
 	Amount      float64 `json:"amount" valid:"required~Amount is required"`
 	Destination string  `json:"destination" valid:"required~Destination is required"`
+	Network     string  `json:"network" valid:"required~Network is required"`
 	ClientId    string  `json:"client_id" valid:"required~Client ID is required"`
 }
