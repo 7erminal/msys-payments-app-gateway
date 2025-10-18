@@ -1334,6 +1334,48 @@ func NameInquiryViaMobileMoney(c *beego.Controller, req requests.NameInquiryApiR
 	return data
 }
 
+func GetPaymentMethods(c *beego.Controller) (resp responses.PaymentMethodsApiResponseDTO) {
+	host, _ := beego.AppConfig.String("paymentBaseUrl")
+
+	request := api.NewRequest(
+		host,
+		"/v1/payment-methods/",
+		api.GET)
+	// request.Params["username"] = username
+	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+
+	client := api.Client{
+		Request: request,
+		Type_:   "body",
+	}
+	res, err := client.SendRequest()
+	if err != nil {
+		logs.Error("client.Error: %v", err)
+		c.Data["json"] = err.Error()
+	}
+	defer res.Body.Close()
+	read, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	}
+
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, read, "", "  "); err != nil {
+		logs.Info("Raw response received is ", string(read))
+	} else {
+		logs.Info("Raw response received is \n", prettyJSON.String())
+	}
+	// data := map[string]interface{}{}
+	var data responses.PaymentMethodsApiResponseDTO
+	json.Unmarshal(read, &data)
+	c.Data["json"] = data
+
+	logs.Info("Resp is ", data)
+	// logs.Info("Resp is ", data.User)
+
+	return data
+}
+
 func MakePayment(c *beego.Controller, req requests.MakePaymentApiRequestDTO) (resp responses.PaymentApiResponseDTO) {
 	host, _ := beego.AppConfig.String("paymentBaseUrl")
 

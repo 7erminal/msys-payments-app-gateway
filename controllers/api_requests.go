@@ -1594,6 +1594,130 @@ func (c *Api_requestsController) ResetPin() {
 // @Param	PhoneNumber		header 	string true		"header for Customer's phone number"
 // @Param	SourceSystem		header 	string true		"header for Source system"
 // @Param	Network		header 	string true		"header for network"
+// @Success 201 {int} models.Api_requests
+// @Failure 403 body is empty
+// @router /get-payment-methods [post]
+func (c *Api_requestsController) GetPaymentMethods() {
+	// Extract headers
+	phoneNumber := c.Ctx.Input.Header("PhoneNumber")
+	sourceSystem := c.Ctx.Input.Header("SourceSystem")
+	network := c.Ctx.Input.Header("Network")
+
+	var req requests.GetBundlesAPIRequest
+	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
+
+	destinationPhoneNumber := req.Destination
+
+	logs.Info("GetBundles called with PhoneNumber: %s, SourceSystem: %s, Network: %s, DestinationPhoneNumber: %s", phoneNumber, sourceSystem, network, destinationPhoneNumber)
+
+	reqBody := c.Ctx.Input.RequestBody
+	reqHeaders := c.Ctx.Request.Header
+
+	requestMap := map[string]interface{}{
+		"headers": reqHeaders,
+		"body":    string(reqBody),
+	}
+
+	reqText, err := json.Marshal(requestMap)
+	if err != nil {
+		logs.Error("Error marshalling request input: ", err)
+		c.Data["json"] = err.Error()
+		c.ServeJSON()
+		return
+	}
+	var v models.Api_requests = models.Api_requests{
+		Request:      string(reqText),
+		PhoneNumber:  phoneNumber,
+		RequestType:  "Get Payment Methods",
+		RequestDate:  time.Now(),
+		DateCreated:  time.Now(),
+		DateModified: time.Now(),
+	}
+	if _, err := models.AddApi_requests(&v); err == nil {
+		logs.Info("API request logged successfully: ", v)
+		getBundlesRequest := requests.DataBundlesListFormulatedRequest{
+			NetworkId:          network,
+			DestinationAccount: destinationPhoneNumber,
+			PhoneNumber:        phoneNumber,
+			SourceSystem:       sourceSystem,
+		}
+
+		logs.Info("Formatted request for GetBundles: ", getBundlesRequest)
+		resp := apifunctions.GetPaymentMethods(&c.Controller)
+		logs.Info("Response from Get payment methods API: ", resp)
+
+		isSuccess := false
+		message := "Failed to retrieve payment methods"
+
+		var response responses.PaymentMethodsResponseDTO = responses.PaymentMethodsResponseDTO{
+			Success:    isSuccess,
+			StatusDesc: message,
+			Result:     nil,
+		}
+
+		if resp.StatusCode != 200 {
+			response = responses.PaymentMethodsResponseDTO{
+				Success:    isSuccess,
+				StatusDesc: resp.StatusDesc,
+				Result:     nil,
+			}
+		} else {
+			isSuccess = true
+			message = "Payment Methods retrieved successfully"
+			responseText, err := json.Marshal(response.Result)
+			if err != nil {
+				logs.Error("Error marshalling response result: ", err)
+				responseText = []byte("[]")
+			}
+			v.RequestResponse = string(responseText)
+			v.DateModified = time.Now()
+			v.ResponseDate = time.Now()
+			if err := models.UpdateApi_requestsById(&v); err != nil {
+				logs.Error("Error updating API request with response: ", err)
+			} else {
+				logs.Info("API request updated with response successfully: ", v)
+			}
+
+			paymentMethods := make([]*responses.Payment_methods, 0)
+
+			for _, pm := range *resp.PaymentMethods {
+				// Map each payment method to the response object
+
+				payMethod := &responses.Payment_methods{
+					PaymentMethodId: pm.PaymentMethodId,
+					PaymentMethod:   pm.PaymentMethod,
+				}
+				paymentMethods = append(paymentMethods, payMethod)
+			}
+			response = responses.PaymentMethodsResponseDTO{
+				Success:    isSuccess,
+				StatusDesc: message,
+				Result:     paymentMethods,
+			}
+		}
+
+		c.Ctx.Output.SetStatus(200)
+		c.Data["json"] = response
+
+	} else {
+		var response responses.PaymentMethodsResponseDTO = responses.PaymentMethodsResponseDTO{
+			Success:    false,
+			StatusDesc: "Something went wrong:: " + err.Error(),
+			Result:     nil,
+		}
+
+		c.Data["json"] = response
+	}
+	c.ServeJSON()
+}
+
+// GetBundles ...
+// @Title Get Bundles
+// @Description Get Data Bundles Available
+// @Param	Authorization		header 	string true		"header for User"
+// @Param	PhoneNumber		header 	string true		"header for Customer's phone number"
+// @Param	SourceSystem		header 	string true		"header for Source system"
+// @Param	Network		header 	string true		"header for network"
 // @Param	body		body 	requests.GetBundlesAPIRequest	true		"body for Request content"
 // @Success 201 {int} models.Api_requests
 // @Failure 403 body is empty

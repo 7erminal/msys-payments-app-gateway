@@ -1,5 +1,7 @@
 package responses
 
+import "msys_payment_app_gateway/models"
+
 type DataBundleData struct {
 	Display string
 	Value   string
@@ -37,4 +39,21 @@ type BuyDataBundleAPIResponse struct {
 	StatusCode    bool                         `json:"status_code"`
 	StatusMessage string                       `json:"status_message"`
 	Result        *BuyDataBundleResponseResult `json:"result"`
+}
+
+type Payment_methods struct {
+	PaymentMethodId int64
+	PaymentMethod   string
+}
+
+type PaymentMethodsApiResponseDTO struct {
+	StatusCode     int
+	PaymentMethods *[]models.Payment_methods
+	StatusDesc     string
+}
+
+type PaymentMethodsResponseDTO struct {
+	Success    bool
+	Result     []*Payment_methods
+	StatusDesc string
 }
