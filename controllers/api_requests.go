@@ -1603,11 +1603,6 @@ func (c *Api_requestsController) GetPaymentMethods() {
 	sourceSystem := c.Ctx.Input.Header("SourceSystem")
 	network := c.Ctx.Input.Header("Network")
 
-	var req requests.GetBundlesAPIRequest
-	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
-
-	destinationPhoneNumber := req.Destination
-
 	logs.Info("GetBundles called with PhoneNumber: %s, SourceSystem: %s, Network: %s, DestinationPhoneNumber: %s", phoneNumber, sourceSystem, network, destinationPhoneNumber)
 
 	reqBody := c.Ctx.Input.RequestBody
@@ -1635,14 +1630,7 @@ func (c *Api_requestsController) GetPaymentMethods() {
 	}
 	if _, err := models.AddApi_requests(&v); err == nil {
 		logs.Info("API request logged successfully: ", v)
-		getBundlesRequest := requests.DataBundlesListFormulatedRequest{
-			NetworkId:          network,
-			DestinationAccount: destinationPhoneNumber,
-			PhoneNumber:        phoneNumber,
-			SourceSystem:       sourceSystem,
-		}
 
-		logs.Info("Formatted request for GetBundles: ", getBundlesRequest)
 		resp := apifunctions.GetPaymentMethods(&c.Controller)
 		logs.Info("Response from Get payment methods API: ", resp)
 
