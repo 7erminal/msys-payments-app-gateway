@@ -1403,7 +1403,7 @@ func MakePayment(c *beego.Controller, req requests.MakePaymentApiRequestDTO) (re
 
 	client := api.Client{
 		Request: request,
-		Type_:   "params",
+		Type_:   "body",
 	}
 	res, err := client.SendRequest()
 	if err != nil {
