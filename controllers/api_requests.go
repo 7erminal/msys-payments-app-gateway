@@ -42,6 +42,7 @@ func (c *Api_requestsController) URLMapping() {
 	c.Mapping("RegisterAccount", c.RegisterAccount)
 	c.Mapping("GetBilTransactions", c.GetBilTransactions)
 	c.Mapping("GetCustomerAccountStatement", c.GetCustomerAccountStatement)
+	c.Mapping("Deposit", c.Deposit)
 	// c.Mapping("TransferFunds", c.TransferFunds)
 }
 
@@ -1700,6 +1701,232 @@ func (c *Api_requestsController) GetPaymentMethods() {
 	c.ServeJSON()
 }
 
+// Deposit ...
+// @Title Deposit
+// @Description Deposit to account
+// @Param	Authorization		header 	string true		"header for User"
+// @Param	PhoneNumber		header 	string true		"header for Customer's phone number"
+// @Param	AccountNumber		header 	string true		"header for Customer's account number"
+// @Param	SourceSystem		header 	string true		"header for Source system"
+// @Param	Network		header 	string true		"header for network"
+// @Param	body		body 	requests.DepositAPIRequest	true		"body for Request content"
+// @Success 201 {int} models.Api_requests
+// @Failure 403 body is empty
+// @router /deposit [post]
+func (c *Api_requestsController) Deposit() {
+	// Extract headers
+	phoneNumber := c.Ctx.Input.Header("PhoneNumber")
+	accountNumber := c.Ctx.Input.Header("AccountNumber")
+	sourceSystem := c.Ctx.Input.Header("SourceSystem")
+	network := c.Ctx.Input.Header("Network")
+
+	var req requests.DepositAPIRequest
+	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
+
+	destinationPhoneNumber := req.Destination
+
+	logs.Info("GetAirtime called with PhoneNumber: %s, SourceSystem: %s, Network: %s, DestinationPhoneNumber: %s", phoneNumber, sourceSystem, network, destinationPhoneNumber)
+
+	reqBody := c.Ctx.Input.RequestBody
+	reqHeaders := c.Ctx.Request.Header
+
+	requestMap := map[string]interface{}{
+		"headers": reqHeaders,
+		"body":    string(reqBody),
+	}
+
+	reqText, err := json.Marshal(requestMap)
+	if err != nil {
+		logs.Error("Error marshalling request input: ", err)
+		c.Data["json"] = err.Error()
+		c.ServeJSON()
+		return
+	}
+
+	isSuccess := false
+	message := "Deposit failed"
+	var v models.Api_requests = models.Api_requests{
+		Request:      string(reqText),
+		PhoneNumber:  phoneNumber,
+		RequestType:  "Deposit",
+		RequestDate:  time.Now(),
+		DateCreated:  time.Now(),
+		DateModified: time.Now(),
+	}
+	if _, err := models.AddApi_requests(&v); err == nil {
+		logs.Info("API request logged successfully: ", v)
+
+		req := requests.PaymentRequestApiRequestDTO{
+			ClientId:        req.ClientId,
+			Amount:          req.Amount,
+			PaymentMethod:   "MOBILEMONEY",
+			Service:         "DEPOSIT",
+			SenderAccount:   accountNumber,
+			ReceiverAccount: destinationPhoneNumber,
+			Network:         network,
+		}
+		//
+
+		resp, err := helpers.RequestPaymentMain(&c.Controller, req)
+
+		logs.Info("Response from Deposit API: ", resp)
+
+		if err != nil {
+			message = err.Error()
+		} else {
+			isSuccess = true
+			message = "Deposit successful"
+			responseText, err := json.Marshal(resp)
+			if err != nil {
+				logs.Error("Error marshalling response result: ", err)
+				responseText = []byte("[]")
+			}
+			v.RequestResponse = string(responseText)
+			v.DateModified = time.Now()
+			v.ResponseDate = time.Now()
+			if err := models.UpdateApi_requestsById(&v); err != nil {
+				logs.Error("Error updating API request with response: ", err)
+			} else {
+				logs.Info("API request updated with response successfully: ", v)
+			}
+		}
+
+		c.Ctx.Output.SetStatus(200)
+		c.Data["json"] = responses.PaymentRequestResponse{
+			Success:       isSuccess,
+			StatusMessage: message,
+			Result:        resp,
+		}
+
+	} else {
+		logs.Error("Error logging API request: ", err)
+
+		var response responses.PaymentRequestResponse = responses.PaymentRequestResponse{
+			Success:       isSuccess,
+			StatusMessage: message,
+			Result:        nil,
+		}
+
+		c.Data["json"] = response
+
+	}
+
+	c.ServeJSON()
+}
+
+// Deposit ...
+// @Title Deposit
+// @Description Deposit to account
+// @Param	Authorization		header 	string true		"header for User"
+// @Param	PhoneNumber		header 	string true		"header for Customer's phone number"
+// @Param	AccountNumber		header 	string true		"header for Customer's account number"
+// @Param	SourceSystem		header 	string true		"header for Source system"
+// @Param	Network		header 	string true		"header for network"
+// @Param	body		body 	requests.WithdrawalAPIRequest	true		"body for Request content"
+// @Success 201 {int} models.Api_requests
+// @Failure 403 body is empty
+// @router /withdrawal [post]
+func (c *Api_requestsController) Withdrawal() {
+	// Extract headers
+	phoneNumber := c.Ctx.Input.Header("PhoneNumber")
+	accountNumber := c.Ctx.Input.Header("AccountNumber")
+	sourceSystem := c.Ctx.Input.Header("SourceSystem")
+	network := c.Ctx.Input.Header("Network")
+
+	var req requests.WithdrawalAPIRequest
+	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
+
+	destinationPhoneNumber := req.Destination
+
+	logs.Info("GetAirtime called with PhoneNumber: %s, SourceSystem: %s, Network: %s, DestinationPhoneNumber: %s", phoneNumber, sourceSystem, network, destinationPhoneNumber)
+
+	reqBody := c.Ctx.Input.RequestBody
+	reqHeaders := c.Ctx.Request.Header
+
+	requestMap := map[string]interface{}{
+		"headers": reqHeaders,
+		"body":    string(reqBody),
+	}
+
+	reqText, err := json.Marshal(requestMap)
+	if err != nil {
+		logs.Error("Error marshalling request input: ", err)
+		c.Data["json"] = err.Error()
+		c.ServeJSON()
+		return
+	}
+
+	isSuccess := false
+	message := "Withdrawal failed"
+	var v models.Api_requests = models.Api_requests{
+		Request:      string(reqText),
+		PhoneNumber:  phoneNumber,
+		RequestType:  "Withdrawal",
+		RequestDate:  time.Now(),
+		DateCreated:  time.Now(),
+		DateModified: time.Now(),
+	}
+	if _, err := models.AddApi_requests(&v); err == nil {
+		logs.Info("API request logged successfully: ", v)
+
+		req := requests.PaymentRequestApiRequestDTO{
+			ClientId:        req.ClientId,
+			Amount:          req.Amount,
+			PaymentMethod:   "MOBILEMONEY",
+			Service:         "WITHDRAWAL",
+			SenderAccount:   accountNumber,
+			ReceiverAccount: destinationPhoneNumber,
+			Network:         network,
+		}
+		//
+
+		resp, err := helpers.MakePaymentMain(&c.Controller, req)
+
+		logs.Info("Response from Withdrawal API: ", resp)
+
+		if err != nil {
+			message = err.Error()
+		} else {
+			isSuccess = true
+			message = "Withdrawal successful"
+			responseText, err := json.Marshal(resp)
+			if err != nil {
+				logs.Error("Error marshalling response result: ", err)
+				responseText = []byte("[]")
+			}
+			v.RequestResponse = string(responseText)
+			v.DateModified = time.Now()
+			v.ResponseDate = time.Now()
+			if err := models.UpdateApi_requestsById(&v); err != nil {
+				logs.Error("Error updating API request with response: ", err)
+			} else {
+				logs.Info("API request updated with response successfully: ", v)
+			}
+		}
+
+		c.Ctx.Output.SetStatus(200)
+		c.Data["json"] = responses.PaymentRequestResponse{
+			Success:       isSuccess,
+			StatusMessage: message,
+			Result:        resp,
+		}
+
+	} else {
+		logs.Error("Error logging API request: ", err)
+
+		var response responses.PaymentRequestResponse = responses.PaymentRequestResponse{
+			Success:       isSuccess,
+			StatusMessage: message,
+			Result:        nil,
+		}
+
+		c.Data["json"] = response
+
+	}
+
+	c.ServeJSON()
+}
+
 // GetBundles ...
 // @Title Get Bundles
 // @Description Get Data Bundles Available
@@ -2001,58 +2228,39 @@ func (c *Api_requestsController) BuyAirtime() {
 			} else {
 				logs.Error("Error fetching account details for account number: ", accountNumber)
 				logs.Info("Register Customer")
-				regCustResp, err := helpers.TempRegisterCustomer(&c.Controller, accountNumber, req.ClientId)
+
+				req := requests.PaymentRequestApiRequestDTO{
+					ClientId:        req.ClientId,
+					Amount:          req.Amount,
+					PaymentMethod:   "MOBILEMONEY",
+					Service:         "AIRTIME",
+					SenderAccount:   accountNumber,
+					ReceiverAccount: destinationPhoneNumber,
+					Network:         req.Network,
+				}
+				//
+
+				resp, err := helpers.RequestPaymentMain(&c.Controller, req)
 				if err != nil {
-					logs.Error("Error registering customer: ", err)
-				} else {
-					logs.Info("Customer registered successfully: ", regCustResp)
-
-					requestMoney := requests.RequestMoneyApiRequestDTO{
-						InitiatedBy:     regCustResp.Customer.CustomerId,
-						Amount:          req.Amount,
-						Service:         "AIRTIME",
-						Sender:          regCustResp.Customer.CustomerId,
-						Reciever:        1,
-						PhoneNumber:     destinationPhoneNumber,
-						CustomerName:    regCustResp.Customer.FullName,
-						CustomerMsisdn:  regCustResp.Customer.PhoneNumber,
-						CustomerEmail:   regCustResp.Customer.Email,
-						Currency:        "GHS",
-						SenderAccount:   accountNumber,
-						ReceiverAccount: destinationPhoneNumber,
-						PaymentMethod:   "MOBILEMONEY",
-						TransactionId:   "1",
-						PaymentProofUrl: "",
-						ReferenceNumber: "",
-						CallThirdParty:  true,
-						Operator:        "HUBTEL",
-						Network:         network,
-						ServiceNetwork:  req.Network,
+					logs.Error("Error requesting payment: ", err)
+					response = responses.BuyAirtimeAPIResponse{
+						StatusCode:    false,
+						StatusMessage: "Error requesting payment: " + err.Error(),
+						Result:        nil,
 					}
-					logs.Info("Requesting money from customer for airtime purchase: ", requestMoney)
-
-					reqMoneyResp, err := helpers.PaymentRequestMoney(&c.Controller, requestMoney)
-
-					if err != nil {
-						logs.Error("Error requesting money from customer: ", err)
+				} else {
+					logs.Info("Payment requested successfully: ", resp)
+					if resp.Success != true {
 						response = responses.BuyAirtimeAPIResponse{
 							StatusCode:    false,
-							StatusMessage: "Error requesting money from customer: " + err.Error(),
+							StatusMessage: resp.StatusMessage,
 							Result:        nil,
 						}
 					} else {
-						if reqMoneyResp.StatusCode == 200 {
-							response = responses.BuyAirtimeAPIResponse{
-								StatusCode:    true,
-								StatusMessage: "Airtime purchase is being processed",
-								Result:        nil,
-							}
-						} else {
-							response = responses.BuyAirtimeAPIResponse{
-								StatusCode:    false,
-								StatusMessage: "Error requesting money from customer: " + reqMoneyResp.StatusDesc,
-								Result:        nil,
-							}
+						response = responses.BuyAirtimeAPIResponse{
+							StatusCode:    true,
+							StatusMessage: "Airtime purchase is being processed",
+							Result:        nil,
 						}
 					}
 				}

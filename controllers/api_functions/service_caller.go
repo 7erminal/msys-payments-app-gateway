@@ -1486,6 +1486,59 @@ func RequestMoneyViaMobileMoney(c *beego.Controller, req requests.MomoPaymentApi
 	return data
 }
 
+func SendMoneyViaMobileMoney(c *beego.Controller, req requests.MomoPaymentApiRequestDTO) (resp responses.PaymentApiResponseDTO) {
+	host, _ := beego.AppConfig.String("paymentBaseUrl")
+
+	logs.Info("Requesting Money ", req.Amount, " from ", req.CustomerMsisdn)
+	request := api.NewRequest(
+		host,
+		"/v1/payments/momo",
+		api.POST)
+	// request.Params["username"] = username
+	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+	request.InterfaceParams["CustomerMsisdn"] = req.CustomerMsisdn
+	request.InterfaceParams["CustomerEmail"] = req.CustomerEmail
+	request.InterfaceParams["CustomerName"] = req.CustomerName
+	request.InterfaceParams["Amount"] = req.Amount
+	request.InterfaceParams["PrimaryCallbackUrl"] = req.PrimaryCallbackUrl
+	request.InterfaceParams["Description"] = req.Description
+	request.InterfaceParams["ClientReference"] = req.ClientReference
+	request.InterfaceParams["Operator"] = req.Operator
+	request.InterfaceParams["Channel"] = req.Channel
+	request.InterfaceParams["PaymentId"] = req.PaymentId
+
+	client := api.Client{
+		Request: request,
+		Type_:   "body",
+	}
+	res, err := client.SendRequest()
+	if err != nil {
+		logs.Error("client.Error: %v", err)
+		c.Data["json"] = err.Error()
+	}
+	defer res.Body.Close()
+	read, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	}
+
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, read, "", "  "); err != nil {
+		logs.Info("Raw response received is ", string(read))
+	} else {
+		logs.Info("Raw response received is \n", prettyJSON.String())
+	}
+	// data := map[string]interface{}{}
+	var data responses.PaymentApiResponseDTO
+	json.Unmarshal(read, &data)
+	c.Data["json"] = data
+
+	logs.Info("Resp is ", data)
+	// logs.Info("Resp is ", data.User)
+
+	return data
+}
+
 func ResetPin(c *beego.Controller, req requests.ResetPinApiRequest) (resp responses.ResetPinApiResponse) {
 	host, _ := beego.AppConfig.String("clientBaseUrl")
 

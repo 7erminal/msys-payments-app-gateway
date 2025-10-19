@@ -21,3 +21,9 @@ type BuyAirtimeAPIResponse struct {
 	StatusMessage string                 `json:"status_message"`
 	Result        *AirtimeResponseResult `json:"result"`
 }
+
+type MakePaymentResponse struct {
+	Success       bool
+	StatusMessage string
+	Result        interface{}
+}

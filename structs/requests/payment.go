@@ -54,6 +54,16 @@ type MakePaymentApiRequestDTO struct {
 	Network         string
 }
 
+type PaymentRequestApiRequestDTO struct {
+	Amount          float64
+	Service         string
+	PaymentMethod   string
+	SenderAccount   string
+	ReceiverAccount string
+	ClientId        string
+	Network         string
+}
+
 type MomoPaymentRequestDTO struct {
 	PaymentId          string
 	CustomerName       string
@@ -77,4 +87,18 @@ type MomoPaymentApiRequestDTO struct {
 	Description        string
 	ClientReference    string
 	Channel            string
+}
+
+type DepositAPIRequest struct {
+	Amount      float64 `json:"amount" valid:"required~Amount is required"`
+	Destination string  `json:"destination" valid:"required~Destination is required"`
+	Source      string  `json:"source" valid:"required~Source is required"`
+	ClientId    string  `json:"client_id" valid:"required~Client ID is required"`
+}
+
+type WithdrawalAPIRequest struct {
+	Amount      float64 `json:"amount" valid:"required~Amount is required"`
+	Destination string  `json:"destination" valid:"required~Destination is required"`
+	Source      string  `json:"source" valid:"required~Source is required"`
+	ClientId    string  `json:"client_id" valid:"required~Client ID is required"`
 }

@@ -627,7 +627,7 @@ func UpdateAccountBalance(c *beego.Controller, req requests.AccountBalanceApiReq
 	return response
 }
 
-func TempRegisterCustomer(c *beego.Controller, mobileNumber string, channel string) (responses.CustomerResponseDTO, error) {
+func TempRegisterCustomer(c *beego.Controller, mobileNumber string, channel string, registerIfNotFound bool) (responses.CustomerResponseDTO, error) {
 	logs.Info("Registering new customer with phone number: ", mobileNumber)
 
 	responseStatus := 402
@@ -643,6 +643,7 @@ func TempRegisterCustomer(c *beego.Controller, mobileNumber string, channel stri
 
 	if custDetails.StatusCode != 200 {
 		logs.Error("Error fetching customer details for phone number: ", mobileNumber)
+
 		logs.Info("Register Customer")
 
 		// Check phone number name inquiry
@@ -655,33 +656,40 @@ func TempRegisterCustomer(c *beego.Controller, mobileNumber string, channel stri
 
 		if nameInquiryResp.Success {
 			// Register customer
-			newCustomer := requests.AddCustomer{
-				PhoneNumber:  mobileNumber,
-				Name:         nameInquiryResp.Result.Name,
-				Email:        "",
-				Location:     "",
-				IdType:       "",
-				IdNumber:     "",
-				ImagePath:    "",
-				AddedBy:      "1",
-				CustomerType: "Individual", // Assuming default customer type
-				Branch:       "1",
-				Dob:          "",
-				Status:       "Pending",
-			}
-			regResp := apifunctions.Register(c, newCustomer)
-			logs.Info("Response from register customer API: ", regResp)
+			if registerIfNotFound {
+				newCustomer := requests.AddCustomer{
+					PhoneNumber:  mobileNumber,
+					Name:         nameInquiryResp.Result.Name,
+					Email:        "",
+					Location:     "",
+					IdType:       "",
+					IdNumber:     "",
+					ImagePath:    "",
+					AddedBy:      "1",
+					CustomerType: "Individual", // Assuming default customer type
+					Branch:       "1",
+					Dob:          "",
+					Status:       "Pending",
+				}
+				regResp := apifunctions.Register(c, newCustomer)
+				logs.Info("Response from register customer API: ", regResp)
 
-			if regResp.StatusCode == 200 {
-				logs.Info("Customer registered successfully with phone number: ", mobileNumber)
+				if regResp.StatusCode == 200 {
+					logs.Info("Customer registered successfully with phone number: ", mobileNumber)
 
-				customer = *regResp.Customer
-				responseStatus = 200
-				responseMessage = "Customer registered successfully"
+					customer = *regResp.Customer
+					responseStatus = 200
+					responseMessage = "Customer registered successfully"
+				} else {
+					logs.Error("Error registering customer for phone number: ", mobileNumber)
+					responseMessage = "Error registering customer for phone number"
+				}
 			} else {
-				logs.Error("Error registering customer for phone number: ", mobileNumber)
-				responseMessage = "Error registering customer for phone number"
+				logs.Info("Registration skipped as per flag for phone number: ", mobileNumber)
+				responseMessage = "Customer does not exist"
+				responseStatus = 200
 			}
+
 		} else {
 			logs.Error("Error in name inquiry for phone number: ", mobileNumber)
 			responseMessage = "Error in name inquiry for phone number"
@@ -704,9 +712,151 @@ func TempRegisterCustomer(c *beego.Controller, mobileNumber string, channel stri
 	return resp, nil
 }
 
+func MakePaymentMain(c *beego.Controller, req requests.PaymentRequestApiRequestDTO) (resp responses.MakePaymentResponse, err error) {
+	logs.Info("Making Payment of ", req.Amount)
+
+	isSuccess := false
+	statusMessage := "Unable to process payment at the moment"
+	var destinationPhoneNumber string
+	var network string
+	response := responses.MakePaymentResponse{
+		Success:       isSuccess,
+		StatusMessage: statusMessage,
+		Result:        nil,
+	}
+
+	regCustResp, err := TempRegisterCustomer(c, req.SenderAccount, req.ClientId, false)
+	if err != nil {
+		logs.Error("Error registering customer: ", err)
+	} else {
+		logs.Info("Customer registered successfully: ", regCustResp)
+
+		requestMoney := requests.RequestMoneyApiRequestDTO{
+			InitiatedBy:     regCustResp.Customer.CustomerId,
+			Amount:          req.Amount,
+			Service:         req.Service,
+			Sender:          regCustResp.Customer.CustomerId,
+			Reciever:        1,
+			PhoneNumber:     destinationPhoneNumber,
+			CustomerName:    regCustResp.Customer.FullName,
+			CustomerMsisdn:  regCustResp.Customer.PhoneNumber,
+			CustomerEmail:   regCustResp.Customer.Email,
+			Currency:        "GHS",
+			SenderAccount:   req.SenderAccount,
+			ReceiverAccount: destinationPhoneNumber,
+			PaymentMethod:   req.PaymentMethod,
+			TransactionId:   "1",
+			PaymentProofUrl: "",
+			ReferenceNumber: "",
+			CallThirdParty:  true,
+			Operator:        "HUBTEL",
+			Network:         network,
+			ServiceNetwork:  req.Network,
+		}
+		logs.Info("Requesting money from customer for airtime purchase: ", requestMoney)
+
+		reqMoneyResp, err := PaymentSendMoney(c, requestMoney)
+
+		if err != nil {
+			logs.Error("Error requesting money from customer: ", err)
+			isSuccess = false
+			statusMessage = "Error requesting money from customer: " + err.Error()
+		} else {
+			if reqMoneyResp.StatusCode == 200 {
+				logs.Info("Payment request successful: ", reqMoneyResp)
+				isSuccess = true
+				statusMessage = "Payment request successful"
+			} else {
+				logs.Error("Error in payment request response: ", reqMoneyResp.StatusDesc)
+				isSuccess = false
+				statusMessage = "Error requesting money from customer: " + reqMoneyResp.StatusDesc
+			}
+		}
+	}
+
+	response = responses.MakePaymentResponse{
+		Success:       isSuccess,
+		StatusMessage: statusMessage,
+		Result:        nil,
+	}
+
+	return response, nil
+}
+
+func RequestPaymentMain(c *beego.Controller, req requests.PaymentRequestApiRequestDTO) (resp responses.MakePaymentResponse, err error) {
+	logs.Info("Making Payment of ", req.Amount)
+
+	isSuccess := false
+	statusMessage := "Unable to process payment at the moment"
+	var destinationPhoneNumber string
+	var network string
+	response := responses.MakePaymentResponse{
+		Success:       isSuccess,
+		StatusMessage: statusMessage,
+		Result:        nil,
+	}
+
+	regCustResp, err := TempRegisterCustomer(c, req.SenderAccount, req.ClientId, true)
+	if err != nil {
+		logs.Error("Error registering customer: ", err)
+	} else {
+		logs.Info("Customer registered successfully: ", regCustResp)
+
+		requestMoney := requests.RequestMoneyApiRequestDTO{
+			InitiatedBy:     regCustResp.Customer.CustomerId,
+			Amount:          req.Amount,
+			Service:         req.Service,
+			Sender:          regCustResp.Customer.CustomerId,
+			Reciever:        1,
+			PhoneNumber:     destinationPhoneNumber,
+			CustomerName:    regCustResp.Customer.FullName,
+			CustomerMsisdn:  regCustResp.Customer.PhoneNumber,
+			CustomerEmail:   regCustResp.Customer.Email,
+			Currency:        "GHS",
+			SenderAccount:   req.SenderAccount,
+			ReceiverAccount: destinationPhoneNumber,
+			PaymentMethod:   req.PaymentMethod,
+			TransactionId:   "1",
+			PaymentProofUrl: "",
+			ReferenceNumber: "",
+			CallThirdParty:  true,
+			Operator:        "HUBTEL",
+			Network:         network,
+			ServiceNetwork:  req.Network,
+		}
+		logs.Info("Requesting money from customer for airtime purchase: ", requestMoney)
+
+		reqMoneyResp, err := PaymentRequestMoney(c, requestMoney)
+
+		if err != nil {
+			logs.Error("Error requesting money from customer: ", err)
+			isSuccess = false
+			statusMessage = "Error requesting money from customer: " + err.Error()
+		} else {
+			if reqMoneyResp.StatusCode == 200 {
+				logs.Info("Payment request successful: ", reqMoneyResp)
+				isSuccess = true
+				statusMessage = "Payment request successful"
+			} else {
+				logs.Error("Error in payment request response: ", reqMoneyResp.StatusDesc)
+				isSuccess = false
+				statusMessage = "Error requesting money from customer: " + reqMoneyResp.StatusDesc
+			}
+		}
+	}
+
+	response = responses.MakePaymentResponse{
+		Success:       isSuccess,
+		StatusMessage: statusMessage,
+		Result:        nil,
+	}
+
+	return response, nil
+}
+
 func PaymentRequestMoney(c *beego.Controller, req requests.RequestMoneyApiRequestDTO) (resp responses.PaymentApiResponseDTO, err error) {
 	logs.Info("Requesting Money ", req.Amount, " from ", req.InitiatedBy)
-	makePayment := requests.MakePaymentApiRequestDTO{
+	requestPayment := requests.MakePaymentApiRequestDTO{
 		InitiatedBy:     req.InitiatedBy,
 		Amount:          req.Amount,
 		Service:         req.Service,
@@ -723,7 +873,7 @@ func PaymentRequestMoney(c *beego.Controller, req requests.RequestMoneyApiReques
 		Network:         req.ServiceNetwork,
 	}
 
-	resp = apifunctions.MakePayment(c, makePayment)
+	resp = apifunctions.MakePayment(c, requestPayment)
 
 	if resp.StatusCode != 200 {
 		logs.Error("Error making payment request: ", resp.StatusDesc)
@@ -746,6 +896,62 @@ func PaymentRequestMoney(c *beego.Controller, req requests.RequestMoneyApiReques
 		}
 
 		momoResp := apifunctions.RequestMoneyViaMobileMoney(c, momoRequest)
+
+		if momoResp.StatusCode != 200 {
+			logs.Error("Error initiating momo payment: ", momoResp.StatusDesc)
+			return resp, errors.New(momoResp.StatusDesc)
+		} else {
+			logs.Info("Momo payment initiated successfully: ", momoResp.Payment)
+
+			logs.Info("Updated payment with momo details: ", resp.Payment)
+		}
+	}
+	return resp, nil
+
+}
+
+func PaymentSendMoney(c *beego.Controller, req requests.RequestMoneyApiRequestDTO) (resp responses.PaymentApiResponseDTO, err error) {
+	logs.Info("Requesting Money ", req.Amount, " from ", req.InitiatedBy)
+	requestPayment := requests.MakePaymentApiRequestDTO{
+		InitiatedBy:     req.InitiatedBy,
+		Amount:          req.Amount,
+		Service:         req.Service,
+		Sender:          req.Sender,
+		SenderAccount:   req.SenderAccount,
+		ReceiverAccount: req.ReceiverAccount,
+		Reciever:        req.Reciever,
+		PaymentMethod:   req.PaymentMethod,
+		TransactionId:   req.TransactionId,
+		PaymentProofUrl: req.PaymentProofUrl,
+		ReferenceNumber: req.ReferenceNumber,
+		CallThirdParty:  req.CallThirdParty,
+		Operator:        req.Operator,
+		Network:         req.ServiceNetwork,
+	}
+
+	resp = apifunctions.MakePayment(c, requestPayment)
+
+	if resp.StatusCode != 200 {
+		logs.Error("Error making payment request: ", resp.StatusDesc)
+		return resp, errors.New(resp.StatusDesc)
+	} else {
+		logs.Info("Payment request made successfully: ", resp.Payment)
+		logs.Info("Initiating Momo Payment for Payment ID: ", resp.Payment.PaymentId)
+
+		momoRequest := requests.MomoPaymentApiRequestDTO{
+			PaymentId:          resp.Payment.PaymentId,
+			Amount:             resp.Payment.Amount,
+			CustomerName:       resp.Payment.Sender,
+			CustomerMsisdn:     req.CustomerMsisdn,
+			CustomerEmail:      req.CustomerEmail,
+			Operator:           req.Operator,
+			PrimaryCallbackUrl: resp.Payment.CallbackUrl,
+			Description:        "Payment Request for " + strconv.FormatFloat(resp.Payment.Amount, 'f', 2, 64),
+			ClientReference:    resp.Payment.PaymentId,
+			Channel:            req.Network,
+		}
+
+		momoResp := apifunctions.SendMoneyViaMobileMoney(c, momoRequest)
 
 		if momoResp.StatusCode != 200 {
 			logs.Error("Error initiating momo payment: ", momoResp.StatusDesc)
