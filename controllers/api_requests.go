@@ -2021,7 +2021,7 @@ func (c *Api_requestsController) BuyAirtime() {
 						SenderAccount:   accountNumber,
 						ReceiverAccount: destinationPhoneNumber,
 						PaymentMethod:   "MOBILEMONEY",
-						TransactionId:   1,
+						TransactionId:   "1",
 						PaymentProofUrl: "",
 						ReferenceNumber: "",
 						CallThirdParty:  true,

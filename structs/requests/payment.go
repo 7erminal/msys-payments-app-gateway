@@ -27,7 +27,7 @@ type RequestMoneyApiRequestDTO struct {
 	ReceiverAccount string
 	Currency        string
 	PaymentMethod   string
-	TransactionId   int64
+	TransactionId   string
 	PaymentProofUrl string
 	ReferenceNumber string
 	CallThirdParty  bool
@@ -46,7 +46,7 @@ type MakePaymentApiRequestDTO struct {
 	ReceiverAccount string
 	Currency        string
 	PaymentMethod   string
-	TransactionId   int64
+	TransactionId   string
 	PaymentProofUrl string
 	ReferenceNumber string
 	CallThirdParty  bool
