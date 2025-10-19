@@ -1456,7 +1456,7 @@ func RequestMoneyViaMobileMoney(c *beego.Controller, req requests.MomoPaymentApi
 
 	client := api.Client{
 		Request: request,
-		Type_:   "params",
+		Type_:   "body",
 	}
 	res, err := client.SendRequest()
 	if err != nil {
