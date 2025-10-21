@@ -43,6 +43,7 @@ func (c *Api_requestsController) URLMapping() {
 	c.Mapping("GetBilTransactions", c.GetBilTransactions)
 	c.Mapping("GetCustomerAccountStatement", c.GetCustomerAccountStatement)
 	c.Mapping("Deposit", c.Deposit)
+	c.Mapping("Withdrawal", c.Withdrawal)
 	// c.Mapping("TransferFunds", c.TransferFunds)
 }
 
@@ -1814,9 +1815,9 @@ func (c *Api_requestsController) Deposit() {
 	c.ServeJSON()
 }
 
-// Deposit ...
-// @Title Deposit
-// @Description Deposit to account
+// Withdrawal ...
+// @Title Withdrawal
+// @Description Withdrawal from account
 // @Param	Authorization		header 	string true		"header for User"
 // @Param	PhoneNumber		header 	string true		"header for Customer's phone number"
 // @Param	AccountNumber		header 	string true		"header for Customer's account number"
