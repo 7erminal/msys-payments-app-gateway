@@ -52,6 +52,7 @@ type MakePaymentApiRequestDTO struct {
 	CallThirdParty  bool
 	Operator        string
 	Network         string
+	ServiceNetwork  string
 }
 
 type PaymentRequestApiRequestDTO struct {
@@ -62,6 +63,7 @@ type PaymentRequestApiRequestDTO struct {
 	ReceiverAccount string
 	ClientId        string
 	Network         string
+	ServiceNetwork  string
 }
 
 type MomoPaymentRequestDTO struct {

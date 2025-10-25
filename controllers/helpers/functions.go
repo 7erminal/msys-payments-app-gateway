@@ -801,6 +801,8 @@ func RequestPaymentMain(c *beego.Controller, req requests.PaymentRequestApiReque
 		logs.Error("Error registering customer: ", err)
 	} else {
 		logs.Info("Customer registered successfully: ", regCustResp)
+		network = req.Network
+		destinationPhoneNumber = req.ReceiverAccount
 
 		requestMoney := requests.RequestMoneyApiRequestDTO{
 			InitiatedBy:     regCustResp.Customer.CustomerId,
@@ -822,7 +824,7 @@ func RequestPaymentMain(c *beego.Controller, req requests.PaymentRequestApiReque
 			CallThirdParty:  true,
 			Operator:        "HUBTEL",
 			Network:         network,
-			ServiceNetwork:  req.Network,
+			ServiceNetwork:  req.ServiceNetwork,
 		}
 		logs.Info("Requesting money from customer for airtime purchase: ", requestMoney)
 
@@ -870,7 +872,8 @@ func PaymentRequestMoney(c *beego.Controller, req requests.RequestMoneyApiReques
 		ReferenceNumber: req.ReferenceNumber,
 		CallThirdParty:  req.CallThirdParty,
 		Operator:        req.Operator,
-		Network:         req.ServiceNetwork,
+		Network:         req.Network,
+		ServiceNetwork:  req.ServiceNetwork,
 	}
 
 	resp = apifunctions.MakePayment(c, requestPayment)
@@ -926,7 +929,8 @@ func PaymentSendMoney(c *beego.Controller, req requests.RequestMoneyApiRequestDT
 		ReferenceNumber: req.ReferenceNumber,
 		CallThirdParty:  req.CallThirdParty,
 		Operator:        req.Operator,
-		Network:         req.ServiceNetwork,
+		Network:         req.Network,
+		ServiceNetwork:  req.ServiceNetwork,
 	}
 
 	resp = apifunctions.MakePayment(c, requestPayment)

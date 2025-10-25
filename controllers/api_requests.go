@@ -2087,54 +2087,114 @@ func (c *Api_requestsController) BuyDataBundle() {
 	}
 	if _, err := models.AddApi_requests(&v); err == nil {
 		logs.Info("API request logged successfully: ", v)
-		buyBundleRequest := requests.BuyDataBundleFormulatedRequest{
-			RequestId:    v.Id,
-			Amount:       req.Amount,
-			Network:      network,
-			Destination:  destinationPhoneNumber,
-			BundleId:     req.BundleId,
-			SourceSystem: sourceSystem,
-			PhoneNumber:  phoneNumber,
-		}
 
-		logs.Info("Formatted request for Buy Bundle: ", buyBundleRequest)
-		resp := apifunctions.BuyDataBundle(&c.Controller, buyBundleRequest)
-		logs.Info("Response from Buy Bundle API: ", resp)
+		var response responses.BuyDataBundleResponse
 
-		var response responses.BuyDataBundleAPIResponse = responses.BuyDataBundleAPIResponse{
-			StatusCode:    false,
-			StatusMessage: "Something went wrong",
-			Result:        resp.Result,
-		}
+		if accountNumber != "" {
+			accountResp := apifunctions.GetCustomerAccount(&c.Controller, accountNumber)
+			proceed := false
+			if accountResp.StatusCode == "200" {
+				helpers.LogAccountActivity(&c.Controller, accountNumber, "Data Bundle Purchase", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
+				proceed = true
+			} else {
+				logs.Error("Error fetching account details for account number: ", accountNumber)
+				logs.Info("Register Customer")
 
-		if !resp.StatusCode {
-			response = responses.BuyDataBundleAPIResponse{
-				StatusCode:    false,
-				StatusMessage: resp.StatusMessage,
-				Result:        resp.Result,
+				req := requests.PaymentRequestApiRequestDTO{
+					ClientId:        req.ClientId,
+					Amount:          req.Amount,
+					PaymentMethod:   "MOBILEMONEY",
+					Service:         "DATA_BUNDLE",
+					SenderAccount:   accountNumber,
+					ReceiverAccount: destinationPhoneNumber,
+					Network:         network,
+					ServiceNetwork:  req.Network,
+				}
+				//
+
+				resp, err := helpers.RequestPaymentMain(&c.Controller, req)
+				if err != nil {
+					logs.Error("Error requesting payment: ", err)
+					response = responses.BuyDataBundleResponse{
+						StatusCode:    false,
+						StatusMessage: "Error requesting payment: " + err.Error(),
+						Result:        nil,
+					}
+				} else {
+					logs.Info("Payment requested successfully: ", resp)
+					if !resp.Success {
+						response = responses.BuyDataBundleResponse{
+							StatusCode:    false,
+							StatusMessage: resp.StatusMessage,
+							Result:        nil,
+						}
+					} else {
+						response = responses.BuyDataBundleResponse{
+							StatusCode:    true,
+							StatusMessage: "Data bundle purchase is being processed",
+							Result:        nil,
+						}
+					}
+				}
+			}
+
+			buyBundleRequest := requests.BuyDataBundleFormulatedRequest{
+				RequestId:    v.Id,
+				Amount:       req.Amount,
+				Network:      network,
+				Destination:  destinationPhoneNumber,
+				BundleId:     req.BundleId,
+				SourceSystem: sourceSystem,
+				PhoneNumber:  phoneNumber,
+			}
+
+			if proceed {
+				logs.Info("Formatted request for Buy Bundle: ", buyBundleRequest)
+				resp := services.BuyDataBundle(&c.Controller, buyBundleRequest)
+				logs.Info("Response from Buy Bundle API: ", resp)
+
+				var response responses.BuyDataBundleResponse = responses.BuyDataBundleResponse{
+					StatusCode:    false,
+					StatusMessage: "Something went wrong",
+					Result:        resp.Result,
+				}
+
+				if !resp.StatusCode {
+					response = responses.BuyDataBundleResponse{
+						StatusCode:    false,
+						StatusMessage: resp.StatusMessage,
+						Result:        resp.Result,
+					}
+				} else {
+					responseText, err := json.Marshal(response.Result)
+					if err != nil {
+						logs.Error("Error marshalling response result: ", err)
+						responseText = []byte("[]")
+					}
+					v.RequestResponse = string(responseText)
+					v.DateModified = time.Now()
+					v.ResponseDate = time.Now()
+					if err := models.UpdateApi_requestsById(&v); err != nil {
+						logs.Error("Error updating API request with response: ", err)
+					} else {
+						logs.Info("API request updated with response successfully: ", v)
+					}
+
+					// if accountNumber != "" {
+					// 	helpers.LogAccountActivity(&c.Controller, accountNumber, "Data Bundle Purchase", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
+					// }
+					response = responses.BuyDataBundleResponse{
+						StatusCode:    true,
+						StatusMessage: "Data bundle purchase is being processed",
+						Result:        resp.Result,
+					}
+				}
 			}
 		} else {
-			responseText, err := json.Marshal(response.Result)
-			if err != nil {
-				logs.Error("Error marshalling response result: ", err)
-				responseText = []byte("[]")
-			}
-			v.RequestResponse = string(responseText)
-			v.DateModified = time.Now()
-			v.ResponseDate = time.Now()
-			if err := models.UpdateApi_requestsById(&v); err != nil {
-				logs.Error("Error updating API request with response: ", err)
-			} else {
-				logs.Info("API request updated with response successfully: ", v)
-			}
-
-			if accountNumber != "" {
-				helpers.LogAccountActivity(&c.Controller, accountNumber, "Data Bundle Purchase", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
-			}
-			response = responses.BuyDataBundleAPIResponse{
-				StatusCode:    true,
-				StatusMessage: "Data bundle purchase is being processed",
-				Result:        resp.Result,
+			response = responses.BuyDataBundleResponse{
+				StatusCode:    false,
+				StatusMessage: "Something went wrong",
+				Result:        nil,
 			}
 		}
 
@@ -2237,7 +2297,8 @@ func (c *Api_requestsController) BuyAirtime() {
 					Service:         "AIRTIME",
 					SenderAccount:   accountNumber,
 					ReceiverAccount: destinationPhoneNumber,
-					Network:         req.Network,
+					Network:         network,
+					ServiceNetwork:  req.Network,
 				}
 				//
 
@@ -2251,7 +2312,7 @@ func (c *Api_requestsController) BuyAirtime() {
 					}
 				} else {
 					logs.Info("Payment requested successfully: ", resp)
-					if resp.Success != true {
+					if !resp.Success {
 						response = responses.BuyAirtimeAPIResponse{
 							StatusCode:    false,
 							StatusMessage: resp.StatusMessage,
@@ -2448,7 +2509,7 @@ func (c *Api_requestsController) PayDSTV() {
 	phoneNumber := c.Ctx.Input.Header("PhoneNumber")
 	accountNumber := c.Ctx.Input.Header("AccountNumber")
 	sourceSystem := c.Ctx.Input.Header("SourceSystem")
-	// network := c.Ctx.Input.Header("Network")
+	network := c.Ctx.Input.Header("Network")
 
 	var req requests.DSTVPaymentApiRequest
 	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
@@ -2481,53 +2542,111 @@ func (c *Api_requestsController) PayDSTV() {
 	}
 	if _, err := models.AddApi_requests(&v); err == nil {
 		logs.Info("API request logged successfully: ", v)
-		payDSTVRequest := requests.DSTVPaymentRequest{
-			RequestId:          v.Id,
-			Amount:             req.Amount,
-			DestinationAccount: destinationAccount,
-			PackageType:        req.PackageType,
-			SourceSystem:       sourceSystem,
-			PhoneNumber:        phoneNumber,
-		}
 
-		logs.Info("Formatted request for Buy Bundle: ", payDSTVRequest)
-		resp := apifunctions.PayDSTVBill(&c.Controller, payDSTVRequest)
-		logs.Info("Response from Buy Bundle API: ", resp)
-
-		var response responses.DSTVBillPaymentApiResponse = responses.DSTVBillPaymentApiResponse{
+		var response responses.DSTVBillPaymentResponse = responses.DSTVBillPaymentResponse{
 			StatusCode:    false,
 			StatusMessage: "Something went wrong",
-			Result:        resp.Result,
+			Result:        nil,
 		}
 
-		if !resp.StatusCode {
-			response = responses.DSTVBillPaymentApiResponse{
-				StatusCode:    false,
-				StatusMessage: resp.StatusMessage,
-				Result:        resp.Result,
-			}
-		} else {
-			responseText, err := json.Marshal(response.Result)
-			if err != nil {
-				logs.Error("Error marshalling response result: ", err)
-				responseText = []byte("[]")
-			}
-			v.RequestResponse = string(responseText)
-			v.DateModified = time.Now()
-			v.ResponseDate = time.Now()
-			if err := models.UpdateApi_requestsById(&v); err != nil {
-				logs.Error("Error updating API request with response: ", err)
+		if accountNumber != "" {
+
+			accountResp := apifunctions.GetCustomerAccount(&c.Controller, accountNumber)
+
+			proceed := false
+			if accountResp.StatusCode == "200" {
+				helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay DSTV", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
+				proceed = true
 			} else {
-				logs.Info("API request updated with response successfully: ", v)
+				logs.Error("Error fetching account details for account number: ", accountNumber)
+				logs.Info("Register Customer")
+
+				req := requests.PaymentRequestApiRequestDTO{
+					ClientId:        req.ClientId,
+					Amount:          req.Amount,
+					PaymentMethod:   "MOBILEMONEY",
+					Service:         "DSTV",
+					SenderAccount:   accountNumber,
+					ReceiverAccount: req.DestinationAccount,
+					Network:         network,
+					ServiceNetwork:  req.PackageType,
+				}
+				//
+
+				resp, err := helpers.RequestPaymentMain(&c.Controller, req)
+				if err != nil {
+					logs.Error("Error requesting payment: ", err)
+					response = responses.DSTVBillPaymentResponse{
+						StatusCode:    false,
+						StatusMessage: "Error requesting payment: " + err.Error(),
+						Result:        nil,
+					}
+				} else {
+					logs.Info("Payment requested successfully: ", resp)
+					if !resp.Success {
+						response = responses.DSTVBillPaymentResponse{
+							StatusCode:    false,
+							StatusMessage: resp.StatusMessage,
+							Result:        nil,
+						}
+					} else {
+						response = responses.DSTVBillPaymentResponse{
+							StatusCode:    true,
+							StatusMessage: "DSTV payment is being processed",
+							Result:        nil,
+						}
+					}
+				}
 			}
 
-			if accountNumber != "" {
-				helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay DSTV", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
+			if proceed {
+
+				payDSTVRequest := requests.DSTVPaymentRequest{
+					RequestId:          v.Id,
+					Amount:             req.Amount,
+					DestinationAccount: destinationAccount,
+					PackageType:        req.PackageType,
+					SourceSystem:       sourceSystem,
+					PhoneNumber:        phoneNumber,
+				}
+
+				logs.Info("Formatted request to pay DSTV: ", payDSTVRequest)
+				resp := services.PayDstv(&c.Controller, payDSTVRequest)
+				logs.Info("Response from DSTV payment: ", resp)
+
+				if !resp.StatusCode {
+					response = responses.DSTVBillPaymentResponse{
+						StatusCode:    false,
+						StatusMessage: resp.StatusMessage,
+						Result:        resp.Result,
+					}
+				} else {
+					responseText, err := json.Marshal(response.Result)
+					if err != nil {
+						logs.Error("Error marshalling response result: ", err)
+						responseText = []byte("[]")
+					}
+					v.RequestResponse = string(responseText)
+					v.DateModified = time.Now()
+					v.ResponseDate = time.Now()
+					if err := models.UpdateApi_requestsById(&v); err != nil {
+						logs.Error("Error updating API request with response: ", err)
+					} else {
+						logs.Info("API request updated with response successfully: ", v)
+					}
+
+					response = responses.DSTVBillPaymentResponse{
+						StatusCode:    true,
+						StatusMessage: "DSTV payment successful",
+						Result:        resp.Result,
+					}
+				}
 			}
-			response = responses.DSTVBillPaymentApiResponse{
-				StatusCode:    true,
-				StatusMessage: "DSTV payment successful",
-				Result:        resp.Result,
+		} else {
+			response = responses.DSTVBillPaymentResponse{
+				StatusCode:    false,
+				StatusMessage: "Account number is required to process this request",
+				Result:        nil,
 			}
 		}
 
@@ -2535,7 +2654,7 @@ func (c *Api_requestsController) PayDSTV() {
 		c.Data["json"] = response
 
 	} else {
-		var response responses.DSTVBillPaymentApiResponse = responses.DSTVBillPaymentApiResponse{
+		var response responses.DSTVBillPaymentResponse = responses.DSTVBillPaymentResponse{
 			StatusCode:    false,
 			StatusMessage: "Something went wrong:: " + err.Error(),
 			Result:        nil,
@@ -2562,7 +2681,7 @@ func (c *Api_requestsController) PayGOTV() {
 	phoneNumber := c.Ctx.Input.Header("PhoneNumber")
 	accountNumber := c.Ctx.Input.Header("AccountNumber")
 	sourceSystem := c.Ctx.Input.Header("SourceSystem")
-	// network := c.Ctx.Input.Header("Network")
+	network := c.Ctx.Input.Header("Network")
 
 	var req requests.GoTvPaymentApiRequest
 	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
@@ -2594,7 +2713,7 @@ func (c *Api_requestsController) PayGOTV() {
 	}
 	if _, err := models.AddApi_requests(&v); err == nil {
 		logs.Info("API request logged successfully: ", v)
-		payDSTVRequest := requests.GoTvPaymentApiRequest{
+		payGOTVRequest := requests.GoTvPaymentApiRequest{
 			RequestId:          v.Id,
 			Amount:             req.Amount,
 			DestinationAccount: destinationAccount,
@@ -2603,45 +2722,105 @@ func (c *Api_requestsController) PayGOTV() {
 			PhoneNumber:        phoneNumber,
 		}
 
-		logs.Info("Formatted request for Buy Bundle: ", payDSTVRequest)
-		resp := apifunctions.PayGoTvBill(&c.Controller, payDSTVRequest)
-		logs.Info("Response from GOTV API: ", resp)
-
 		var response responses.GoTvBillPaymentResponse = responses.GoTvBillPaymentResponse{
 			StatusCode:    false,
 			StatusMessage: "Something went wrong",
-			Result:        resp.Result,
+			Result:        nil,
 		}
 
-		if !resp.StatusCode {
-			response = responses.GoTvBillPaymentResponse{
-				StatusCode:    false,
-				StatusMessage: resp.StatusMessage,
-				Result:        resp.Result,
+		if accountNumber != "" {
+			accountResp := apifunctions.GetCustomerAccount(&c.Controller, accountNumber)
+
+			proceed := false
+			if accountResp.StatusCode == "200" {
+				helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay GOTV", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
+				proceed = true
+			} else {
+				logs.Error("Error fetching account details for account number: ", accountNumber)
+				logs.Info("Register Customer")
+
+				req := requests.PaymentRequestApiRequestDTO{
+					ClientId:        req.ClientId,
+					Amount:          req.Amount,
+					PaymentMethod:   "MOBILEMONEY",
+					Service:         "GOTV",
+					SenderAccount:   accountNumber,
+					ReceiverAccount: req.DestinationAccount,
+					Network:         network,
+					ServiceNetwork:  req.PackageType,
+				}
+				//
+
+				resp, err := helpers.RequestPaymentMain(&c.Controller, req)
+				if err != nil {
+					logs.Error("Error requesting payment: ", err)
+					response = responses.GoTvBillPaymentResponse{
+						StatusCode:    false,
+						StatusMessage: "Error requesting payment: " + err.Error(),
+						Result:        nil,
+					}
+				} else {
+					logs.Info("Payment requested successfully: ", resp)
+					if !resp.Success {
+						response = responses.GoTvBillPaymentResponse{
+							StatusCode:    false,
+							StatusMessage: resp.StatusMessage,
+							Result:        nil,
+						}
+					} else {
+						response = responses.GoTvBillPaymentResponse{
+							StatusCode:    true,
+							StatusMessage: "GOTV payment is being processed",
+							Result:        nil,
+						}
+					}
+				}
+			}
+
+			if proceed {
+				logs.Info("Formatted request to pay GOTV: ", payGOTVRequest)
+				resp := services.PayGotv(&c.Controller, payGOTVRequest)
+				logs.Info("Response from GOTV API: ", resp)
+
+				var response responses.GoTvBillPaymentResponse = responses.GoTvBillPaymentResponse{
+					StatusCode:    false,
+					StatusMessage: "Something went wrong",
+					Result:        resp.Result,
+				}
+
+				if !resp.StatusCode {
+					response = responses.GoTvBillPaymentResponse{
+						StatusCode:    false,
+						StatusMessage: resp.StatusMessage,
+						Result:        resp.Result,
+					}
+				} else {
+					responseText, err := json.Marshal(response.Result)
+					if err != nil {
+						logs.Error("Error marshalling response result: ", err)
+						responseText = []byte("[]")
+					}
+					v.RequestResponse = string(responseText)
+					v.DateModified = time.Now()
+					v.ResponseDate = time.Now()
+					if err := models.UpdateApi_requestsById(&v); err != nil {
+						logs.Error("Error updating API request with response: ", err)
+					} else {
+						logs.Info("API request updated with response successfully: ", v)
+					}
+
+					response = responses.GoTvBillPaymentResponse{
+						StatusCode:    true,
+						StatusMessage: "Go TV payment successful",
+						Result:        resp.Result,
+					}
+				}
 			}
 		} else {
-			responseText, err := json.Marshal(response.Result)
-			if err != nil {
-				logs.Error("Error marshalling response result: ", err)
-				responseText = []byte("[]")
-			}
-			v.RequestResponse = string(responseText)
-			v.DateModified = time.Now()
-			v.ResponseDate = time.Now()
-			if err := models.UpdateApi_requestsById(&v); err != nil {
-				logs.Error("Error updating API request with response: ", err)
-			} else {
-				logs.Info("API request updated with response successfully: ", v)
-			}
-
-			if accountNumber != "" {
-				helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay GOTV", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
-			}
-
 			response = responses.GoTvBillPaymentResponse{
-				StatusCode:    true,
-				StatusMessage: "Go TV payment successful",
-				Result:        resp.Result,
+				StatusCode:    false,
+				StatusMessage: "Account number is required to process this request",
+				Result:        nil,
 			}
 		}
 
@@ -2676,7 +2855,7 @@ func (c *Api_requestsController) PayECG() {
 	phoneNumber := c.Ctx.Input.Header("PhoneNumber")
 	accountNumber := c.Ctx.Input.Header("AccountNumber")
 	sourceSystem := c.Ctx.Input.Header("SourceSystem")
-	// network := c.Ctx.Input.Header("Network")
+	network := c.Ctx.Input.Header("Network")
 
 	var req requests.ECGPaymentRequest
 	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
@@ -2718,45 +2897,99 @@ func (c *Api_requestsController) PayECG() {
 			PhoneNumber:        phoneNumber,
 		}
 
-		logs.Info("Formatted request for Buy Bundle: ", payDSTVRequest)
-		resp := apifunctions.PayECGBill(&c.Controller, payDSTVRequest)
-		logs.Info("Response from Buy Bundle API: ", resp)
-
-		var response responses.ECGBillPaymentApiResponse = responses.ECGBillPaymentApiResponse{
+		var response responses.ECGBillPaymentResponse = responses.ECGBillPaymentResponse{
 			StatusCode:    false,
 			StatusMessage: "Something went wrong",
-			Result:        resp.Result,
+			Result:        nil,
 		}
 
-		if !resp.StatusCode {
-			response = responses.ECGBillPaymentApiResponse{
-				StatusCode:    false,
-				StatusMessage: resp.StatusMessage,
-				Result:        resp.Result,
+		if accountNumber != "" {
+			accountResp := apifunctions.GetCustomerAccount(&c.Controller, accountNumber)
+
+			proceed := false
+			if accountResp.StatusCode == "200" {
+				helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay ECG", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
+				proceed = true
+			} else {
+				logs.Error("Error fetching account details for account number: ", accountNumber)
+				logs.Info("Register Customer")
+
+				req := requests.PaymentRequestApiRequestDTO{
+					ClientId:        req.ClientId,
+					Amount:          req.Amount,
+					PaymentMethod:   "MOBILEMONEY",
+					Service:         "ECG BILL",
+					SenderAccount:   accountNumber,
+					ReceiverAccount: req.DestinationAccount,
+					Network:         network,
+					ServiceNetwork:  req.PackageType,
+				}
+				//
+
+				resp, err := helpers.RequestPaymentMain(&c.Controller, req)
+				if err != nil {
+					logs.Error("Error requesting payment: ", err)
+					response = responses.ECGBillPaymentResponse{
+						StatusCode:    false,
+						StatusMessage: "Error requesting payment: " + err.Error(),
+						Result:        nil,
+					}
+				} else {
+					logs.Info("Payment requested successfully: ", resp)
+					if !resp.Success {
+						response = responses.ECGBillPaymentResponse{
+							StatusCode:    false,
+							StatusMessage: resp.StatusMessage,
+							Result:        nil,
+						}
+					} else {
+						response = responses.ECGBillPaymentResponse{
+							StatusCode:    true,
+							StatusMessage: "ECG purchase is being processed",
+							Result:        nil,
+						}
+					}
+				}
+			}
+
+			if proceed {
+				logs.Info("Formatted request to pay ECB: ", payDSTVRequest)
+				resp := services.PayEcg(&c.Controller, payDSTVRequest)
+				logs.Info("Response from pay ECB: ", resp)
+
+				if !resp.StatusCode {
+					response = responses.ECGBillPaymentResponse{
+						StatusCode:    false,
+						StatusMessage: resp.StatusMessage,
+						Result:        resp.Result,
+					}
+				} else {
+					responseText, err := json.Marshal(response.Result)
+					if err != nil {
+						logs.Error("Error marshalling response result: ", err)
+						responseText = []byte("[]")
+					}
+					v.RequestResponse = string(responseText)
+					v.DateModified = time.Now()
+					v.ResponseDate = time.Now()
+					if err := models.UpdateApi_requestsById(&v); err != nil {
+						logs.Error("Error updating API request with response: ", err)
+					} else {
+						logs.Info("API request updated with response successfully: ", v)
+					}
+
+					response = responses.ECGBillPaymentResponse{
+						StatusCode:    true,
+						StatusMessage: "Payment is being processed",
+						Result:        resp.Result,
+					}
+				}
 			}
 		} else {
-			responseText, err := json.Marshal(response.Result)
-			if err != nil {
-				logs.Error("Error marshalling response result: ", err)
-				responseText = []byte("[]")
-			}
-			v.RequestResponse = string(responseText)
-			v.DateModified = time.Now()
-			v.ResponseDate = time.Now()
-			if err := models.UpdateApi_requestsById(&v); err != nil {
-				logs.Error("Error updating API request with response: ", err)
-			} else {
-				logs.Info("API request updated with response successfully: ", v)
-			}
-
-			if accountNumber != "" {
-				helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay ECG", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
-			}
-
-			response = responses.ECGBillPaymentApiResponse{
-				StatusCode:    true,
-				StatusMessage: "Payment is being processed",
-				Result:        resp.Result,
+			response = responses.ECGBillPaymentResponse{
+				StatusCode:    false,
+				StatusMessage: "Account number is required to process this request",
+				Result:        nil,
 			}
 		}
 
@@ -2764,7 +2997,7 @@ func (c *Api_requestsController) PayECG() {
 		c.Data["json"] = response
 
 	} else {
-		var response responses.ECGBillPaymentApiResponse = responses.ECGBillPaymentApiResponse{
+		var response responses.ECGBillPaymentResponse = responses.ECGBillPaymentResponse{
 			StatusCode:    false,
 			StatusMessage: "Something went wrong:: " + err.Error(),
 			Result:        nil,
@@ -2791,7 +3024,7 @@ func (c *Api_requestsController) PayWaterBill() {
 	phoneNumber := c.Ctx.Input.Header("PhoneNumber")
 	accountNumber := c.Ctx.Input.Header("AccountNumber")
 	sourceSystem := c.Ctx.Input.Header("SourceSystem")
-	// network := c.Ctx.Input.Header("Network")
+	network := c.Ctx.Input.Header("Network")
 
 	var req requests.GhanaWaterPaymentRequest
 	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
@@ -2824,7 +3057,7 @@ func (c *Api_requestsController) PayWaterBill() {
 	}
 	if _, err := models.AddApi_requests(&v); err == nil {
 		logs.Info("API request logged successfully: ", v)
-		payDSTVRequest := requests.GhanaWaterPaymentApiRequest{
+		payWaterRequest := requests.GhanaWaterPaymentApiRequest{
 			RequestId:          v.Id,
 			Amount:             req.Amount,
 			DestinationAccount: destinationAccount,
@@ -2833,45 +3066,99 @@ func (c *Api_requestsController) PayWaterBill() {
 			PhoneNumber:        phoneNumber,
 		}
 
-		logs.Info("Formatted request for Buy Bundle: ", payDSTVRequest)
-		resp := apifunctions.PayGhanaWaterBill(&c.Controller, payDSTVRequest)
-		logs.Info("Response from Buy Bundle API: ", resp)
-
-		var response responses.GhanaWaterBillPaymentApiResponse = responses.GhanaWaterBillPaymentApiResponse{
+		var response responses.GhanaWaterBillPaymentResponse = responses.GhanaWaterBillPaymentResponse{
 			StatusCode:    false,
 			StatusMessage: "Something went wrong",
-			Result:        resp.Result,
+			Result:        nil,
 		}
 
-		if !resp.StatusCode {
-			response = responses.GhanaWaterBillPaymentApiResponse{
-				StatusCode:    false,
-				StatusMessage: resp.StatusMessage,
-				Result:        resp.Result,
+		if accountNumber != "" {
+			accountResp := apifunctions.GetCustomerAccount(&c.Controller, accountNumber)
+
+			proceed := false
+			if accountResp.StatusCode == "200" {
+				helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay Water", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
+				proceed = true
+			} else {
+				logs.Error("Error fetching account details for account number: ", accountNumber)
+				logs.Info("Register Customer")
+
+				req := requests.PaymentRequestApiRequestDTO{
+					ClientId:        req.ClientId,
+					Amount:          req.Amount,
+					PaymentMethod:   "MOBILEMONEY",
+					Service:         "WATER BILL",
+					SenderAccount:   accountNumber,
+					ReceiverAccount: req.DestinationAccount,
+					Network:         network,
+					ServiceNetwork:  req.PackageType,
+				}
+				//
+
+				resp, err := helpers.RequestPaymentMain(&c.Controller, req)
+				if err != nil {
+					logs.Error("Error requesting payment: ", err)
+					response = responses.GhanaWaterBillPaymentResponse{
+						StatusCode:    false,
+						StatusMessage: "Error requesting payment: " + err.Error(),
+						Result:        nil,
+					}
+				} else {
+					logs.Info("Payment requested successfully: ", resp)
+					if !resp.Success {
+						response = responses.GhanaWaterBillPaymentResponse{
+							StatusCode:    false,
+							StatusMessage: resp.StatusMessage,
+							Result:        nil,
+						}
+					} else {
+						response = responses.GhanaWaterBillPaymentResponse{
+							StatusCode:    true,
+							StatusMessage: "Water bill purchase is being processed",
+							Result:        nil,
+						}
+					}
+				}
+			}
+
+			if proceed {
+				logs.Info("Formatted request to pay water: ", payWaterRequest)
+				resp := services.PayWater(&c.Controller, payWaterRequest)
+				logs.Info("Response from pay water: ", resp)
+
+				if !resp.StatusCode {
+					response = responses.GhanaWaterBillPaymentResponse{
+						StatusCode:    false,
+						StatusMessage: resp.StatusMessage,
+						Result:        resp.Result,
+					}
+				} else {
+					responseText, err := json.Marshal(response.Result)
+					if err != nil {
+						logs.Error("Error marshalling response result: ", err)
+						responseText = []byte("[]")
+					}
+					v.RequestResponse = string(responseText)
+					v.DateModified = time.Now()
+					v.ResponseDate = time.Now()
+					if err := models.UpdateApi_requestsById(&v); err != nil {
+						logs.Error("Error updating API request with response: ", err)
+					} else {
+						logs.Info("API request updated with response successfully: ", v)
+					}
+
+					response = responses.GhanaWaterBillPaymentResponse{
+						StatusCode:    true,
+						StatusMessage: "Payment is being processed",
+						Result:        resp.Result,
+					}
+				}
 			}
 		} else {
-			responseText, err := json.Marshal(response.Result)
-			if err != nil {
-				logs.Error("Error marshalling response result: ", err)
-				responseText = []byte("[]")
-			}
-			v.RequestResponse = string(responseText)
-			v.DateModified = time.Now()
-			v.ResponseDate = time.Now()
-			if err := models.UpdateApi_requestsById(&v); err != nil {
-				logs.Error("Error updating API request with response: ", err)
-			} else {
-				logs.Info("API request updated with response successfully: ", v)
-			}
-
-			if accountNumber != "" {
-				helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay Water", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
-			}
-
-			response = responses.GhanaWaterBillPaymentApiResponse{
-				StatusCode:    true,
-				StatusMessage: "Payment is being processed",
-				Result:        resp.Result,
+			response = responses.GhanaWaterBillPaymentResponse{
+				StatusCode:    false,
+				StatusMessage: "Account number is required to process this request",
+				Result:        nil,
 			}
 		}
 

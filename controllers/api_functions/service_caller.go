@@ -1400,6 +1400,7 @@ func MakePayment(c *beego.Controller, req requests.MakePaymentApiRequestDTO) (re
 	request.InterfaceParams["CallThirdParty"] = req.CallThirdParty
 	request.InterfaceParams["Operator"] = req.Operator
 	request.InterfaceParams["Network"] = req.Network
+	request.InterfaceParams["ServiceNetwork"] = req.ServiceNetwork
 
 	client := api.Client{
 		Request: request,
@@ -1939,7 +1940,7 @@ func ReceivePaymentCallback(c *beego.Controller, req requests.PaymentCallbackDat
 	return data
 }
 
-func PayDSTVBill(c *beego.Controller, req requests.DSTVPaymentRequest) (resp responses.DSTVBillPaymentResponse) {
+func PayDSTVBill(c *beego.Controller, req requests.DSTVPaymentRequest) (resp responses.DSTVBillPaymentApiResponse) {
 	host, _ := beego.AppConfig.String("billpaymentBaseUrl")
 
 	logs.Info("Paying DSTV ", req.Amount, " for ", req.DestinationAccount)
@@ -1980,7 +1981,7 @@ func PayDSTVBill(c *beego.Controller, req requests.DSTVPaymentRequest) (resp res
 		logs.Info("Raw response received is \n", prettyJSON.String())
 	}
 	// data := map[string]interface{}{}
-	var data responses.DSTVBillPaymentResponse
+	var data responses.DSTVBillPaymentApiResponse
 	json.Unmarshal(read, &data)
 	c.Data["json"] = data
 
