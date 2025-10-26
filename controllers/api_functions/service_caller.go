@@ -2099,7 +2099,7 @@ func GhanaWaterAccountQuery(c *beego.Controller, req requests.BillPaymentAccount
 	request.HeaderField["PhoneNumber"] = req.PhoneNumber
 	request.HeaderField["SourceSystem"] = req.SourceSystem
 
-	request.Params[""] = req.AccountNumber
+	// request.Params[""] = req.AccountNumber
 
 	client := api.Client{
 		Request: request,
