@@ -126,6 +126,15 @@ func init() {
 
     beego.GlobalControllerRouter["msys_payment_app_gateway/controllers:Api_requestsController"] = append(beego.GlobalControllerRouter["msys_payment_app_gateway/controllers:Api_requestsController"],
         beego.ControllerComments{
+            Method: "GhanaWaterAccountQuery",
+            Router: `/ghana-water-account-query`,
+            AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["msys_payment_app_gateway/controllers:Api_requestsController"] = append(beego.GlobalControllerRouter["msys_payment_app_gateway/controllers:Api_requestsController"],
+        beego.ControllerComments{
             Method: "NameInquiry",
             Router: `/name-inquiry`,
             AllowHTTPMethods: []string{"post"},

@@ -2497,13 +2497,13 @@ func (c *Api_requestsController) AccountQuery() {
 
 // GhanaWaterAccountQuery ...
 // @Title Ghana Water Account Query
-// @Description Account Query
+// @Description Ghana Water Account Query
 // @Param	Authorization		header 	string true		"header for User"
 // @Param	PhoneNumber		header 	string true		"header for Customer's phone number"
 // @Param	AccountNumber		header 	string true		"header for Customer's account number"
 // @Param	SourceSystem		header 	string true		"header for Source system"
-// @Param	BillerCode		header 	string true		"header for network"
-// @Param	body		body 	requests.DSTVAccountQueryApiRequest	true		"body for Request content"
+// @Param	Network		header 	string true		"header for network"
+// @Param	body		body 	requests.BillPaymentAccountQueryApiRequest	true		"body for Request content"
 // @Success 201 {int} models.Api_requests
 // @Failure 403 body is empty
 // @router /ghana-water-account-query [post]
