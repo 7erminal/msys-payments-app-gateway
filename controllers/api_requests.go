@@ -2516,7 +2516,7 @@ func (c *Api_requestsController) GhanaWaterAccountQuery() {
 
 	logs.Info("Network from header: %s", network)
 
-	var req requests.BillPaymentAccountQueryRequest
+	var req requests.BillPaymentAccountQueryApiRequest
 	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
 
 	accountNumber_ := req.AccountNumber
