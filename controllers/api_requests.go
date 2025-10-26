@@ -2495,6 +2495,117 @@ func (c *Api_requestsController) AccountQuery() {
 	c.ServeJSON()
 }
 
+// GhanaWaterAccountQuery ...
+// @Title Ghana Water Account Query
+// @Description Account Query
+// @Param	Authorization		header 	string true		"header for User"
+// @Param	PhoneNumber		header 	string true		"header for Customer's phone number"
+// @Param	AccountNumber		header 	string true		"header for Customer's account number"
+// @Param	SourceSystem		header 	string true		"header for Source system"
+// @Param	BillerCode		header 	string true		"header for network"
+// @Param	body		body 	requests.DSTVAccountQueryApiRequest	true		"body for Request content"
+// @Success 201 {int} models.Api_requests
+// @Failure 403 body is empty
+// @router /ghana-water-account-query [post]
+func (c *Api_requestsController) GhanaWaterAccountQuery() {
+	// Extract headers
+	phoneNumber := c.Ctx.Input.Header("PhoneNumber")
+	// accountNumber := c.Ctx.Input.Header("AccountNumber")
+	sourceSystem := c.Ctx.Input.Header("SourceSystem")
+	network := c.Ctx.Input.Header("Network")
+
+	logs.Info("Network from header: %s", network)
+
+	var req requests.BillPaymentAccountQueryRequest
+	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
+
+	accountNumber_ := req.AccountNumber
+
+	logs.Info("AccountQuery called with PhoneNumber: %s, SourceSystem: %s, Network: %s, AccountNumber: %s", phoneNumber, sourceSystem, accountNumber_)
+	reqBody := c.Ctx.Input.RequestBody
+	reqHeaders := c.Ctx.Request.Header
+
+	requestMap := map[string]interface{}{
+		"headers": reqHeaders,
+		"body":    string(reqBody),
+	}
+
+	reqText, err := json.Marshal(requestMap)
+	if err != nil {
+		logs.Error("Error marshalling request input: ", err)
+		c.Data["json"] = err.Error()
+		c.ServeJSON()
+		return
+	}
+	var v models.Api_requests = models.Api_requests{
+		Request:      string(reqText),
+		RequestType:  "Account Query",
+		RequestDate:  time.Now(),
+		DateCreated:  time.Now(),
+		DateModified: time.Now(),
+	}
+	if _, err := models.AddApi_requests(&v); err == nil {
+		logs.Info("API request logged successfully: ", v)
+		accountQueryRequest := requests.BillPaymentAccountQueryApiRequest{
+			AccountNumber: accountNumber_,
+			SourceSystem:  sourceSystem,
+			PhoneNumber:   phoneNumber,
+			BillerCode:    req.BillerCode,
+		}
+
+		logs.Info("Formatted request for account query ", accountQueryRequest)
+		resp := apifunctions.AccountQuery(&c.Controller, accountQueryRequest)
+		logs.Info("Response from Account query API: ", resp)
+
+		var response responses.AccountQueryAPIResponse = responses.AccountQueryAPIResponse{
+			StatusCode:    false,
+			StatusMessage: "Something went wrong",
+			Result:        resp.Result,
+		}
+
+		if !resp.StatusCode {
+			response = responses.AccountQueryAPIResponse{
+				StatusCode:    false,
+				StatusMessage: resp.StatusMessage,
+				Result:        resp.Result,
+			}
+		} else {
+			responseText, err := json.Marshal(response.Result)
+			if err != nil {
+				logs.Error("Error marshalling response result: ", err)
+				responseText = []byte("[]")
+			}
+			v.RequestResponse = string(responseText)
+			v.DateModified = time.Now()
+			v.ResponseDate = time.Now()
+			if err := models.UpdateApi_requestsById(&v); err != nil {
+				logs.Error("Error updating API request with response: ", err)
+			} else {
+				logs.Info("API request updated with response successfully: ", v)
+			}
+
+			response = responses.AccountQueryAPIResponse{
+				StatusCode:    true,
+				StatusMessage: "Accounts queried successfully",
+				Result:        resp.Result,
+			}
+		}
+
+		c.Ctx.Output.SetStatus(200)
+		c.Data["json"] = response
+
+	} else {
+		var response responses.AccountQueryAPIResponse = responses.AccountQueryAPIResponse{
+			StatusCode:    false,
+			StatusMessage: "Something went wrong:: " + err.Error(),
+			Result:        nil,
+		}
+
+		c.Data["json"] = response
+	}
+	c.ServeJSON()
+}
+
 // PayDSTV ...
 // @Title Pay DSTV
 // @Description Pay DSTV
