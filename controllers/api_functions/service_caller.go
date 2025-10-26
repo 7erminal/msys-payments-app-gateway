@@ -1983,6 +1983,12 @@ func PayDSTVBill(c *beego.Controller, req requests.DSTVPaymentRequest) (resp res
 	// data := map[string]interface{}{}
 	var data responses.DSTVBillPaymentApiResponse
 	json.Unmarshal(read, &data)
+	if err := json.Unmarshal(read, &data); err != nil {
+		logs.Info("Failed to unmarshal response: %v", err)
+		logs.Info("Raw response: %s", string(read))
+	} else {
+		logs.Info("Resp is %+v", data)
+	}
 	c.Data["json"] = data
 
 	logs.Info("Resp is ", data)
