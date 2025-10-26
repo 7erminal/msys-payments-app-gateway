@@ -2401,7 +2401,9 @@ func (c *Api_requestsController) AccountQuery() {
 	phoneNumber := c.Ctx.Input.Header("PhoneNumber")
 	// accountNumber := c.Ctx.Input.Header("AccountNumber")
 	sourceSystem := c.Ctx.Input.Header("SourceSystem")
-	billerCode := c.Ctx.Input.Header("BillerCode")
+	network := c.Ctx.Input.Header("Network")
+
+	logs.Info("Network from header: %s", network)
 
 	var req requests.BillPaymentAccountQueryRequest
 	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
@@ -2437,7 +2439,7 @@ func (c *Api_requestsController) AccountQuery() {
 			AccountNumber: accountNumber_,
 			SourceSystem:  sourceSystem,
 			PhoneNumber:   phoneNumber,
-			BillerCode:    billerCode,
+			BillerCode:    req.BillerCode,
 		}
 
 		logs.Info("Formatted request for account query ", accountQueryRequest)

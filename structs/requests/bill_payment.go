@@ -6,6 +6,7 @@ type DSTVAccountQueryApiRequest struct {
 
 type BillPaymentAccountQueryRequest struct {
 	AccountNumber string `json:"account_number" valid:"required~Account number is required"`
+	BillerCode    string `json:"biller_code" valid:"required~Biller code is required"`
 	ClientId      string `json:"client_id"`
 }
 
