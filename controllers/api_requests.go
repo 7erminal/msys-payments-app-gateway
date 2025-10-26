@@ -2095,6 +2095,21 @@ func (c *Api_requestsController) BuyDataBundle() {
 			proceed := false
 			if accountResp.StatusCode == "200" {
 				helpers.LogAccountActivity(&c.Controller, accountNumber, "Data Bundle Purchase", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
+
+				// Log payment request
+				makePaymentRequest := requests.PaymentRequestApiRequestDTO{
+					ClientId:        req.ClientId,
+					Amount:          req.Amount,
+					PaymentMethod:   "ACCOUNT",
+					Service:         "AIRTIME",
+					SenderAccount:   accountNumber,
+					ReceiverAccount: destinationPhoneNumber,
+					Network:         network,
+					ServiceNetwork:  "",
+				}
+
+				helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
+
 				proceed = true
 			} else {
 				logs.Error("Error fetching account details for account number: ", accountNumber)
@@ -2285,8 +2300,24 @@ func (c *Api_requestsController) BuyAirtime() {
 			proceed := false
 			if accountResp.StatusCode == "200" {
 				helpers.LogAccountActivity(&c.Controller, accountNumber, "Airtime Purchase", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
+
+				// Log payment request
+				makePaymentRequest := requests.PaymentRequestApiRequestDTO{
+					ClientId:        req.ClientId,
+					Amount:          req.Amount,
+					PaymentMethod:   "ACCOUNT",
+					Service:         "AIRTIME",
+					SenderAccount:   accountNumber,
+					ReceiverAccount: destinationPhoneNumber,
+					Network:         network,
+					ServiceNetwork:  "",
+				}
+
+				helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
+
 				proceed = true
 			} else {
+				// Get customer by number before registering
 				logs.Error("Error fetching account details for account number: ", accountNumber)
 				logs.Info("Register Customer")
 
@@ -2669,6 +2700,21 @@ func (c *Api_requestsController) PayDSTV() {
 			proceed := false
 			if accountResp.StatusCode == "200" {
 				helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay DSTV", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
+
+				// Log payment request
+				makePaymentRequest := requests.PaymentRequestApiRequestDTO{
+					ClientId:        req.ClientId,
+					Amount:          req.Amount,
+					PaymentMethod:   "ACCOUNT",
+					Service:         "DSTV",
+					SenderAccount:   accountNumber,
+					ReceiverAccount: req.DestinationAccount,
+					Network:         network,
+					ServiceNetwork:  "",
+				}
+
+				helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
+
 				proceed = true
 			} else {
 				logs.Error("Error fetching account details for account number: ", accountNumber)
@@ -2847,6 +2893,21 @@ func (c *Api_requestsController) PayGOTV() {
 			proceed := false
 			if accountResp.StatusCode == "200" {
 				helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay GOTV", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
+
+				// Log payment request
+				makePaymentRequest := requests.PaymentRequestApiRequestDTO{
+					ClientId:        req.ClientId,
+					Amount:          req.Amount,
+					PaymentMethod:   "ACCOUNT",
+					Service:         "GOTV",
+					SenderAccount:   accountNumber,
+					ReceiverAccount: req.DestinationAccount,
+					Network:         network,
+					ServiceNetwork:  "",
+				}
+
+				helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
+
 				proceed = true
 			} else {
 				logs.Error("Error fetching account details for account number: ", accountNumber)
@@ -3022,6 +3083,21 @@ func (c *Api_requestsController) PayECG() {
 			proceed := false
 			if accountResp.StatusCode == "200" {
 				helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay ECG", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
+
+				// Log payment request
+				makePaymentRequest := requests.PaymentRequestApiRequestDTO{
+					ClientId:        req.ClientId,
+					Amount:          req.Amount,
+					PaymentMethod:   "ACCOUNT",
+					Service:         "ECG BILL",
+					SenderAccount:   accountNumber,
+					ReceiverAccount: req.DestinationAccount,
+					Network:         network,
+					ServiceNetwork:  "",
+				}
+
+				helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
+
 				proceed = true
 			} else {
 				logs.Error("Error fetching account details for account number: ", accountNumber)
@@ -3191,6 +3267,21 @@ func (c *Api_requestsController) PayWaterBill() {
 			proceed := false
 			if accountResp.StatusCode == "200" {
 				helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay Water", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
+
+				// Log payment request
+				makePaymentRequest := requests.PaymentRequestApiRequestDTO{
+					ClientId:        req.ClientId,
+					Amount:          req.Amount,
+					PaymentMethod:   "ACCOUNT",
+					Service:         "WATER BILL",
+					SenderAccount:   accountNumber,
+					ReceiverAccount: req.DestinationAccount,
+					Network:         network,
+					ServiceNetwork:  "",
+				}
+
+				helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
+
 				proceed = true
 			} else {
 				logs.Error("Error fetching account details for account number: ", accountNumber)
@@ -3306,7 +3397,7 @@ func (c *Api_requestsController) PayStartimesTvBill() {
 	phoneNumber := c.Ctx.Input.Header("PhoneNumber")
 	accountNumber := c.Ctx.Input.Header("AccountNumber")
 	sourceSystem := c.Ctx.Input.Header("SourceSystem")
-	// network := c.Ctx.Input.Header("Network")
+	network := c.Ctx.Input.Header("Network")
 
 	var req requests.StartimesPaymentRequest
 	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
@@ -3348,45 +3439,119 @@ func (c *Api_requestsController) PayStartimesTvBill() {
 			PhoneNumber:        phoneNumber,
 		}
 
-		logs.Info("Formatted request for Buy Bundle: ", payDSTVRequest)
-		resp := apifunctions.PayStartimesBill(&c.Controller, payDSTVRequest)
-		logs.Info("Response from Buy Bundle API: ", resp)
+		accountResp := apifunctions.GetCustomerAccount(&c.Controller, accountNumber)
 
 		var response responses.StartimesBillPaymentApiResponse = responses.StartimesBillPaymentApiResponse{
 			StatusCode:    false,
 			StatusMessage: "Something went wrong",
-			Result:        resp.Result,
+			Result:        nil,
 		}
 
-		if !resp.StatusCode {
-			response = responses.StartimesBillPaymentApiResponse{
-				StatusCode:    false,
-				StatusMessage: resp.StatusMessage,
-				Result:        resp.Result,
+		if accountNumber != "" {
+
+			proceed := false
+			if accountResp.StatusCode == "200" {
+				helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay Startimes", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
+
+				// Log payment request
+				makePaymentRequest := requests.PaymentRequestApiRequestDTO{
+					ClientId:        req.ClientId,
+					Amount:          req.Amount,
+					PaymentMethod:   "ACCOUNT",
+					Service:         "STARTIMES BILL",
+					SenderAccount:   accountNumber,
+					ReceiverAccount: req.DestinationAccount,
+					Network:         network,
+					ServiceNetwork:  "",
+				}
+
+				helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
+
+				proceed = true
+			} else {
+				logs.Error("Error fetching account details for account number: ", accountNumber)
+				logs.Info("Register Customer")
+
+				req := requests.PaymentRequestApiRequestDTO{
+					ClientId:        req.ClientId,
+					Amount:          req.Amount,
+					PaymentMethod:   "MOBILEMONEY",
+					Service:         "STARTIMES BILL",
+					SenderAccount:   accountNumber,
+					ReceiverAccount: req.DestinationAccount,
+					Network:         network,
+					ServiceNetwork:  req.PackageType,
+				}
+				//
+
+				resp, err := helpers.RequestPaymentMain(&c.Controller, req)
+				if err != nil {
+					logs.Error("Error requesting payment: ", err)
+					response = responses.StartimesBillPaymentApiResponse{
+						StatusCode:    false,
+						StatusMessage: "Error requesting payment: " + err.Error(),
+						Result:        nil,
+					}
+				} else {
+					logs.Info("Payment requested successfully: ", resp)
+					if !resp.Success {
+						response = responses.StartimesBillPaymentApiResponse{
+							StatusCode:    false,
+							StatusMessage: resp.StatusMessage,
+							Result:        nil,
+						}
+					} else {
+						response = responses.StartimesBillPaymentApiResponse{
+							StatusCode:    true,
+							StatusMessage: "Water bill purchase is being processed",
+							Result:        nil,
+						}
+					}
+				}
+			}
+
+			if proceed {
+				logs.Info("Formatted request for Buy Bundle: ", payDSTVRequest)
+				resp := apifunctions.PayStartimesBill(&c.Controller, payDSTVRequest)
+				logs.Info("Response from Buy Bundle API: ", resp)
+
+				if !resp.StatusCode {
+					response = responses.StartimesBillPaymentApiResponse{
+						StatusCode:    false,
+						StatusMessage: resp.StatusMessage,
+						Result:        resp.Result,
+					}
+				} else {
+					responseText, err := json.Marshal(response.Result)
+					if err != nil {
+						logs.Error("Error marshalling response result: ", err)
+						responseText = []byte("[]")
+					}
+					v.RequestResponse = string(responseText)
+					v.DateModified = time.Now()
+					v.ResponseDate = time.Now()
+					if err := models.UpdateApi_requestsById(&v); err != nil {
+						logs.Error("Error updating API request with response: ", err)
+					} else {
+						logs.Info("API request updated with response successfully: ", v)
+					}
+
+					if accountNumber != "" {
+						helpers.LogAccountActivity(&c.Controller, accountNumber, "Airtime Purchase", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
+					}
+
+					response = responses.StartimesBillPaymentApiResponse{
+						StatusCode:    true,
+						StatusMessage: "Payment is being processed",
+						Result:        resp.Result,
+					}
+				}
 			}
 		} else {
-			responseText, err := json.Marshal(response.Result)
-			if err != nil {
-				logs.Error("Error marshalling response result: ", err)
-				responseText = []byte("[]")
-			}
-			v.RequestResponse = string(responseText)
-			v.DateModified = time.Now()
-			v.ResponseDate = time.Now()
-			if err := models.UpdateApi_requestsById(&v); err != nil {
-				logs.Error("Error updating API request with response: ", err)
-			} else {
-				logs.Info("API request updated with response successfully: ", v)
-			}
-
-			if accountNumber != "" {
-				helpers.LogAccountActivity(&c.Controller, accountNumber, "Airtime Purchase", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
-			}
-
 			response = responses.StartimesBillPaymentApiResponse{
-				StatusCode:    true,
-				StatusMessage: "Payment is being processed",
-				Result:        resp.Result,
+				StatusCode:    false,
+				StatusMessage: "Account number is required to process this request",
+				Result:        nil,
 			}
 		}
 
