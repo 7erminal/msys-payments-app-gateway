@@ -2554,7 +2554,7 @@ func (c *Api_requestsController) GhanaWaterAccountQuery() {
 		}
 
 		logs.Info("Formatted request for account query ", accountQueryRequest)
-		resp := apifunctions.AccountQuery(&c.Controller, accountQueryRequest)
+		resp := apifunctions.GhanaWaterAccountQuery(&c.Controller, accountQueryRequest)
 		logs.Info("Response from Account query API: ", resp)
 
 		var response responses.AccountQueryAPIResponse = responses.AccountQueryAPIResponse{
