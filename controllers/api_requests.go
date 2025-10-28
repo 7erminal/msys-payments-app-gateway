@@ -2796,7 +2796,7 @@ func (c *Api_requestsController) PayDSTV() {
 
 					response = responses.DSTVBillPaymentResponse{
 						StatusCode:    true,
-						StatusMessage: "DSTV payment successful",
+						StatusMessage: resp.StatusMessage,
 						Result:        resp.Result,
 					}
 				}
