@@ -692,6 +692,7 @@ func (c *Api_requestsController) RegisterAccount() {
 				Gender:       gender,
 				MobileNumber: customerData.PhoneNumber,
 				ClientId:     client.ClientCode,
+				Source:       "GHCOOPS",
 			}
 
 			logs.Info("Formatted request for Register account: ", registerAccountRequest)

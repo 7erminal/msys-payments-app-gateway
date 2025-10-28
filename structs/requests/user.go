@@ -59,6 +59,7 @@ type OpenAccountApiRequest struct {
 	Gender       string
 	MobileNumber string
 	ClientId     string
+	Source       string
 }
 
 type AddCustomerAccountApiRequest struct {

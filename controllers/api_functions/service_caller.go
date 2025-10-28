@@ -186,7 +186,7 @@ func OpenAccount(c *beego.Controller, req requests.OpenAccountApiRequest) (resp 
 	logs.Info("Registering user ", req.MobileNumber, " with name ", req.FirstName, " ", req.LastName)
 	request := api.NewRequest(
 		host,
-		"/v2/api/register-customer",
+		"/v2/api/2/register-customer",
 		api.POST)
 	// request.Params["username"] = username
 	// request.Params = {"UserId": strconv.Itoa(int(userid))}
@@ -196,6 +196,7 @@ func OpenAccount(c *beego.Controller, req requests.OpenAccountApiRequest) (resp 
 	request.InterfaceParams["LastName"] = req.LastName
 	request.InterfaceParams["Gender"] = req.Gender
 	request.InterfaceParams["MobileNumber"] = req.MobileNumber
+	request.InterfaceParams["Source"] = req.Source
 
 	client := api.Client{
 		Request: request,
