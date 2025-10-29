@@ -566,6 +566,8 @@ func AddCustomerAccount(c *beego.Controller, req requests.CreateCustomerAccountA
 	request.InterfaceParams["active"] = req.Active
 	request.InterfaceParams["created_by"] = "1"
 	request.InterfaceParams["customer_id"] = req.CustomerId
+	request.InterfaceParams["account_type"] = req.AccountType
+	request.InterfaceParams["reference"] = req.Reference
 
 	client := api.Client{
 		Request: request,

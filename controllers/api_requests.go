@@ -707,6 +707,8 @@ func (c *Api_requestsController) RegisterAccount() {
 					Result:        nil,
 				}
 			} else {
+				logs.Info("Account registered successfully, adding customer corporative...")
+				logs.Info("Client details: ", client.Id, " - ", client.ClientCode, " - ", client.ClientName)
 				customerCorporative := models.Customer_corporatives{
 					CustomerNumber: customerData.CustomerNumber,
 					CorpId:         client, // Assuming default corp ID, can be changed later
@@ -714,6 +716,8 @@ func (c *Api_requestsController) RegisterAccount() {
 					CreatedBy:      1,
 					ModifiedBy:     1,
 					IsDefault:      1,
+					DateCreated:    time.Now(),
+					DateModified:   time.Now(),
 				}
 
 				if cl, err := models.GetCustomer_corporativesByClient(customerData.CustomerNumber, client.Id); err == nil && cl.Id > 0 {

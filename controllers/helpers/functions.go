@@ -157,7 +157,7 @@ func CheckProfileCompletion(c *beego.Controller, customerData *responses.Custome
 }
 
 func FetchCustomerAccounts(c *beego.Controller, customerData *responses.Customer, corpDTO models.Customer_corporatives, phoneNumber string) {
-	logs.Info("Fetching accounts for customer: ", customerData.CustomerNumber)
+	logs.Info("Fetching accounts for customer: ", customerData.CustomerNumber, " and client ID: ", corpDTO.CorpId.Id)
 	if corp, err := models.GetClientsById(corpDTO.CorpId.Id); err == nil {
 		corpCode := corp.ClientCode
 
