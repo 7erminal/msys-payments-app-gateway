@@ -300,6 +300,8 @@ func (c *Auth_requestsController) Register() {
 					CreatedBy:      1,
 					ModifiedBy:     1,
 					IsDefault:      1,
+					DateCreated:    time.Now(),
+					DateModified:   time.Now(),
 				}
 
 				if _, err := models.AddCustomer_corporatives(&customerCorporative); err != nil {

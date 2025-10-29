@@ -720,7 +720,17 @@ func (c *Api_requestsController) RegisterAccount() {
 					DateModified:   time.Now(),
 				}
 
-				if cl, err := models.GetCustomer_corporativesByClient(customerData.CustomerNumber, client.Id); err == nil && cl.Id > 0 {
+				if cl, err := models.GetCustomer_corporativesByClient(customerData.CustomerNumber, client.Id); err == nil {
+
+					logs.Info("Customer corporative exists, adding new record...")
+					logs.Info("Customer corporative already exists: ", cl)
+					response = responses.RegisterAccountResponse{
+						StatusCode:    true,
+						StatusMessage: "Customer corporative already exists",
+						Result:        &resp.Data.Result,
+					}
+
+				} else {
 					if _, err := models.AddCustomer_corporatives(&customerCorporative); err != nil {
 						logs.Error("An error occurred adding customer corporative ", err.Error())
 						response = responses.RegisterAccountResponse{
@@ -734,13 +744,6 @@ func (c *Api_requestsController) RegisterAccount() {
 							StatusMessage: resp.Data.StatusDesc,
 							Result:        &resp.Data.Result,
 						}
-					}
-				} else {
-					logs.Info("Customer corporative already exists: ", cl)
-					response = responses.RegisterAccountResponse{
-						StatusCode:    true,
-						StatusMessage: "Customer corporative already exists",
-						Result:        &resp.Data.Result,
 					}
 				}
 
