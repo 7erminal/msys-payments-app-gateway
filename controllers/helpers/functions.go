@@ -597,7 +597,16 @@ func UpdateAccountBalance(c *beego.Controller, request_ requests.UpdateAccountBa
 					logs.Error("Error logging account anomaly: ", addAnomalyResp.StatusMessage)
 				}
 
-				updateAccountBalanceResp := apifunctions.UpdateAccountBalance(c, request_)
+				newrequest_ := requests.UpdateAccountBalanceApiRequest{
+					AccountId:     request_.AccountId,
+					AccountNumber: request_.AccountNumber,
+					Balance:       *balance,
+					Reason:        request_.Reason,
+					ModifiedBy:    request_.ModifiedBy,
+					ClientId:      request_.ClientId,
+				}
+
+				updateAccountBalanceResp := apifunctions.UpdateAccountBalance(c, newrequest_)
 
 				if updateAccountBalanceResp.StatusCode == "200" {
 					logs.Info("Account balance updated successfully: ", updateAccountBalanceResp.Result)
