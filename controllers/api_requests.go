@@ -521,6 +521,7 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 								// Check account balance
 								checkAndUpdateAccountBalance := requests.UpdateAccountBalanceApiRequest{
 									AccountNumber: acc.AccountNumber,
+									AccountId:     acc.CustomerAccountId,
 									Balance:       acc.Balance,
 									ModifiedBy:    int(customerData.CustomerId),
 									Reason:        "Fetch latest balance",

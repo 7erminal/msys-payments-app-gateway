@@ -880,9 +880,11 @@ func UpdateAccountBalance(c *beego.Controller, req requests.UpdateAccountBalance
 	host, _ := beego.AppConfig.String("accountBaseUrl")
 
 	logs.Info("Getting account balance for ", req.AccountNumber)
+
+	accountIdStr := fmt.Sprintf("%d", req.AccountId)
 	request := api.NewRequest(
 		host,
-		"/v1/customer-accounts/update-balance/"+req.AccountNumber,
+		"/v1/customer-accounts/update-balance/"+accountIdStr,
 		api.PUT)
 	// request.Params["username"] = username
 	// request.Params = {"UserId": strconv.Itoa(int(userid))}
