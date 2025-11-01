@@ -607,6 +607,7 @@ func UpdateAccountBalance(c *beego.Controller, request_ requests.UpdateAccountBa
 					ClientId:      request_.ClientId,
 				}
 
+				logs.Info("Updating account balance with new balance: ", *balance)
 				updateAccountBalanceResp := apifunctions.UpdateAccountBalance(c, newrequest_)
 
 				if updateAccountBalanceResp.StatusCode == "200" {

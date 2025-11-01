@@ -879,7 +879,7 @@ func GetAccountBalance(c *beego.Controller, req requests.AccountBalanceApiReques
 func UpdateAccountBalance(c *beego.Controller, req requests.UpdateAccountBalanceApiRequest) (resp responses.CreateCustomerAccountApiResponse) {
 	host, _ := beego.AppConfig.String("accountBaseUrl")
 
-	logs.Info("Getting account balance for ", req.AccountNumber)
+	logs.Info("Getting account balance for ", req.AccountNumber, " to ", req.Balance)
 
 	accountIdStr := fmt.Sprintf("%d", req.AccountId)
 	request := api.NewRequest(
