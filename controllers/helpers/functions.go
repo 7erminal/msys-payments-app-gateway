@@ -551,9 +551,13 @@ func UpdateAccountBalance(c *beego.Controller, req requests.AccountBalanceApiReq
 
 		balance := resp.Result.AvailableBalance
 		ClearBalance := resp.Result.ClearBalance
+		sharesBalance := resp.Result.SharesBalance
+		loanBalance := resp.Result.LoanBalance
 
 		logs.Info("Available balance: ", balance)
 		logs.Info("Clear balance: ", ClearBalance)
+		logs.Info("Shares balance: ", sharesBalance)
+		logs.Info("Loan balance: ", loanBalance)
 
 		accountsResp := apifunctions.GetCustomerAccount(c, req.AccountNumber)
 

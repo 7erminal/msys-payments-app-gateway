@@ -503,6 +503,7 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 
 							custAccounts := make([]responses.CustomerAccountResponse, 0)
 							for _, acc := range resp.Result {
+								logs.Info("Account reference: ", acc.Reference)
 								// Map each account to the response object
 								reference = acc.Reference
 
@@ -517,6 +518,17 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 
 								logs.Info("Account reference mapped to corporate code: ", reference)
 
+								// Check account balance
+								checkAndUpdateAccountBalance := requests.UpdateAccountBalanceApiRequest{
+									AccountNumber: acc.AccountNumber,
+									Balance:       acc.Balance,
+									ModifiedBy:    int(customerData.CustomerId),
+									Reason:        "Fetch latest balance",
+								}
+
+								balanceResp := apifunctions.UpdateAccountBalance(&c.Controller, checkAndUpdateAccountBalance)
+								logs.Info("Account balance update response: ", balanceResp)
+
 								custAccount := responses.CustomerAccountResponse{
 									CustomerAccountId: acc.CustomerAccountId,
 									AccountNumber:     acc.AccountNumber,
@@ -525,6 +537,9 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 									Reference:         reference,
 									ClientId:          acc.Reference,
 									Balance:           acc.Balance,
+									SharesBalance:     *balanceResp.Result.SharesBalance,
+									LoanBalance:       *balanceResp.Result.LoanBalance,
+									CLearBalance:      *balanceResp.Result.ClearBalance,
 									FrozenAmount:      acc.FrozenAmount,
 									BalanceBefore:     acc.BalanceBefore,
 									DateCreated:       acc.DateCreated,

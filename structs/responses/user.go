@@ -248,6 +248,9 @@ type CustomerAccountResponse struct {
 	Reference         string
 	ClientId          string
 	Balance           float64
+	SharesBalance     float64
+	LoanBalance       float64
+	CLearBalance      float64
 	FrozenAmount      float64
 	BalanceBefore     float64
 	DateCreated       string

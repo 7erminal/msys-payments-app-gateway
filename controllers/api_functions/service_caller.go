@@ -876,19 +876,21 @@ func GetAccountBalance(c *beego.Controller, req requests.AccountBalanceApiReques
 	return data
 }
 
-func UpdateAccountBalance(c *beego.Controller, req requests.AccountBalanceApiRequest) (resp responses.AccountBalanceApiResponse) {
-	host, _ := beego.AppConfig.String("clientBaseUrl")
+func UpdateAccountBalance(c *beego.Controller, req requests.UpdateAccountBalanceApiRequest) (resp responses.AccountBalanceApiResponse) {
+	host, _ := beego.AppConfig.String("accountBaseUrl")
 
 	logs.Info("Getting account balance for ", req.AccountNumber)
 	request := api.NewRequest(
 		host,
-		"/v2/api/v2/update-balance",
-		api.POST)
+		"/v1/customer-accounts/update-balance/"+req.AccountNumber,
+		api.PUT)
 	// request.Params["username"] = username
 	// request.Params = {"UserId": strconv.Itoa(int(userid))}
-	request.HeaderField["clientId"] = req.ClientId
+	// request.HeaderField["clientId"] = req.ClientId
 
-	request.InterfaceParams["AccountNumber"] = req.AccountNumber
+	request.InterfaceParams["Balance"] = req.Balance
+	request.InterfaceParams["ModifiedBy"] = req.ModifiedBy
+	request.InterfaceParams["Reason"] = req.Reason
 
 	client := api.Client{
 		Request: request,
