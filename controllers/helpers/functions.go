@@ -570,6 +570,7 @@ func UpdateAccountBalance(c *beego.Controller, request_ requests.UpdateAccountBa
 			if accountsResp.Result.Balance != *balance {
 				// Log the anomaly
 				logs.Info("Balance mismatch detected. Logging account anomaly.")
+				logs.Info("Balance is different. System Balance: ", accountsResp.Result.Balance, ", Actual Balance: ", *balance)
 
 				amountDifference := *balance - accountsResp.Result.Balance
 				amountFloat, err := strconv.ParseFloat(strconv.FormatFloat(amountDifference, 'f', 2, 64), 64)
