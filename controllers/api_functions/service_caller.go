@@ -876,7 +876,7 @@ func GetAccountBalance(c *beego.Controller, req requests.AccountBalanceApiReques
 	return data
 }
 
-func UpdateAccountBalance(c *beego.Controller, req requests.UpdateAccountBalanceApiRequest) (resp responses.AccountBalanceApiResponse) {
+func UpdateAccountBalance(c *beego.Controller, req requests.UpdateAccountBalanceApiRequest) (resp responses.CreateCustomerAccountApiResponse) {
 	host, _ := beego.AppConfig.String("accountBaseUrl")
 
 	logs.Info("Getting account balance for ", req.AccountNumber)
@@ -916,7 +916,7 @@ func UpdateAccountBalance(c *beego.Controller, req requests.UpdateAccountBalance
 		logs.Info("Raw response received is \n", prettyJSON.String())
 	}
 	// data := map[string]interface{}{}
-	var data responses.AccountBalanceApiResponse
+	var data responses.CreateCustomerAccountApiResponse
 	json.Unmarshal(read, &data)
 	c.Data["json"] = data
 

@@ -525,9 +525,10 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 									Balance:       acc.Balance,
 									ModifiedBy:    int(customerData.CustomerId),
 									Reason:        "Fetch latest balance",
+									ClientId:      acc.Reference,
 								}
 
-								balanceResp := apifunctions.UpdateAccountBalance(&c.Controller, checkAndUpdateAccountBalance)
+								balanceResp := helpers.UpdateAccountBalance(&c.Controller, checkAndUpdateAccountBalance)
 								logs.Info("Account balance update response: ", balanceResp)
 
 								custAccount := responses.CustomerAccountResponse{

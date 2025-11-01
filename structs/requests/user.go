@@ -112,6 +112,7 @@ type UpdateAccountBalanceApiRequest struct {
 	Balance       float64
 	ModifiedBy    int
 	Reason        string
+	ClientId      string
 }
 
 type ClientApiRequest struct {

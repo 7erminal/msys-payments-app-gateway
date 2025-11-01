@@ -540,9 +540,13 @@ func GetAccountBalance(c *beego.Controller, req requests.AccountBalanceApiReques
 	return response
 }
 
-func UpdateAccountBalance(c *beego.Controller, req requests.AccountBalanceApiRequest) (data responses.CustAccountBalanceResponse) {
-	logs.Info("Fetching account balance for account number: ", req.AccountNumber)
-	resp := apifunctions.GetAccountBalance(c, req)
+func UpdateAccountBalance(c *beego.Controller, request_ requests.UpdateAccountBalanceApiRequest) (data responses.CustAccountBalanceResponse) {
+	logs.Info("Fetching account balance for account number: ", request_.AccountNumber)
+	req2 := requests.AccountBalanceApiRequest{
+		AccountNumber: request_.AccountNumber,
+		ClientId:      request_.ClientId,
+	}
+	resp := apifunctions.GetAccountBalance(c, req2)
 
 	response := responses.CustAccountBalanceResponse{}
 
@@ -559,7 +563,7 @@ func UpdateAccountBalance(c *beego.Controller, req requests.AccountBalanceApiReq
 		logs.Info("Shares balance: ", sharesBalance)
 		logs.Info("Loan balance: ", loanBalance)
 
-		accountsResp := apifunctions.GetCustomerAccount(c, req.AccountNumber)
+		accountsResp := apifunctions.GetCustomerAccount(c, request_.AccountNumber)
 
 		if accountsResp.StatusCode == "200" && accountsResp.Result != nil {
 			logs.Info("Account details fetched successfully: ", accountsResp.Result)
@@ -575,7 +579,7 @@ func UpdateAccountBalance(c *beego.Controller, req requests.AccountBalanceApiReq
 				}
 
 				req := requests.CustomerAccountAnomaliesRequest{
-					AccountNumber:  req.AccountNumber,
+					AccountNumber:  request_.AccountNumber,
 					Amount:         amountFloat,
 					Desc:           "Balance mismatch detected during transaction. System Balance: " + strconv.FormatFloat(accountsResp.Result.Balance, 'f', 2, 64) + ", Actual Balance: " + strconv.FormatFloat(*balance, 'f', 2, 64),
 					Balance:        accountsResp.Result.Balance,
@@ -591,6 +595,14 @@ func UpdateAccountBalance(c *beego.Controller, req requests.AccountBalanceApiReq
 					logs.Info("Account anomaly logged successfully: ", addAnomalyResp.Result)
 				} else {
 					logs.Error("Error logging account anomaly: ", addAnomalyResp.StatusMessage)
+				}
+
+				updateAccountBalanceResp := apifunctions.UpdateAccountBalance(c, request_)
+
+				if updateAccountBalanceResp.StatusCode == "200" {
+					logs.Info("Account balance updated successfully: ", updateAccountBalanceResp.Result)
+				} else {
+					logs.Error("Error updating account balance: ", updateAccountBalanceResp.StatusMessage)
 				}
 
 			}
