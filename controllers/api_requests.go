@@ -518,18 +518,60 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 
 								logs.Info("Account reference mapped to corporate code: ", reference)
 
-								// Check account balance
-								checkAndUpdateAccountBalance := requests.UpdateAccountBalanceApiRequest{
-									AccountNumber: acc.AccountNumber,
-									AccountId:     acc.CustomerAccountId,
-									Balance:       acc.Balance,
-									ModifiedBy:    int(customerData.CustomerId),
-									Reason:        "Fetch latest balance",
-									ClientId:      acc.Reference,
+								sharesBalance := 0.0
+								loanBalance := 0.0
+								clearBalance := 0.0
+								// Convert reference to int64 for client lookup
+								clientRef := strings.TrimSpace(acc.Reference)
+								clientID, parseErr := strconv.ParseInt(clientRef, 10, 64)
+								if parseErr != nil {
+									logs.Error("failed to convert acc.Reference to int64: ", parseErr)
+									response = responses.CustomerAccountsResponse{
+										StatusCode:    false,
+										StatusMessage: "Invalid account reference: " + parseErr.Error(),
+										Result:        nil,
+									}
+									continue
 								}
 
-								balanceResp := helpers.UpdateAccountBalance(&c.Controller, checkAndUpdateAccountBalance)
-								logs.Info("Account balance update response: ", balanceResp)
+								if client, err := models.GetClientsById(clientID); err != nil {
+									logs.Error("Error getting client by ID: ", err)
+									response = responses.CustomerAccountsResponse{
+										StatusCode:    false,
+										StatusMessage: "Error getting client by ID: " + err.Error(),
+										Result:        nil,
+									}
+								} else {
+									// Convert client
+									checkAndUpdateAccountBalance := requests.UpdateAccountBalanceApiRequest{
+										AccountNumber: acc.AccountNumber,
+										AccountId:     acc.CustomerAccountId,
+										Balance:       acc.Balance,
+										ModifiedBy:    int(customerData.CustomerId),
+										Reason:        "Fetch latest balance",
+										ClientId:      client.ClientCode,
+									}
+
+									balanceResp := helpers.UpdateAccountBalance(&c.Controller, checkAndUpdateAccountBalance)
+									logs.Info("Account balance update response: ", balanceResp)
+
+									if !balanceResp.StatusCode {
+										logs.Error("Error fetching and updating account balance: ", balanceResp.StatusMessage)
+									}
+
+									if balanceResp.Result.SharesBalance != nil {
+										sharesBalance = *balanceResp.Result.SharesBalance
+									}
+									if balanceResp.Result.LoanBalance != nil {
+										loanBalance = *balanceResp.Result.LoanBalance
+									}
+									if balanceResp.Result.ClearBalance != nil {
+										clearBalance = *balanceResp.Result.ClearBalance
+									}
+
+									// keep using client (from GetClientsById) as needed below
+									_ = client
+								}
 
 								custAccount := responses.CustomerAccountResponse{
 									CustomerAccountId: acc.CustomerAccountId,
@@ -539,9 +581,9 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 									Reference:         reference,
 									ClientId:          acc.Reference,
 									Balance:           acc.Balance,
-									SharesBalance:     *balanceResp.Result.SharesBalance,
-									LoanBalance:       *balanceResp.Result.LoanBalance,
-									CLearBalance:      *balanceResp.Result.ClearBalance,
+									SharesBalance:     sharesBalance,
+									LoanBalance:       loanBalance,
+									CLearBalance:      clearBalance,
 									FrozenAmount:      acc.FrozenAmount,
 									BalanceBefore:     acc.BalanceBefore,
 									DateCreated:       acc.DateCreated,
