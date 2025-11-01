@@ -890,9 +890,9 @@ func UpdateAccountBalance(c *beego.Controller, req requests.UpdateAccountBalance
 	// request.Params = {"UserId": strconv.Itoa(int(userid))}
 	// request.HeaderField["clientId"] = req.ClientId
 
-	request.InterfaceParams["Balance"] = req.Balance
-	request.InterfaceParams["ModifiedBy"] = req.ModifiedBy
-	request.InterfaceParams["Reason"] = req.Reason
+	request.InterfaceParams["balance"] = req.Balance
+	request.InterfaceParams["modified_by"] = req.ModifiedBy
+	request.InterfaceParams["reason"] = req.Reason
 
 	client := api.Client{
 		Request: request,
