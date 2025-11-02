@@ -771,7 +771,7 @@ func (c *Api_requestsController) RegisterAccount() {
 				customerCorporative := models.Customer_corporatives{
 					CustomerNumber: customerData.CustomerNumber,
 					CorpId:         client, // Assuming default corp ID, can be changed later
-					IsActive:       0,      // Set to inactive until verified
+					IsActive:       1,      // Set to inactive until verified
 					CreatedBy:      1,
 					ModifiedBy:     1,
 					IsDefault:      1,
