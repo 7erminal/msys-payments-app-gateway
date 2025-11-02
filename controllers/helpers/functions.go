@@ -757,6 +757,8 @@ func MakePaymentMain(c *beego.Controller, req requests.PaymentRequestApiRequestD
 		logs.Error("Error registering customer: ", err)
 	} else {
 		logs.Info("Customer registered successfully: ", regCustResp)
+		network = req.Network
+		destinationPhoneNumber = req.ReceiverAccount
 
 		requestMoney := requests.RequestMoneyApiRequestDTO{
 			InitiatedBy:     regCustResp.Customer.CustomerId,
