@@ -780,7 +780,7 @@ func MakePaymentMain(c *beego.Controller, req requests.PaymentRequestApiRequestD
 			CallThirdParty:  true,
 			Operator:        "HUBTEL",
 			Network:         network,
-			ServiceNetwork:  req.Network,
+			ServiceNetwork:  req.ServiceNetwork,
 		}
 		logs.Info("Requesting money from customer for ", req.Service, " purchase: ", requestMoney)
 

@@ -1832,6 +1832,7 @@ func (c *Api_requestsController) Deposit() {
 			SenderAccount:   accountNumber,
 			ReceiverAccount: destinationPhoneNumber,
 			Network:         network,
+			ServiceNetwork:  network,
 			MobileNumber:    phoneNumber,
 		}
 		//
@@ -1950,6 +1951,7 @@ func (c *Api_requestsController) Withdrawal() {
 			SenderAccount:   accountNumber,
 			ReceiverAccount: destinationPhoneNumber,
 			Network:         network,
+			ServiceNetwork:  network,
 			MobileNumber:    phoneNumber,
 		}
 		//
