@@ -1955,20 +1955,24 @@ func (c *Api_requestsController) Withdrawal() {
 		if err != nil {
 			message = err.Error()
 		} else {
-			isSuccess = true
-			message = "Withdrawal successful"
-			responseText, err := json.Marshal(resp)
-			if err != nil {
-				logs.Error("Error marshalling response result: ", err)
-				responseText = []byte("[]")
-			}
-			v.RequestResponse = string(responseText)
-			v.DateModified = time.Now()
-			v.ResponseDate = time.Now()
-			if err := models.UpdateApi_requestsById(&v); err != nil {
-				logs.Error("Error updating API request with response: ", err)
+			if resp.Success {
+				isSuccess = true
+				message = "Withdrawal successful"
+				responseText, err := json.Marshal(resp)
+				if err != nil {
+					logs.Error("Error marshalling response result: ", err)
+					responseText = []byte("[]")
+				}
+				v.RequestResponse = string(responseText)
+				v.DateModified = time.Now()
+				v.ResponseDate = time.Now()
+				if err := models.UpdateApi_requestsById(&v); err != nil {
+					logs.Error("Error updating API request with response: ", err)
+				} else {
+					logs.Info("API request updated with response successfully: ", v)
+				}
 			} else {
-				logs.Info("API request updated with response successfully: ", v)
+				message = "Withdrawal failed: " + resp.StatusMessage
 			}
 		}
 
