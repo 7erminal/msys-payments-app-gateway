@@ -1793,7 +1793,7 @@ func (c *Api_requestsController) Deposit() {
 
 	destinationPhoneNumber := req.Destination
 
-	logs.Info("GetAirtime called with PhoneNumber: %s, SourceSystem: %s, Network: %s, DestinationPhoneNumber: %s", phoneNumber, sourceSystem, network, destinationPhoneNumber)
+	logs.Info("Deposit called with PhoneNumber: %s, SourceSystem: %s, Network: %s, DestinationPhoneNumber: %s", phoneNumber, sourceSystem, network, destinationPhoneNumber)
 
 	reqBody := c.Ctx.Input.RequestBody
 	reqHeaders := c.Ctx.Request.Header
@@ -1832,6 +1832,7 @@ func (c *Api_requestsController) Deposit() {
 			SenderAccount:   accountNumber,
 			ReceiverAccount: destinationPhoneNumber,
 			Network:         network,
+			MobileNumber:    phoneNumber,
 		}
 		//
 
@@ -1906,7 +1907,7 @@ func (c *Api_requestsController) Withdrawal() {
 
 	destinationPhoneNumber := req.Destination
 
-	logs.Info("GetAirtime called with PhoneNumber: %s, SourceSystem: %s, Network: %s, DestinationPhoneNumber: %s", phoneNumber, sourceSystem, network, destinationPhoneNumber)
+	logs.Info("Withdrawal called with PhoneNumber: %s, SourceSystem: %s, Network: %s, DestinationPhoneNumber: %s", phoneNumber, sourceSystem, network, destinationPhoneNumber)
 
 	reqBody := c.Ctx.Input.RequestBody
 	reqHeaders := c.Ctx.Request.Header
@@ -1945,6 +1946,7 @@ func (c *Api_requestsController) Withdrawal() {
 			SenderAccount:   accountNumber,
 			ReceiverAccount: destinationPhoneNumber,
 			Network:         network,
+			MobileNumber:    phoneNumber,
 		}
 		//
 
@@ -2177,6 +2179,7 @@ func (c *Api_requestsController) BuyDataBundle() {
 					ReceiverAccount: destinationPhoneNumber,
 					Network:         network,
 					ServiceNetwork:  "",
+					MobileNumber:    phoneNumber,
 				}
 
 				helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
@@ -2382,6 +2385,7 @@ func (c *Api_requestsController) BuyAirtime() {
 					ReceiverAccount: destinationPhoneNumber,
 					Network:         network,
 					ServiceNetwork:  "",
+					MobileNumber:    phoneNumber,
 				}
 
 				helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
@@ -2782,6 +2786,7 @@ func (c *Api_requestsController) PayDSTV() {
 					ReceiverAccount: req.DestinationAccount,
 					Network:         network,
 					ServiceNetwork:  "",
+					MobileNumber:    phoneNumber,
 				}
 
 				helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
@@ -2975,6 +2980,7 @@ func (c *Api_requestsController) PayGOTV() {
 					ReceiverAccount: req.DestinationAccount,
 					Network:         network,
 					ServiceNetwork:  "",
+					MobileNumber:    phoneNumber,
 				}
 
 				helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
@@ -3165,6 +3171,7 @@ func (c *Api_requestsController) PayECG() {
 					ReceiverAccount: req.DestinationAccount,
 					Network:         network,
 					ServiceNetwork:  "",
+					MobileNumber:    phoneNumber,
 				}
 
 				helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
@@ -3349,6 +3356,7 @@ func (c *Api_requestsController) PayWaterBill() {
 					ReceiverAccount: req.DestinationAccount,
 					Network:         network,
 					ServiceNetwork:  "",
+					MobileNumber:    phoneNumber,
 				}
 
 				helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
@@ -3534,6 +3542,7 @@ func (c *Api_requestsController) PayStartimesTvBill() {
 					ReceiverAccount: req.DestinationAccount,
 					Network:         network,
 					ServiceNetwork:  "",
+					MobileNumber:    phoneNumber,
 				}
 
 				helpers.MakePaymentMain(&c.Controller, makePaymentRequest)

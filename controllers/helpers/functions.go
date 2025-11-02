@@ -752,7 +752,7 @@ func MakePaymentMain(c *beego.Controller, req requests.PaymentRequestApiRequestD
 		Result:        nil,
 	}
 
-	regCustResp, err := TempRegisterCustomer(c, req.SenderAccount, req.ClientId, false)
+	regCustResp, err := TempRegisterCustomer(c, req.MobileNumber, req.ClientId, false)
 	if err != nil {
 		logs.Error("Error registering customer: ", err)
 	} else {
@@ -780,7 +780,7 @@ func MakePaymentMain(c *beego.Controller, req requests.PaymentRequestApiRequestD
 			Network:         network,
 			ServiceNetwork:  req.Network,
 		}
-		logs.Info("Requesting money from customer for airtime purchase: ", requestMoney)
+		logs.Info("Requesting money from customer for ", req.Service, " purchase: ", requestMoney)
 
 		reqMoneyResp, err := PaymentSendMoney(c, requestMoney)
 
