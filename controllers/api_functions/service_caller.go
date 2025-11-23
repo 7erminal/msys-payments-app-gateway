@@ -1408,6 +1408,7 @@ func MakePayment(c *beego.Controller, req requests.MakePaymentApiRequestDTO) (re
 	request.InterfaceParams["Operator"] = req.Operator
 	request.InterfaceParams["Network"] = req.Network
 	request.InterfaceParams["ServiceNetwork"] = req.ServiceNetwork
+	request.InterfaceParams["ServicePackage"] = req.ServicePackage
 
 	client := api.Client{
 		Request: request,

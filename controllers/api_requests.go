@@ -1833,6 +1833,7 @@ func (c *Api_requestsController) Deposit() {
 			ReceiverAccount: destinationPhoneNumber,
 			Network:         network,
 			ServiceNetwork:  network,
+			ServicePackage:  strconv.FormatFloat(req.Amount, 'f', -1, 64),
 			MobileNumber:    phoneNumber,
 		}
 		//
@@ -1952,6 +1953,7 @@ func (c *Api_requestsController) Withdrawal() {
 			ReceiverAccount: destinationPhoneNumber,
 			Network:         network,
 			ServiceNetwork:  network,
+			ServicePackage:  strconv.FormatFloat(req.Amount, 'f', -1, 64),
 			MobileNumber:    phoneNumber,
 		}
 		//
@@ -2180,11 +2182,12 @@ func (c *Api_requestsController) BuyDataBundle() {
 					ClientId:        req.ClientId,
 					Amount:          req.Amount,
 					PaymentMethod:   "ACCOUNT",
-					Service:         "AIRTIME",
+					Service:         "DATA_BUNDLE",
 					SenderAccount:   accountNumber,
 					ReceiverAccount: destinationPhoneNumber,
 					Network:         network,
-					ServiceNetwork:  "",
+					ServiceNetwork:  req.Network,
+					ServicePackage:  req.BundleId,
 					MobileNumber:    phoneNumber,
 				}
 
@@ -2204,6 +2207,7 @@ func (c *Api_requestsController) BuyDataBundle() {
 					ReceiverAccount: destinationPhoneNumber,
 					Network:         network,
 					ServiceNetwork:  req.Network,
+					ServicePackage:  req.BundleId,
 				}
 				//
 
@@ -2390,7 +2394,7 @@ func (c *Api_requestsController) BuyAirtime() {
 					SenderAccount:   accountNumber,
 					ReceiverAccount: destinationPhoneNumber,
 					Network:         network,
-					ServiceNetwork:  "",
+					ServiceNetwork:  req.Network,
 					MobileNumber:    phoneNumber,
 				}
 
@@ -2411,6 +2415,7 @@ func (c *Api_requestsController) BuyAirtime() {
 					ReceiverAccount: destinationPhoneNumber,
 					Network:         network,
 					ServiceNetwork:  req.Network,
+					ServicePackage:  strconv.FormatFloat(req.Amount, 'f', -1, 64),
 				}
 				//
 
@@ -2791,7 +2796,8 @@ func (c *Api_requestsController) PayDSTV() {
 					SenderAccount:   accountNumber,
 					ReceiverAccount: req.DestinationAccount,
 					Network:         network,
-					ServiceNetwork:  "",
+					ServiceNetwork:  "DSTV",
+					ServicePackage:  req.PackageType,
 					MobileNumber:    phoneNumber,
 				}
 
@@ -2810,7 +2816,8 @@ func (c *Api_requestsController) PayDSTV() {
 					SenderAccount:   accountNumber,
 					ReceiverAccount: req.DestinationAccount,
 					Network:         network,
-					ServiceNetwork:  req.PackageType,
+					ServiceNetwork:  "DSTV",
+					ServicePackage:  req.PackageType,
 				}
 				//
 
@@ -2985,7 +2992,8 @@ func (c *Api_requestsController) PayGOTV() {
 					SenderAccount:   accountNumber,
 					ReceiverAccount: req.DestinationAccount,
 					Network:         network,
-					ServiceNetwork:  "",
+					ServiceNetwork:  "GOTV",
+					ServicePackage:  req.PackageType,
 					MobileNumber:    phoneNumber,
 				}
 
@@ -3004,7 +3012,8 @@ func (c *Api_requestsController) PayGOTV() {
 					SenderAccount:   accountNumber,
 					ReceiverAccount: req.DestinationAccount,
 					Network:         network,
-					ServiceNetwork:  req.PackageType,
+					ServiceNetwork:  "GOTV",
+					ServicePackage:  req.PackageType,
 				}
 				//
 
@@ -3176,7 +3185,8 @@ func (c *Api_requestsController) PayECG() {
 					SenderAccount:   accountNumber,
 					ReceiverAccount: req.DestinationAccount,
 					Network:         network,
-					ServiceNetwork:  "",
+					ServiceNetwork:  "ECG",
+					ServicePackage:  req.PackageType,
 					MobileNumber:    phoneNumber,
 				}
 
@@ -3195,7 +3205,8 @@ func (c *Api_requestsController) PayECG() {
 					SenderAccount:   accountNumber,
 					ReceiverAccount: req.DestinationAccount,
 					Network:         network,
-					ServiceNetwork:  req.PackageType,
+					ServiceNetwork:  "ECG",
+					ServicePackage:  req.PackageType,
 				}
 				//
 
@@ -3361,7 +3372,8 @@ func (c *Api_requestsController) PayWaterBill() {
 					SenderAccount:   accountNumber,
 					ReceiverAccount: req.DestinationAccount,
 					Network:         network,
-					ServiceNetwork:  "",
+					ServiceNetwork:  "WATER",
+					ServicePackage:  req.PackageType,
 					MobileNumber:    phoneNumber,
 				}
 
@@ -3380,7 +3392,8 @@ func (c *Api_requestsController) PayWaterBill() {
 					SenderAccount:   accountNumber,
 					ReceiverAccount: req.DestinationAccount,
 					Network:         network,
-					ServiceNetwork:  req.PackageType,
+					ServiceNetwork:  "WATER",
+					ServicePackage:  req.PackageType,
 				}
 				//
 
@@ -3547,7 +3560,8 @@ func (c *Api_requestsController) PayStartimesTvBill() {
 					SenderAccount:   accountNumber,
 					ReceiverAccount: req.DestinationAccount,
 					Network:         network,
-					ServiceNetwork:  "",
+					ServiceNetwork:  "STARTIMES",
+					ServicePackage:  req.PackageType,
 					MobileNumber:    phoneNumber,
 				}
 
@@ -3566,7 +3580,8 @@ func (c *Api_requestsController) PayStartimesTvBill() {
 					SenderAccount:   accountNumber,
 					ReceiverAccount: req.DestinationAccount,
 					Network:         network,
-					ServiceNetwork:  req.PackageType,
+					ServiceNetwork:  "STARTIMES",
+					ServicePackage:  req.PackageType,
 				}
 				//
 

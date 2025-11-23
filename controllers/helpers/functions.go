@@ -854,8 +854,9 @@ func RequestPaymentMain(c *beego.Controller, req requests.PaymentRequestApiReque
 			Operator:        "HUBTEL",
 			Network:         network,
 			ServiceNetwork:  req.ServiceNetwork,
+			ServicePackage:  req.ServicePackage,
 		}
-		logs.Info("Requesting money from customer for airtime purchase: ", requestMoney)
+		logs.Info("Requesting money from customer for : ", requestMoney)
 
 		reqMoneyResp, err := PaymentRequestMoney(c, requestMoney)
 
@@ -903,6 +904,7 @@ func PaymentRequestMoney(c *beego.Controller, req requests.RequestMoneyApiReques
 		Operator:        req.Operator,
 		Network:         req.Network,
 		ServiceNetwork:  req.ServiceNetwork,
+		ServicePackage:  req.ServicePackage,
 	}
 
 	resp = apifunctions.MakePayment(c, requestPayment)
@@ -960,6 +962,7 @@ func PaymentSendMoney(c *beego.Controller, req requests.RequestMoneyApiRequestDT
 		Operator:        req.Operator,
 		Network:         req.Network,
 		ServiceNetwork:  req.ServiceNetwork,
+		ServicePackage:  req.ServicePackage,
 	}
 
 	resp = apifunctions.MakePayment(c, requestPayment)

@@ -23,6 +23,7 @@ type CallbackController struct {
 func (c *CallbackController) URLMapping() {
 	c.Mapping("Callback", c.Callback)
 	c.Mapping("CheckTransactionStatus", c.CheckTransactionStatus)
+	c.Mapping("RequestMoneyCallback", c.RequestMoneyCallback)
 }
 
 // Callback ...
@@ -246,6 +247,46 @@ func (c *CallbackController) RequestMoneyCallback() {
 
 				airtimeresp := services.BuyAirtime(&c.Controller, airtimeReq)
 				logs.Info("Response from Buy Airtime API: ", airtimeresp)
+
+				if !airtimeresp.StatusCode {
+					response = responses.CallbackResponse{
+						StatusCode:    false,
+						StatusMessage: resp.StatusMessage,
+						Result:        nil,
+					}
+				} else {
+
+					response = responses.CallbackResponse{
+						StatusCode:    true,
+						StatusMessage: "Airtime purchase successful",
+						Result:        resp.Result,
+					}
+				}
+			}
+
+			if resp.Result.Service == "DATA_BUNDLE" {
+				network := ""
+				// Process airtime request or insert in a queue for the airtime service to pick up
+				for _, phist := range *resp.Result.PaymentHistory {
+					logs.Info("Processing airtime for payment history: ", phist)
+					// Get network
+
+					if phist.Service == "DATA_BUNDLE" {
+						network = phist.Reference
+					}
+				}
+				dataBundleReq := requests.BuyDataBundleFormulatedRequest{
+					Amount:       resp.Result.PaymentAmount,
+					PhoneNumber:  resp.Result.ReceiverAccount,
+					Network:      network,
+					Destination:  resp.Result.ReceiverAccount,
+					BundleId:     resp.Result.ReferenceNumber,
+					SourceSystem: "MSYS_PAYMENT_APP_GATEWAY",
+					RequestId:    j.Id,
+				}
+
+				airtimeresp := services.BuyDataBundle(&c.Controller, dataBundleReq)
+				logs.Info("Response from Buy data API: ", airtimeresp)
 
 				if !airtimeresp.StatusCode {
 					response = responses.CallbackResponse{

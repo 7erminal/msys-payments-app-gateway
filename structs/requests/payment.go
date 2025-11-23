@@ -34,6 +34,7 @@ type RequestMoneyApiRequestDTO struct {
 	Operator        string
 	Network         string
 	ServiceNetwork  string
+	ServicePackage  string
 }
 
 type MakePaymentApiRequestDTO struct {
@@ -53,6 +54,7 @@ type MakePaymentApiRequestDTO struct {
 	Operator        string
 	Network         string
 	ServiceNetwork  string
+	ServicePackage  string
 }
 
 type PaymentRequestApiRequestDTO struct {
@@ -64,6 +66,7 @@ type PaymentRequestApiRequestDTO struct {
 	ClientId        string
 	Network         string
 	ServiceNetwork  string
+	ServicePackage  string
 	MobileNumber    string
 }
 
