@@ -87,6 +87,16 @@ type GoTvPaymentRequest struct {
 	SourceSystem       string
 }
 
+type GoTvPaymentRequest1 struct {
+	RequestId          int64
+	DestinationAccount string
+	Amount             float64
+	PackageType        string
+	PhoneNumber        string
+	SourceSystem       string
+	ClientId           string
+}
+
 type GoTvPaymentApiRequest struct {
 	RequestId          int64
 	DestinationAccount string
@@ -94,7 +104,6 @@ type GoTvPaymentApiRequest struct {
 	PackageType        string
 	PhoneNumber        string
 	SourceSystem       string
-	ClientId           string `json:"client_id"`
 }
 
 type StartimesPaymentRequest struct {

@@ -3,10 +3,13 @@ package controllers
 import (
 	"encoding/json"
 	apifunctions "msys_payment_app_gateway/controllers/api_functions"
+	"msys_payment_app_gateway/controllers/helpers"
 	"msys_payment_app_gateway/controllers/services"
 	"msys_payment_app_gateway/models"
 	"msys_payment_app_gateway/structs/requests"
 	"msys_payment_app_gateway/structs/responses"
+	"strconv"
+	"strings"
 	"time"
 
 	beego "github.com/beego/beego/v2/server/web"
@@ -280,15 +283,15 @@ func (c *CallbackController) RequestMoneyCallback() {
 					PhoneNumber:  resp.Result.ReceiverAccount,
 					Network:      network,
 					Destination:  resp.Result.ReceiverAccount,
-					BundleId:     resp.Result.ReferenceNumber,
+					BundleId:     resp.Result.ServicePackage,
 					SourceSystem: "MSYS_PAYMENT_APP_GATEWAY",
 					RequestId:    j.Id,
 				}
 
-				airtimeresp := services.BuyDataBundle(&c.Controller, dataBundleReq)
-				logs.Info("Response from Buy data API: ", airtimeresp)
+				dataresp := services.BuyDataBundle(&c.Controller, dataBundleReq)
+				logs.Info("Response from Buy data API: ", dataresp)
 
-				if !airtimeresp.StatusCode {
+				if !dataresp.StatusCode {
 					response = responses.CallbackResponse{
 						StatusCode:    false,
 						StatusMessage: resp.StatusMessage,
@@ -298,8 +301,205 @@ func (c *CallbackController) RequestMoneyCallback() {
 
 					response = responses.CallbackResponse{
 						StatusCode:    true,
-						StatusMessage: "Airtime purchase successful",
+						StatusMessage: "Data bundle purchase successful",
 						Result:        resp.Result,
+					}
+				}
+			}
+
+			if resp.Result.Service == "DSTV" {
+				dstvReq := requests.DSTVPaymentRequest{
+					Amount:             resp.Result.PaymentAmount,
+					PhoneNumber:        resp.Result.ReceiverAccount,
+					DestinationAccount: resp.Result.ReceiverAccount,
+					PackageType:        resp.Result.ServicePackage,
+					SourceSystem:       "MSYS_PAYMENT_APP_GATEWAY",
+					RequestId:          j.Id,
+				}
+
+				dstvresp := services.PayDstv(&c.Controller, dstvReq)
+				logs.Info("Response from DSTV payment API: ", dstvresp)
+
+				if !dstvresp.StatusCode {
+					response = responses.CallbackResponse{
+						StatusCode:    false,
+						StatusMessage: resp.StatusMessage,
+						Result:        nil,
+					}
+				} else {
+					response = responses.CallbackResponse{
+						StatusCode:    true,
+						StatusMessage: "DSTV purchase successful",
+						Result:        resp.Result,
+					}
+				}
+			}
+
+			if resp.Result.Service == "GOTV" {
+				gotvReq := requests.GoTvPaymentApiRequest{
+					Amount:             resp.Result.PaymentAmount,
+					PhoneNumber:        resp.Result.ReceiverAccount,
+					DestinationAccount: resp.Result.ReceiverAccount,
+					PackageType:        resp.Result.ServicePackage,
+					SourceSystem:       "MSYS_PAYMENT_APP_GATEWAY",
+					RequestId:          j.Id,
+				}
+
+				gotvresp := services.PayGotv(&c.Controller, gotvReq)
+				logs.Info("Response from GOTV payment API: ", gotvresp)
+
+				if !gotvresp.StatusCode {
+					response = responses.CallbackResponse{
+						StatusCode:    false,
+						StatusMessage: resp.StatusMessage,
+						Result:        nil,
+					}
+				} else {
+					response = responses.CallbackResponse{
+						StatusCode:    true,
+						StatusMessage: "GOTV purchase successful",
+						Result:        resp.Result,
+					}
+				}
+			}
+
+			if resp.Result.Service == "WATER" {
+				waterbillReq := requests.GhanaWaterPaymentApiRequest{
+					Amount:             resp.Result.PaymentAmount,
+					PhoneNumber:        resp.Result.ReceiverAccount,
+					DestinationAccount: resp.Result.ReceiverAccount,
+					PackageType:        resp.Result.ServicePackage,
+					SourceSystem:       "MSYS_PAYMENT_APP_GATEWAY",
+					RequestId:          j.Id,
+				}
+
+				waterbillresp := services.PayWater(&c.Controller, waterbillReq)
+				logs.Info("Response from WATER payment API: ", waterbillresp)
+
+				if !waterbillresp.StatusCode {
+					response = responses.CallbackResponse{
+						StatusCode:    false,
+						StatusMessage: resp.StatusMessage,
+						Result:        nil,
+					}
+				} else {
+					response = responses.CallbackResponse{
+						StatusCode:    true,
+						StatusMessage: "Water bill purchase successful",
+						Result:        resp.Result,
+					}
+				}
+			}
+
+			if resp.Result.Service == "ECG" {
+				ecgbillReq := requests.ECGPaymentApiRequest{
+					Amount:             resp.Result.PaymentAmount,
+					PhoneNumber:        resp.Result.ReceiverAccount,
+					DestinationAccount: resp.Result.ReceiverAccount,
+					PackageType:        resp.Result.ServicePackage,
+					SourceSystem:       "MSYS_PAYMENT_APP_GATEWAY",
+					RequestId:          j.Id,
+				}
+
+				waterbillresp := services.PayEcg(&c.Controller, ecgbillReq)
+				logs.Info("Response from ECG payment API: ", waterbillresp)
+
+				if !waterbillresp.StatusCode {
+					response = responses.CallbackResponse{
+						StatusCode:    false,
+						StatusMessage: resp.StatusMessage,
+						Result:        nil,
+					}
+				} else {
+					response = responses.CallbackResponse{
+						StatusCode:    true,
+						StatusMessage: "Water bill purchase successful",
+						Result:        resp.Result,
+					}
+				}
+			}
+
+			if resp.Result.Service == "DEPOSIT" {
+				helpers.LogAccountActivity(&c.Controller, resp.Result.ReceiverAccount, "Deposit", strconv.FormatFloat(resp.Result.PaymentAmount, 'f', -1, 64), resp.Result.ReceiverAccount, "credit")
+
+				response = responses.CallbackResponse{
+					StatusCode:    true,
+					StatusMessage: resp.StatusMessage,
+					Result:        nil,
+				}
+			}
+
+			if resp.Result.Service == "WITHDRAWAL" {
+				helpers.LogAccountActivity(&c.Controller, resp.Result.ReceiverAccount, "Withdrawal", strconv.FormatFloat(resp.Result.PaymentAmount, 'f', -1, 64), resp.Result.ReceiverAccount, "debit")
+
+				response = responses.CallbackResponse{
+					StatusCode:    true,
+					StatusMessage: resp.StatusMessage,
+					Result:        nil,
+				}
+			}
+
+			if resp.Result.Service == "ACCOUNT OPENING" {
+				uReq := requests.UsernameRequest{
+					Username: resp.Result.ReceiverAccount,
+				}
+				customerData := apifunctions.GetCustomerByUsername(&c.Controller, uReq)
+
+				gender := "M"
+				switch genderStr := strings.ToLower(customerData.Customer.Gender); genderStr {
+				case "male":
+					gender = "M"
+				case "female":
+					gender = "F"
+				case "m":
+					gender = "M"
+				case "f":
+					gender = "F"
+				}
+
+				firstName := ""
+				lastName := ""
+
+				nameParts := strings.Fields(customerData.Customer.FullName)
+				if len(nameParts) > 0 {
+					firstName = nameParts[0]
+				}
+				if len(nameParts) > 1 {
+					lastName = strings.Join(nameParts[1:], " ")
+				}
+
+				logs.Info("Mobile Number: ", customerData.Customer.PhoneNumber)
+				logs.Info("First Name: ", firstName)
+				logs.Info("Last Name: ", lastName)
+				logs.Info("Gender: ", customerData.Customer.Gender)
+
+				if client, err := models.GetClientsByCode(resp.Result.ServiceNetwork); err != nil {
+
+					registerAccountRequest := requests.OpenAccountApiRequest{
+						FirstName:    firstName,
+						LastName:     lastName,
+						Gender:       gender,
+						MobileNumber: customerData.Customer.PhoneNumber,
+						ClientId:     resp.Result.ServiceNetwork,
+						Source:       "GHCOOPS",
+					}
+
+					resp_ := services.OpenAccount(&c.Controller, registerAccountRequest, *client, *customerData.Customer)
+
+					logs.Info("Response from Account opening API: ", resp)
+
+					if !resp_.StatusCode {
+						response = responses.CallbackResponse{
+							StatusCode:    false,
+							StatusMessage: resp.StatusMessage,
+							Result:        nil,
+						}
+					} else {
+						response = responses.CallbackResponse{
+							StatusCode:    true,
+							StatusMessage: "Account opening successful",
+							Result:        resp.Result,
+						}
 					}
 				}
 			}

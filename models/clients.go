@@ -46,6 +46,17 @@ func GetClientsById(id int64) (v *Clients, err error) {
 	return nil, err
 }
 
+// GetClientsById retrieves Clients by Id. Returns error if
+// Code doesn't exist
+func GetClientsByCode(code string) (v *Clients, err error) {
+	o := orm.NewOrm()
+	v = &Clients{ClientCode: code}
+	if err = o.QueryTable(new(Clients)).Filter("ClientCode", code).RelatedSel().One(v); err == nil {
+		return v, nil
+	}
+	return nil, err
+}
+
 // GetAllClients retrieves all Clients matches certain condition. Returns empty list if
 // no records exist
 func GetAllClients(query map[string]string, fields []string, sortby []string, order []string,

@@ -635,6 +635,7 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 // @Param	Authorization		header 	string true		"header for User"
 // @Param	SourceSystem		header 	string true		"header for Source system"
 // @Param	PhoneNumber		header 	string true		"header for Customer's phone number"
+// @Param	Network		header 	string true		"header for network"
 // @Param	body		body 	requests.OpenAccountRequest	true		"body for Request content"
 // @Success 201 {int} models.Api_requests
 // @Failure 403 body is empty
@@ -643,6 +644,7 @@ func (c *Api_requestsController) RegisterAccount() {
 	// Extract headers
 	phoneNumber := c.Ctx.Input.Header("PhoneNumber")
 	sourceSystem := c.Ctx.Input.Header("SourceSystem")
+	network := c.Ctx.Input.Header("Network")
 
 	cust := c.Ctx.Input.GetData("customer")
 
@@ -717,96 +719,49 @@ func (c *Api_requestsController) RegisterAccount() {
 			// resp := apifunctions.OpenAccount(&c.Controller, registerAccountRequest)
 			// logs.Info("Response from Register account API: ", resp)
 
-			gender := "M"
-			switch genderStr := strings.ToLower(customerData.Gender); genderStr {
-			case "male":
-				gender = "M"
-			case "female":
-				gender = "F"
-			case "m":
-				gender = "M"
-			case "f":
-				gender = "F"
+			accountOpeningFee := 1.0
+
+			req := requests.PaymentRequestApiRequestDTO{
+				ClientId:        client.ClientCode,
+				Amount:          accountOpeningFee,
+				PaymentMethod:   "MOBILEMONEY",
+				Service:         "ACCOUNT OPENING",
+				SenderAccount:   phoneNumber,
+				ReceiverAccount: customerData.PhoneNumber,
+				Network:         network,
+				ServiceNetwork:  client.ClientCode,
+				ServicePackage:  strconv.FormatFloat(accountOpeningFee, 'f', -1, 64),
+				MobileNumber:    phoneNumber,
 			}
+			//
 
-			firstName := ""
-			lastName := ""
-
-			nameParts := strings.Fields(customerData.FullName)
-			if len(nameParts) > 0 {
-				firstName = nameParts[0]
-			}
-			if len(nameParts) > 1 {
-				lastName = strings.Join(nameParts[1:], " ")
-			}
-
-			logs.Info("Mobile Number: ", customerData.PhoneNumber)
-			logs.Info("First Name: ", firstName)
-			logs.Info("Last Name: ", lastName)
-			logs.Info("Gender: ", customerData.Gender)
-
-			registerAccountRequest := requests.OpenAccountApiRequest{
-				FirstName:    firstName,
-				LastName:     lastName,
-				Gender:       gender,
-				MobileNumber: customerData.PhoneNumber,
-				ClientId:     client.ClientCode,
-				Source:       "GHCOOPS",
-			}
-
-			logs.Info("Formatted request for Register account: ", registerAccountRequest)
-			resp := apifunctions.OpenAccount(&c.Controller, registerAccountRequest)
-			logs.Info("Response from Register account API: ", resp)
-
-			if resp.Data.StatusCode != 200 {
-				logs.Info("Response returned is not successful...", resp.Data.StatusDesc)
+			resp, err := helpers.RequestPaymentMain(&c.Controller, req)
+			if err != nil {
+				logs.Error("Error processing account opening fee payment: ", err)
 				response = responses.RegisterAccountResponse{
 					StatusCode:    false,
-					StatusMessage: resp.Data.StatusDesc,
+					StatusMessage: "Error processing account opening fee payment: " + err.Error(),
 					Result:        nil,
 				}
 			} else {
-				logs.Info("Account registered successfully, adding customer corporative...")
-				logs.Info("Client details: ", client.Id, " - ", client.ClientCode, " - ", client.ClientName)
-				customerCorporative := models.Customer_corporatives{
-					CustomerNumber: customerData.CustomerNumber,
-					CorpId:         client, // Assuming default corp ID, can be changed later
-					IsActive:       1,      // Set to inactive until verified
-					CreatedBy:      1,
-					ModifiedBy:     1,
-					IsDefault:      1,
-					DateCreated:    time.Now(),
-					DateModified:   time.Now(),
-				}
-
-				if cl, err := models.GetCustomer_corporativesByClient(customerData.CustomerNumber, client.Id); err == nil {
-
-					logs.Info("Customer corporative exists, adding new record...")
-					logs.Info("Customer corporative already exists: ", cl)
+				logs.Info("Account opening fee payment response: ", resp)
+				if !resp.Success {
+					response = responses.RegisterAccountResponse{
+						StatusCode:    false,
+						StatusMessage: "Account opening fee payment failed: " + resp.StatusMessage,
+						Result:        nil,
+					}
+				} else {
+					// Payment successful, proceed with account registration
+					result_ := true
 					response = responses.RegisterAccountResponse{
 						StatusCode:    true,
-						StatusMessage: "Customer corporative already exists",
-						Result:        &resp.Data.Result,
-					}
-
-				} else {
-					if _, err := models.AddCustomer_corporatives(&customerCorporative); err != nil {
-						logs.Error("An error occurred adding customer corporative ", err.Error())
-						response = responses.RegisterAccountResponse{
-							StatusCode:    false,
-							StatusMessage: "An error occurred adding customer corporative. " + err.Error(),
-							Result:        nil,
-						}
-					} else {
-						response = responses.RegisterAccountResponse{
-							StatusCode:    true,
-							StatusMessage: resp.Data.StatusDesc,
-							Result:        &resp.Data.Result,
-						}
+						StatusMessage: "Account opening is being processed",
+						Result:        &result_,
 					}
 				}
-
 			}
+
 		}
 
 		c.Ctx.Output.SetStatus(200)
@@ -2920,7 +2875,7 @@ func (c *Api_requestsController) PayDSTV() {
 // @Param	PhoneNumber		header 	string true		"header for Customer's phone number"
 // @Param	AccountNumber		header 	string true		"header for Customer's account number"
 // @Param	SourceSystem		header 	string true		"header for Source system"
-// @Param	body		body 	requests.BuyDataBundleAPIRequest	true		"body for Request content"
+// @Param	body		body 	requests.GoTvPaymentRequest1	true		"body for Request content"
 // @Success 201 {int} models.Api_requests
 // @Failure 403 body is empty
 // @router /pay-gotv [post]
@@ -2931,7 +2886,7 @@ func (c *Api_requestsController) PayGOTV() {
 	sourceSystem := c.Ctx.Input.Header("SourceSystem")
 	network := c.Ctx.Input.Header("Network")
 
-	var req requests.GoTvPaymentApiRequest
+	var req requests.GoTvPaymentRequest1
 	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
 
 	destinationAccount := req.DestinationAccount

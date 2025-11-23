@@ -825,7 +825,7 @@ func RequestPaymentMain(c *beego.Controller, req requests.PaymentRequestApiReque
 		Result:        nil,
 	}
 
-	regCustResp, err := TempRegisterCustomer(c, req.MobileNumber, req.ClientId, true)
+	regCustResp, err := TempRegisterCustomer(c, req.MobileNumber, network, true)
 	if err != nil {
 		logs.Error("Error registering customer: ", err)
 	} else {
