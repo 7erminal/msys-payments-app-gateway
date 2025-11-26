@@ -58,6 +58,7 @@ type OpenAccountApiRequest struct {
 	LastName     string
 	Gender       string
 	MobileNumber string
+	ChargeAmount string
 	ClientId     string
 	Source       string
 }

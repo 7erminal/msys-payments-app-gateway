@@ -11,7 +11,7 @@ import (
 	beego "github.com/beego/beego/v2/server/web"
 )
 
-// Pay Water
+// Open Account
 func OpenAccount(c *beego.Controller, openAccountRequest requests.OpenAccountApiRequest, client models.Clients, customerData responses.Customer) (response responses.RegisterAccountResponse) {
 	logs.Info("Formatted request for account opening: ", openAccountRequest)
 	status := false
@@ -19,7 +19,7 @@ func OpenAccount(c *beego.Controller, openAccountRequest requests.OpenAccountApi
 	result := false
 
 	resp := apifunctions.OpenAccount(c, openAccountRequest)
-	logs.Info("Response from Pay Water API: ", resp)
+	logs.Info("Response from open API: ", resp)
 
 	// if resp.Data.StatusCode != 200 {
 	// 	status = false
