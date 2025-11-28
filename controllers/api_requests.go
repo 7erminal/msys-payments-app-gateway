@@ -1381,10 +1381,19 @@ func (c *Api_requestsController) AccountBalance() {
 			} else {
 				logs.Info("API request updated with response successfully: ", v)
 			}
+
+			accBal := responses.AccountBalanceDataResp{
+				AccountNumber:    req.AccountNumber,
+				AccountStatus:    resp.Result.AccountStatus,
+				AvailableBalance: resp.Result.AvailableBalance,
+				ClearBalance:     resp.Result.ClearBalance,
+				LoanBalance:      resp.Result.LoanBalance,
+				SharesBalance:    resp.Result.SharesBalance,
+			}
 			response = responses.AccountBalanceResponse{
 				StatusCode:    true,
 				StatusMessage: "Account balance fetched succeefully",
-				Result:        resp.Result,
+				Result:        &accBal,
 			}
 		}
 

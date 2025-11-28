@@ -294,6 +294,15 @@ type AccountBalanceData struct {
 	SharesBalance    *float64
 }
 
+type AccountBalanceDataResp struct {
+	AccountNumber    string
+	AccountStatus    string
+	AvailableBalance *float64
+	ClearBalance     *float64
+	LoanBalance      *float64
+	SharesBalance    *float64
+}
+
 type AccountBalanceDataResponseResult struct {
 	StatusCode    int
 	StatusMessage string
@@ -311,7 +320,7 @@ type AccountBalanceApiResponse struct {
 type AccountBalanceResponse struct {
 	StatusCode    bool
 	StatusMessage string
-	Result        *AccountBalanceData
+	Result        *AccountBalanceDataResp
 }
 
 type CustAccountBalanceResponse struct {
