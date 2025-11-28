@@ -1796,7 +1796,7 @@ func (c *Api_requestsController) Deposit() {
 			SenderAccount:   accountNumber,
 			ReceiverAccount: destinationPhoneNumber,
 			Network:         network,
-			ServiceNetwork:  network,
+			ServiceNetwork:  req.ClientId,
 			ServicePackage:  strconv.FormatFloat(req.Amount, 'f', -1, 64),
 			MobileNumber:    phoneNumber,
 		}
@@ -1916,7 +1916,7 @@ func (c *Api_requestsController) Withdrawal() {
 			SenderAccount:   accountNumber,
 			ReceiverAccount: destinationPhoneNumber,
 			Network:         network,
-			ServiceNetwork:  network,
+			ServiceNetwork:  req.ClientId,
 			ServicePackage:  strconv.FormatFloat(req.Amount, 'f', -1, 64),
 			MobileNumber:    phoneNumber,
 		}

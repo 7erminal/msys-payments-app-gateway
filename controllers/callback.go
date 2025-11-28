@@ -420,7 +420,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 			}
 
 			if resp.Result.Service == "DEPOSIT" {
-				helpers.LogAccountActivity(&c.Controller, resp.Result.ReceiverAccount, "Deposit", strconv.FormatFloat(resp.Result.PaymentAmount, 'f', -1, 64), resp.Result.ReceiverAccount, "credit")
+				helpers.LogAccountActivity(&c.Controller, resp.Result.ReceiverAccount, "Deposit", strconv.FormatFloat(resp.Result.PaymentAmount, 'f', -1, 64), resp.Result.ServiceNetwork, "credit")
 
 				response = responses.CallbackResponse{
 					StatusCode:    true,
@@ -430,7 +430,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 			}
 
 			if resp.Result.Service == "WITHDRAWAL" {
-				helpers.LogAccountActivity(&c.Controller, resp.Result.ReceiverAccount, "Withdrawal", strconv.FormatFloat(resp.Result.PaymentAmount, 'f', -1, 64), resp.Result.ReceiverAccount, "debit")
+				helpers.LogAccountActivity(&c.Controller, resp.Result.ReceiverAccount, "Withdrawal", strconv.FormatFloat(resp.Result.PaymentAmount, 'f', -1, 64), resp.Result.ServiceNetwork, "debit")
 
 				response = responses.CallbackResponse{
 					StatusCode:    true,
