@@ -372,10 +372,19 @@ func LogAccountActivity(c *beego.Controller, accountNumber string, reference str
 		logs.Info("Available balance: ", balance)
 		logs.Info("Clear balance: ", ClearBalance)
 
+		accResp := responses.AccountBalanceDataResp{
+			AccountNumber:    req.AccountNumber,
+			AccountStatus:    resp.Result.AccountStatus,
+			AvailableBalance: resp.Result.AvailableBalance,
+			ClearBalance:     resp.Result.ClearBalance,
+			LoanBalance:      resp.Result.LoanBalance,
+			SharesBalance:    resp.Result.SharesBalance,
+		}
+
 		response = responses.AccountBalanceResponse{
 			StatusCode:    true,
 			StatusMessage: "Account balance fetched successfully",
-			Result:        resp.Result,
+			Result:        &accResp,
 		}
 
 		// Debit/Credit the account
