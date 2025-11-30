@@ -981,6 +981,7 @@ func DebitAccount(c *beego.Controller, req requests.DebitAccountRequest) (resp r
 	host, _ := beego.AppConfig.String("accountBaseUrl")
 
 	logs.Info("Creating customer account for account number ", req.AccountId)
+	logs.Info("Amount to debit being sent to accounts api ", req.Amount, " and ", fmt.Sprintf("%v", req.Amount))
 	request := api.NewRequest(
 		host,
 		"/v1/customer-accounts/debit-account/"+fmt.Sprintf("%d", req.AccountId),
