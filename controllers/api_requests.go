@@ -2207,6 +2207,7 @@ func (c *Api_requestsController) BuyDataBundle() {
 					Network:         network,
 					ServiceNetwork:  req.Network,
 					ServicePackage:  req.BundleId,
+					MobileNumber:    accountNumber,
 				}
 				//
 
@@ -2403,7 +2404,7 @@ func (c *Api_requestsController) BuyAirtime() {
 						ReceiverAccount: destinationPhoneNumber,
 						Network:         network,
 						ServiceNetwork:  req.Network,
-						MobileNumber:    phoneNumber,
+						MobileNumber:    accountNumber,
 					}
 
 					helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
@@ -2815,7 +2816,7 @@ func (c *Api_requestsController) PayDSTV() {
 						Network:         network,
 						ServiceNetwork:  "DSTV",
 						ServicePackage:  req.PackageType,
-						MobileNumber:    phoneNumber,
+						MobileNumber:    accountNumber,
 					}
 
 					helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
@@ -3021,7 +3022,7 @@ func (c *Api_requestsController) PayGOTV() {
 						Network:         network,
 						ServiceNetwork:  "GOTV",
 						ServicePackage:  req.PackageType,
-						MobileNumber:    phoneNumber,
+						MobileNumber:    accountNumber,
 					}
 
 					helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
@@ -3223,7 +3224,7 @@ func (c *Api_requestsController) PayECG() {
 						Network:         network,
 						ServiceNetwork:  "ECG",
 						ServicePackage:  req.PackageType,
-						MobileNumber:    phoneNumber,
+						MobileNumber:    accountNumber,
 					}
 
 					helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
@@ -3420,7 +3421,7 @@ func (c *Api_requestsController) PayWaterBill() {
 						Network:         network,
 						ServiceNetwork:  "WATER",
 						ServicePackage:  req.PackageType,
-						MobileNumber:    phoneNumber,
+						MobileNumber:    accountNumber,
 					}
 
 					helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
@@ -3618,7 +3619,7 @@ func (c *Api_requestsController) PayStartimesTvBill() {
 						Network:         network,
 						ServiceNetwork:  "STARTIMES",
 						ServicePackage:  req.PackageType,
-						MobileNumber:    phoneNumber,
+						MobileNumber:    accountNumber,
 					}
 
 					helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
