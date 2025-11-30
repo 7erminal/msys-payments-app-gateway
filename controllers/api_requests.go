@@ -2205,7 +2205,7 @@ func (c *Api_requestsController) BuyDataBundle() {
 					SenderAccount:   accountNumber,
 					ReceiverAccount: destinationPhoneNumber,
 					Network:         network,
-					ServiceNetwork:  req.Network,
+					ServiceNetwork:  req.Network + "_BUNDLE",
 					ServicePackage:  req.BundleId,
 					MobileNumber:    accountNumber,
 				}
@@ -2403,7 +2403,7 @@ func (c *Api_requestsController) BuyAirtime() {
 						SenderAccount:   accountNumber,
 						ReceiverAccount: destinationPhoneNumber,
 						Network:         network,
-						ServiceNetwork:  req.Network,
+						ServiceNetwork:  req.Network + "_AIRTIME",
 						MobileNumber:    accountNumber,
 					}
 
