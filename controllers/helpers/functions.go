@@ -516,6 +516,12 @@ func LogAccountActivity(c *beego.Controller, accountNumber string, reference str
 	}
 	logs.Info("Account activity logging completed for account number: ", accountNumber)
 
+	jsonBytes, err := json.MarshalIndent(activityResponse, "", "  ")
+	if err != nil {
+		logs.Error("Error marshalling activityResponse to JSON: ", err)
+	} else {
+		logs.Info("activityResponse JSON: ", string(jsonBytes))
+	}
 	return activityResponse
 }
 

@@ -2385,6 +2385,7 @@ func (c *Api_requestsController) BuyAirtime() {
 				accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Airtime Purchase", req.Amount, req.ClientId, "debit")
 
 				if !accountCheckResp.StatusCode {
+					logs.Debug("Error: ", accountCheckResp.StatusMessage)
 					response = responses.BuyAirtimeAPIResponse{
 						StatusCode:    false,
 						StatusMessage: accountCheckResp.StatusMessage,
