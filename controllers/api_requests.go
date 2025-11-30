@@ -2310,6 +2310,14 @@ func (c *Api_requestsController) BuyDataBundle() {
 
 		c.Data["json"] = response
 	}
+
+	// Log c.Data["json"] as JSON for debugging
+	if respData, err := json.MarshalIndent(c.Data["json"], "", "  "); err != nil {
+		logs.Error("Error marshalling c.Data[\"json\"] for logging: ", err)
+	} else {
+		logs.Info("Response JSON: %s", string(respData))
+	}
+
 	c.ServeJSON()
 }
 
