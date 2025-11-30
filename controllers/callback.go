@@ -270,7 +270,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 				network := ""
 				// Process airtime request or insert in a queue for the airtime service to pick up
 				for _, phist := range *resp.Result.PaymentHistory {
-					logs.Info("Processing airtime for payment history: ", phist)
+					logs.Info("Processing data bundle for payment history: ", phist)
 					// Get network
 
 					if phist.Service == "DATA_BUNDLE" {

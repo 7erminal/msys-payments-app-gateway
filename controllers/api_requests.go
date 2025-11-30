@@ -2131,6 +2131,7 @@ func (c *Api_requestsController) BuyDataBundle() {
 
 	logs.Info("GetBundles called with PhoneNumber: %s, SourceSystem: %s, Network: %s, DestinationPhoneNumber: %s", phoneNumber, sourceSystem, network, destinationPhoneNumber)
 
+	logs.Info("Amount to be debited: %f", req.Amount)
 	reqBody := c.Ctx.Input.RequestBody
 	reqHeaders := c.Ctx.Request.Header
 
