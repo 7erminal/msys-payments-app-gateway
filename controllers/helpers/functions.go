@@ -365,6 +365,7 @@ func LogAccountActivity(c *beego.Controller, accountNumber string, reference str
 	}
 
 	logs.Info("Fetching account balance for account number: ", accountNumber)
+	logs.Info("Amount is ", amount)
 	resp := GetAccountBalance(c, req)
 
 	response := responses.AccountBalanceResponse{}
