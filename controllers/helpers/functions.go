@@ -343,13 +343,19 @@ func CheckAccountsStatus(c *beego.Controller, customerData *responses.Customer) 
 	}
 }
 
-func LogAccountActivity(c *beego.Controller, accountNumber string, reference string, amount string, clientid string, activityType string) {
+func LogAccountActivity(c *beego.Controller, accountNumber string, reference string, amount float64, clientid string, activityType string) (activityResponse responses.AccountActivityResponse) {
 	// type DebitAccountRequestV2 struct {
 	// 	AccountNumber string
 	// 	Amount        string
 	// 	Reference     string
 	// 	Channel       string
 	// }
+
+	activityResponse = responses.AccountActivityResponse{
+		StatusCode:    false,
+		StatusMessage: "Error processing account activity",
+		Result:        "",
+	}
 
 	channel := "GHCOOPS"
 
@@ -391,40 +397,75 @@ func LogAccountActivity(c *beego.Controller, accountNumber string, reference str
 		logs.Info("Logging account activity of type ", activityType, " for account number: ", accountNumber)
 
 		if strings.EqualFold(activityType, "debit") {
-			debitReq := requests.DebitAccountRequestV2{
-				AccountNumber: accountNumber,
-				Amount:        amount,
-				Reference:     reference,
-				Channel:       channel,
-				ClientId:      clientid,
+			debitAccReq := requests.DebitAccountRequest{
+				Amount:     amount,
+				ModifiedBy: 1, // System user
+				Reason:     reference,
+				AccountId:  resp.CustomerAccount.CustomerAccountId,
 			}
-			debitResp := apifunctions.DebitAccountPro(c, debitReq)
-			logs.Info("Debit account response: ", debitResp)
-
-			if debitResp.StatusCode != 200 {
-				logs.Error("Error debiting account: ", debitResp.StatusDesc)
+			debitAccResp := apifunctions.DebitAccount(c, debitAccReq)
+			logs.Info("Debit account internal response: ", debitAccResp)
+			if debitAccResp.StatusCode != "200" {
+				logs.Error("Error debiting account internally: ", debitAccResp.StatusMessage)
+				activityResponse = responses.AccountActivityResponse{
+					StatusCode:    false,
+					StatusMessage: "Error debiting account: " + debitAccResp.StatusMessage,
+					Result:        "",
+				}
 			} else {
-				logs.Info("Account debited successfully: ", debitResp.Result)
+				logs.Info("Account debited internally successfully: ", debitAccResp.Result)
 
-				debitAccReq := requests.DebitAccountRequest{
-					Amount:     *balance,
-					ModifiedBy: 1, // System user
-					Reason:     reference,
-					AccountId:  resp.CustomerAccount.CustomerAccountId,
+				debitReq := requests.DebitAccountRequestV2{
+					AccountNumber: accountNumber,
+					Amount:        strconv.FormatFloat(amount, 'f', 2, 64),
+					Reference:     reference,
+					Channel:       channel,
+					ClientId:      clientid,
 				}
-				debitAccResp := apifunctions.DebitAccount(c, debitAccReq)
-				logs.Info("Debit account internal response: ", debitAccResp)
-				if debitAccResp.StatusCode != "200" {
-					logs.Error("Error debiting account internally: ", debitAccResp.StatusMessage)
+				debitResp := apifunctions.DebitAccountPro(c, debitReq)
+				logs.Info("Debit account response: ", debitResp)
+
+				if debitResp.StatusCode != 200 {
+					logs.Error("Error debiting account: ", debitResp.StatusDesc, ". Reverseing internal debit...")
+
+					creditAccReq := requests.CreditAccountRequest{
+						Amount:     amount,
+						ModifiedBy: 1, // System user
+						Reason:     reference,
+						AccountId:  resp.CustomerAccount.CustomerAccountId,
+					}
+					creditAccResp := apifunctions.CreditAccount(c, creditAccReq)
+					logs.Info("Credit account internal response: ", creditAccResp)
+					if creditAccResp.StatusCode != "200" {
+						logs.Error("Error while reversing: ", creditAccResp.StatusMessage)
+
+						activityResponse = responses.AccountActivityResponse{
+							StatusCode:    false,
+							StatusMessage: "Error debiting account: " + debitResp.StatusDesc + ". Reversal failed: " + creditAccResp.StatusMessage,
+							Result:        "",
+						}
+					} else {
+						logs.Info("Successful reversal: ", creditAccResp.Result)
+
+						activityResponse = responses.AccountActivityResponse{
+							StatusCode:    false,
+							StatusMessage: "Error debiting account: " + debitResp.StatusDesc + ". Reversal successful.",
+							Result:        "",
+						}
+					}
 				} else {
-					logs.Info("Account debited internally successfully: ", debitAccResp.Result)
+					logs.Info("Account debited successfully: ", debitResp.Result)
+					activityResponse = responses.AccountActivityResponse{
+						StatusCode:    true,
+						StatusMessage: "Account debited successfully",
+						Result:        debitResp.Result,
+					}
 				}
-
 			}
 		} else if strings.EqualFold(activityType, "credit") {
 			creditReq := requests.CreditAccountRequestV2{
 				AccountNumber: accountNumber,
-				Amount:        amount,
+				Amount:        strconv.FormatFloat(amount, 'f', 2, 64),
 				Reference:     reference,
 				Channel:       channel,
 				ClientId:      clientid,
@@ -434,10 +475,15 @@ func LogAccountActivity(c *beego.Controller, accountNumber string, reference str
 
 			if creditResp.StatusCode != 200 {
 				logs.Error("Error crediting account: ", creditResp.StatusDesc)
+				activityResponse = responses.AccountActivityResponse{
+					StatusCode:    false,
+					StatusMessage: "Error crediting account: " + creditResp.StatusDesc,
+					Result:        "",
+				}
 			} else {
 				logs.Info("Account credited successfully: ", creditResp.Result)
 				creditAccReq := requests.CreditAccountRequest{
-					Amount:     *balance,
+					Amount:     amount,
 					ModifiedBy: 1, // System user
 					Reason:     reference,
 					AccountId:  resp.CustomerAccount.CustomerAccountId,
@@ -446,8 +492,18 @@ func LogAccountActivity(c *beego.Controller, accountNumber string, reference str
 				logs.Info("Credit account internal response: ", creditAccResp)
 				if creditAccResp.StatusCode != "200" {
 					logs.Error("Error crediting account internally: ", creditAccResp.StatusMessage)
+					activityResponse = responses.AccountActivityResponse{
+						StatusCode:    false,
+						StatusMessage: "Error crediting account internally: " + creditAccResp.StatusMessage,
+						Result:        "",
+					}
 				} else {
 					logs.Info("Account credited internally successfully: ", creditAccResp.Result)
+					activityResponse = responses.AccountActivityResponse{
+						StatusCode:    true,
+						StatusMessage: "Account credited successfully",
+						Result:        creditResp.Result,
+					}
 				}
 			}
 		} else {
@@ -460,6 +516,7 @@ func LogAccountActivity(c *beego.Controller, accountNumber string, reference str
 	}
 	logs.Info("Account activity logging completed for account number: ", accountNumber)
 
+	return activityResponse
 }
 
 func GetAccountBalance(c *beego.Controller, req requests.AccountBalanceApiRequest) (data responses.CustAccountBalanceResponse) {

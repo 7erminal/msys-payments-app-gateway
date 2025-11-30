@@ -2139,7 +2139,7 @@ func (c *Api_requestsController) BuyDataBundle() {
 			accountResp := apifunctions.GetCustomerAccount(&c.Controller, accountNumber)
 			proceed := false
 			if accountResp.StatusCode == "200" {
-				helpers.LogAccountActivity(&c.Controller, accountNumber, "Data Bundle Purchase", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
+				helpers.LogAccountActivity(&c.Controller, accountNumber, "Data Bundle Purchase", req.Amount, req.ClientId, "debit")
 
 				// Log payment request
 				makePaymentRequest := requests.PaymentRequestApiRequestDTO{
@@ -2347,7 +2347,7 @@ func (c *Api_requestsController) BuyAirtime() {
 
 			proceed := false
 			if accountResp.StatusCode == "200" {
-				helpers.LogAccountActivity(&c.Controller, accountNumber, "Airtime Purchase", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
+				helpers.LogAccountActivity(&c.Controller, accountNumber, "Airtime Purchase", req.Amount, req.ClientId, "debit")
 
 				// Log payment request
 				makePaymentRequest := requests.PaymentRequestApiRequestDTO{
@@ -2749,7 +2749,7 @@ func (c *Api_requestsController) PayDSTV() {
 
 			proceed := false
 			if accountResp.StatusCode == "200" {
-				helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay DSTV", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
+				helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay DSTV", req.Amount, req.ClientId, "debit")
 
 				// Log payment request
 				makePaymentRequest := requests.PaymentRequestApiRequestDTO{
@@ -2945,7 +2945,7 @@ func (c *Api_requestsController) PayGOTV() {
 
 			proceed := false
 			if accountResp.StatusCode == "200" {
-				helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay GOTV", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
+				helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay GOTV", req.Amount, req.ClientId, "debit")
 
 				// Log payment request
 				makePaymentRequest := requests.PaymentRequestApiRequestDTO{
@@ -3138,7 +3138,7 @@ func (c *Api_requestsController) PayECG() {
 
 			proceed := false
 			if accountResp.StatusCode == "200" {
-				helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay ECG", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
+				helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay ECG", req.Amount, req.ClientId, "debit")
 
 				// Log payment request
 				makePaymentRequest := requests.PaymentRequestApiRequestDTO{
@@ -3325,7 +3325,7 @@ func (c *Api_requestsController) PayWaterBill() {
 
 			proceed := false
 			if accountResp.StatusCode == "200" {
-				helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay Water", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
+				helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay Water", req.Amount, req.ClientId, "debit")
 
 				// Log payment request
 				makePaymentRequest := requests.PaymentRequestApiRequestDTO{
@@ -3513,7 +3513,7 @@ func (c *Api_requestsController) PayStartimesTvBill() {
 
 			proceed := false
 			if accountResp.StatusCode == "200" {
-				helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay Startimes", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
+				helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay Startimes", req.Amount, req.ClientId, "debit")
 
 				// Log payment request
 				makePaymentRequest := requests.PaymentRequestApiRequestDTO{
@@ -3602,7 +3602,7 @@ func (c *Api_requestsController) PayStartimesTvBill() {
 					}
 
 					if accountNumber != "" {
-						helpers.LogAccountActivity(&c.Controller, accountNumber, "Airtime Purchase", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
+						helpers.LogAccountActivity(&c.Controller, accountNumber, "Airtime Purchase", req.Amount, req.ClientId, "debit")
 					}
 
 					response = responses.StartimesBillPaymentApiResponse{

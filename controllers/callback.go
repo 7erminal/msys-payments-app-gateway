@@ -8,7 +8,6 @@ import (
 	"msys_payment_app_gateway/models"
 	"msys_payment_app_gateway/structs/requests"
 	"msys_payment_app_gateway/structs/responses"
-	"strconv"
 	"strings"
 	"time"
 
@@ -420,7 +419,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 			}
 
 			if resp.Result.Service == "DEPOSIT" {
-				helpers.LogAccountActivity(&c.Controller, resp.Result.ReceiverAccount, "Deposit", strconv.FormatFloat(resp.Result.PaymentAmount, 'f', -1, 64), resp.Result.ServiceNetwork, "credit")
+				helpers.LogAccountActivity(&c.Controller, resp.Result.ReceiverAccount, "Deposit", resp.Result.PaymentAmount, resp.Result.ServiceNetwork, "credit")
 
 				response = responses.CallbackResponse{
 					StatusCode:    true,
@@ -430,7 +429,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 			}
 
 			if resp.Result.Service == "WITHDRAWAL" {
-				helpers.LogAccountActivity(&c.Controller, resp.Result.ReceiverAccount, "Withdrawal", strconv.FormatFloat(resp.Result.PaymentAmount, 'f', -1, 64), resp.Result.ServiceNetwork, "debit")
+				helpers.LogAccountActivity(&c.Controller, resp.Result.ReceiverAccount, "Withdrawal", resp.Result.PaymentAmount, resp.Result.ServiceNetwork, "debit")
 
 				response = responses.CallbackResponse{
 					StatusCode:    true,

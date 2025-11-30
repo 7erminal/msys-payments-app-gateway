@@ -330,6 +330,12 @@ type CustAccountBalanceResponse struct {
 	CustomerAccount *CustomerAccountResponseObj
 }
 
+type AccountActivityResponse struct {
+	StatusCode    bool
+	StatusMessage string
+	Result        string
+}
+
 type CorporativeData struct {
 	Id           int64
 	ClientName   string
