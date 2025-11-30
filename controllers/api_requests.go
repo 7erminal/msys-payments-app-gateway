@@ -1777,6 +1777,12 @@ func (c *Api_requestsController) Deposit() {
 
 	isSuccess := false
 	message := "Deposit failed"
+
+	var response responses.PaymentRequestResponse = responses.PaymentRequestResponse{
+		Success:       isSuccess,
+		StatusMessage: message,
+		Result:        nil,
+	}
 	var v models.Api_requests = models.Api_requests{
 		Request:      string(reqText),
 		PhoneNumber:  phoneNumber,
@@ -1810,9 +1816,17 @@ func (c *Api_requestsController) Deposit() {
 			message = err.Error()
 		} else {
 			if resp.Success {
+				accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Deposit", req.Amount, req.ClientId, "credit")
+
 				isSuccess = true
 				message = "Deposit successful"
 				responseText, err := json.Marshal(resp)
+
+				if !accountCheckResp.StatusCode {
+					logs.Error("Error logging account activity for deposit: ", accountCheckResp.StatusMessage)
+					message = "Deposit failed: " + accountCheckResp.StatusMessage
+				}
+
 				if err != nil {
 					logs.Error("Error marshalling response result: ", err)
 					responseText = []byte("[]")
@@ -1831,24 +1845,18 @@ func (c *Api_requestsController) Deposit() {
 		}
 
 		c.Ctx.Output.SetStatus(200)
-		c.Data["json"] = responses.PaymentRequestResponse{
-			Success:       isSuccess,
-			StatusMessage: message,
-			Result:        resp,
-		}
 
 	} else {
 		logs.Error("Error logging API request: ", err)
-
-		var response responses.PaymentRequestResponse = responses.PaymentRequestResponse{
-			Success:       isSuccess,
-			StatusMessage: message,
-			Result:        nil,
-		}
-
-		c.Data["json"] = response
-
 	}
+
+	response = responses.PaymentRequestResponse{
+		Success:       isSuccess,
+		StatusMessage: message,
+		Result:        nil,
+	}
+
+	c.Data["json"] = response
 
 	c.ServeJSON()
 }
@@ -1908,53 +1916,69 @@ func (c *Api_requestsController) Withdrawal() {
 	if _, err := models.AddApi_requests(&v); err == nil {
 		logs.Info("API request logged successfully: ", v)
 
-		req := requests.PaymentRequestApiRequestDTO{
-			ClientId:        req.ClientId,
-			Amount:          req.Amount,
-			PaymentMethod:   "MOBILEMONEY",
-			Service:         "WITHDRAWAL",
-			SenderAccount:   accountNumber,
-			ReceiverAccount: destinationPhoneNumber,
-			Network:         network,
-			ServiceNetwork:  req.ClientId,
-			ServicePackage:  strconv.FormatFloat(req.Amount, 'f', -1, 64),
-			MobileNumber:    phoneNumber,
-		}
-		//
+		accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Withdrawal", req.Amount, req.ClientId, "debit")
 
-		resp, err := helpers.MakePaymentMain(&c.Controller, req)
+		if !accountCheckResp.StatusCode {
+			message = "Withdrawal failed: " + accountCheckResp.StatusMessage
+			c.Ctx.Output.SetStatus(200)
 
-		logs.Info("Response from Withdrawal API: ", resp)
-
-		if err != nil {
-			message = err.Error()
-		} else {
-			if resp.Success {
-				isSuccess = true
-				message = "Withdrawal successful"
-				responseText, err := json.Marshal(resp)
-				if err != nil {
-					logs.Error("Error marshalling response result: ", err)
-					responseText = []byte("[]")
-				}
-				v.RequestResponse = string(responseText)
-				v.DateModified = time.Now()
-				v.ResponseDate = time.Now()
-				if err := models.UpdateApi_requestsById(&v); err != nil {
-					logs.Error("Error updating API request with response: ", err)
-				} else {
-					logs.Info("API request updated with response successfully: ", v)
-				}
-			} else {
-				message = "Withdrawal failed: " + resp.StatusMessage
+			var response responses.PaymentRequestResponse = responses.PaymentRequestResponse{
+				Success:       isSuccess,
+				StatusMessage: message,
+				Result:        nil,
 			}
-		}
 
-		c.Ctx.Output.SetStatus(200)
-		c.Data["json"] = responses.PaymentRequestResponse{
-			Success:       isSuccess,
-			StatusMessage: message,
-			Result:        resp,
+			c.Ctx.Output.SetStatus(200)
+			c.Data["json"] = response
+		} else {
+			req := requests.PaymentRequestApiRequestDTO{
+				ClientId:        req.ClientId,
+				Amount:          req.Amount,
+				PaymentMethod:   "MOBILEMONEY",
+				Service:         "WITHDRAWAL",
+				SenderAccount:   accountNumber,
+				ReceiverAccount: destinationPhoneNumber,
+				Network:         network,
+				ServiceNetwork:  req.ClientId,
+				ServicePackage:  strconv.FormatFloat(req.Amount, 'f', -1, 64),
+				MobileNumber:    phoneNumber,
+			}
+			//
+
+			resp, err := helpers.MakePaymentMain(&c.Controller, req)
+
+			logs.Info("Response from Withdrawal API: ", resp)
+
+			if err != nil {
+				message = err.Error()
+			} else {
+				if resp.Success {
+					isSuccess = true
+					message = "Withdrawal successful"
+					responseText, err := json.Marshal(resp)
+					if err != nil {
+						logs.Error("Error marshalling response result: ", err)
+						responseText = []byte("[]")
+					}
+					v.RequestResponse = string(responseText)
+					v.DateModified = time.Now()
+					v.ResponseDate = time.Now()
+					if err := models.UpdateApi_requestsById(&v); err != nil {
+						logs.Error("Error updating API request with response: ", err)
+					} else {
+						logs.Info("API request updated with response successfully: ", v)
+					}
+				} else {
+					message = "Withdrawal failed: " + resp.StatusMessage
+				}
+			}
+
+			c.Ctx.Output.SetStatus(200)
+			c.Data["json"] = responses.PaymentRequestResponse{
+				Success:       isSuccess,
+				StatusMessage: message,
+				Result:        resp,
+			}
 		}
 
 	} else {
@@ -2139,25 +2163,36 @@ func (c *Api_requestsController) BuyDataBundle() {
 			accountResp := apifunctions.GetCustomerAccount(&c.Controller, accountNumber)
 			proceed := false
 			if accountResp.StatusCode == "200" {
-				helpers.LogAccountActivity(&c.Controller, accountNumber, "Data Bundle Purchase", req.Amount, req.ClientId, "debit")
+				accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Data Bundle Purchase", req.Amount, req.ClientId, "debit")
 
-				// Log payment request
-				makePaymentRequest := requests.PaymentRequestApiRequestDTO{
-					ClientId:        req.ClientId,
-					Amount:          req.Amount,
-					PaymentMethod:   "ACCOUNT",
-					Service:         "DATA_BUNDLE",
-					SenderAccount:   accountNumber,
-					ReceiverAccount: destinationPhoneNumber,
-					Network:         network,
-					ServiceNetwork:  req.Network,
-					ServicePackage:  req.BundleId,
-					MobileNumber:    phoneNumber,
+				if !accountCheckResp.StatusCode {
+					response = responses.BuyDataBundleResponse{
+						StatusCode:    false,
+						StatusMessage: accountCheckResp.StatusMessage,
+						Result:        nil,
+					}
+					proceed = false
+				} else {
+					logs.Info("Account activity logged successfully for account number: ", accountNumber)
+
+					// Log payment request
+					makePaymentRequest := requests.PaymentRequestApiRequestDTO{
+						ClientId:        req.ClientId,
+						Amount:          req.Amount,
+						PaymentMethod:   "ACCOUNT",
+						Service:         "DATA_BUNDLE",
+						SenderAccount:   accountNumber,
+						ReceiverAccount: destinationPhoneNumber,
+						Network:         network,
+						ServiceNetwork:  req.Network,
+						ServicePackage:  req.BundleId,
+						MobileNumber:    phoneNumber,
+					}
+
+					helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
+
+					proceed = true
 				}
-
-				helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
-
-				proceed = true
 			} else {
 				logs.Error("Error fetching account details for account number: ", accountNumber)
 				logs.Info("Register Customer")
@@ -2347,24 +2382,33 @@ func (c *Api_requestsController) BuyAirtime() {
 
 			proceed := false
 			if accountResp.StatusCode == "200" {
-				helpers.LogAccountActivity(&c.Controller, accountNumber, "Airtime Purchase", req.Amount, req.ClientId, "debit")
+				accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Airtime Purchase", req.Amount, req.ClientId, "debit")
 
-				// Log payment request
-				makePaymentRequest := requests.PaymentRequestApiRequestDTO{
-					ClientId:        req.ClientId,
-					Amount:          req.Amount,
-					PaymentMethod:   "ACCOUNT",
-					Service:         "AIRTIME",
-					SenderAccount:   accountNumber,
-					ReceiverAccount: destinationPhoneNumber,
-					Network:         network,
-					ServiceNetwork:  req.Network,
-					MobileNumber:    phoneNumber,
+				if !accountCheckResp.StatusCode {
+					response = responses.BuyAirtimeAPIResponse{
+						StatusCode:    false,
+						StatusMessage: accountCheckResp.StatusMessage,
+						Result:        nil,
+					}
+				} else {
+					logs.Info("Account activity logged successfully for account number: ", accountNumber)
+					// Log payment request
+					makePaymentRequest := requests.PaymentRequestApiRequestDTO{
+						ClientId:        req.ClientId,
+						Amount:          req.Amount,
+						PaymentMethod:   "ACCOUNT",
+						Service:         "AIRTIME",
+						SenderAccount:   accountNumber,
+						ReceiverAccount: destinationPhoneNumber,
+						Network:         network,
+						ServiceNetwork:  req.Network,
+						MobileNumber:    phoneNumber,
+					}
+
+					helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
+
+					proceed = true
 				}
-
-				helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
-
-				proceed = true
 			} else {
 				// Get customer by number before registering
 				logs.Error("Error fetching account details for account number: ", accountNumber)
@@ -2749,25 +2793,34 @@ func (c *Api_requestsController) PayDSTV() {
 
 			proceed := false
 			if accountResp.StatusCode == "200" {
-				helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay DSTV", req.Amount, req.ClientId, "debit")
+				accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay DSTV", req.Amount, req.ClientId, "debit")
 
-				// Log payment request
-				makePaymentRequest := requests.PaymentRequestApiRequestDTO{
-					ClientId:        req.ClientId,
-					Amount:          req.Amount,
-					PaymentMethod:   "ACCOUNT",
-					Service:         "DSTV",
-					SenderAccount:   accountNumber,
-					ReceiverAccount: req.DestinationAccount,
-					Network:         network,
-					ServiceNetwork:  "DSTV",
-					ServicePackage:  req.PackageType,
-					MobileNumber:    phoneNumber,
+				if !accountCheckResp.StatusCode {
+					response = responses.DSTVBillPaymentResponse{
+						StatusCode:    false,
+						StatusMessage: accountCheckResp.StatusMessage,
+						Result:        nil,
+					}
+				} else {
+					logs.Info("Account activity logged successfully for account number: ", accountNumber)
+					// Log payment request
+					makePaymentRequest := requests.PaymentRequestApiRequestDTO{
+						ClientId:        req.ClientId,
+						Amount:          req.Amount,
+						PaymentMethod:   "ACCOUNT",
+						Service:         "DSTV",
+						SenderAccount:   accountNumber,
+						ReceiverAccount: req.DestinationAccount,
+						Network:         network,
+						ServiceNetwork:  "DSTV",
+						ServicePackage:  req.PackageType,
+						MobileNumber:    phoneNumber,
+					}
+
+					helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
+
+					proceed = true
 				}
-
-				helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
-
-				proceed = true
 			} else {
 				logs.Error("Error fetching account details for account number: ", accountNumber)
 				logs.Info("Register Customer")
@@ -2945,25 +2998,35 @@ func (c *Api_requestsController) PayGOTV() {
 
 			proceed := false
 			if accountResp.StatusCode == "200" {
-				helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay GOTV", req.Amount, req.ClientId, "debit")
+				accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay GOTV", req.Amount, req.ClientId, "debit")
 
-				// Log payment request
-				makePaymentRequest := requests.PaymentRequestApiRequestDTO{
-					ClientId:        req.ClientId,
-					Amount:          req.Amount,
-					PaymentMethod:   "ACCOUNT",
-					Service:         "GOTV",
-					SenderAccount:   accountNumber,
-					ReceiverAccount: req.DestinationAccount,
-					Network:         network,
-					ServiceNetwork:  "GOTV",
-					ServicePackage:  req.PackageType,
-					MobileNumber:    phoneNumber,
+				if !accountCheckResp.StatusCode {
+					response = responses.GoTvBillPaymentResponse{
+						StatusCode:    false,
+						StatusMessage: accountCheckResp.StatusMessage,
+						Result:        nil,
+					}
+				} else {
+					logs.Info("Account activity logged successfully for account number: ", accountNumber)
+
+					// Log payment request
+					makePaymentRequest := requests.PaymentRequestApiRequestDTO{
+						ClientId:        req.ClientId,
+						Amount:          req.Amount,
+						PaymentMethod:   "ACCOUNT",
+						Service:         "GOTV",
+						SenderAccount:   accountNumber,
+						ReceiverAccount: req.DestinationAccount,
+						Network:         network,
+						ServiceNetwork:  "GOTV",
+						ServicePackage:  req.PackageType,
+						MobileNumber:    phoneNumber,
+					}
+
+					helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
+
+					proceed = true
 				}
-
-				helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
-
-				proceed = true
 			} else {
 				logs.Error("Error fetching account details for account number: ", accountNumber)
 				logs.Info("Register Customer")
@@ -3138,25 +3201,34 @@ func (c *Api_requestsController) PayECG() {
 
 			proceed := false
 			if accountResp.StatusCode == "200" {
-				helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay ECG", req.Amount, req.ClientId, "debit")
+				accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay ECG", req.Amount, req.ClientId, "debit")
 
-				// Log payment request
-				makePaymentRequest := requests.PaymentRequestApiRequestDTO{
-					ClientId:        req.ClientId,
-					Amount:          req.Amount,
-					PaymentMethod:   "ACCOUNT",
-					Service:         "ECG BILL",
-					SenderAccount:   accountNumber,
-					ReceiverAccount: req.DestinationAccount,
-					Network:         network,
-					ServiceNetwork:  "ECG",
-					ServicePackage:  req.PackageType,
-					MobileNumber:    phoneNumber,
+				if !accountCheckResp.StatusCode {
+					response = responses.ECGBillPaymentResponse{
+						StatusCode:    false,
+						StatusMessage: accountCheckResp.StatusMessage,
+						Result:        nil,
+					}
+				} else {
+					logs.Info("Account activity logged successfully for account number: ", accountNumber)
+					// Log payment request
+					makePaymentRequest := requests.PaymentRequestApiRequestDTO{
+						ClientId:        req.ClientId,
+						Amount:          req.Amount,
+						PaymentMethod:   "ACCOUNT",
+						Service:         "ECG BILL",
+						SenderAccount:   accountNumber,
+						ReceiverAccount: req.DestinationAccount,
+						Network:         network,
+						ServiceNetwork:  "ECG",
+						ServicePackage:  req.PackageType,
+						MobileNumber:    phoneNumber,
+					}
+
+					helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
+
+					proceed = true
 				}
-
-				helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
-
-				proceed = true
 			} else {
 				logs.Error("Error fetching account details for account number: ", accountNumber)
 				logs.Info("Register Customer")
@@ -3325,25 +3397,35 @@ func (c *Api_requestsController) PayWaterBill() {
 
 			proceed := false
 			if accountResp.StatusCode == "200" {
-				helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay Water", req.Amount, req.ClientId, "debit")
+				accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay Water", req.Amount, req.ClientId, "debit")
 
-				// Log payment request
-				makePaymentRequest := requests.PaymentRequestApiRequestDTO{
-					ClientId:        req.ClientId,
-					Amount:          req.Amount,
-					PaymentMethod:   "ACCOUNT",
-					Service:         "WATER BILL",
-					SenderAccount:   accountNumber,
-					ReceiverAccount: req.DestinationAccount,
-					Network:         network,
-					ServiceNetwork:  "WATER",
-					ServicePackage:  req.PackageType,
-					MobileNumber:    phoneNumber,
+				if !accountCheckResp.StatusCode {
+					response = responses.GhanaWaterBillPaymentResponse{
+						StatusCode:    false,
+						StatusMessage: accountCheckResp.StatusMessage,
+						Result:        nil,
+					}
+				} else {
+					logs.Info("Account activity logged successfully for account number: ", accountNumber)
+
+					// Log payment request
+					makePaymentRequest := requests.PaymentRequestApiRequestDTO{
+						ClientId:        req.ClientId,
+						Amount:          req.Amount,
+						PaymentMethod:   "ACCOUNT",
+						Service:         "WATER BILL",
+						SenderAccount:   accountNumber,
+						ReceiverAccount: req.DestinationAccount,
+						Network:         network,
+						ServiceNetwork:  "WATER",
+						ServicePackage:  req.PackageType,
+						MobileNumber:    phoneNumber,
+					}
+
+					helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
+
+					proceed = true
 				}
-
-				helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
-
-				proceed = true
 			} else {
 				logs.Error("Error fetching account details for account number: ", accountNumber)
 				logs.Info("Register Customer")
@@ -3513,25 +3595,35 @@ func (c *Api_requestsController) PayStartimesTvBill() {
 
 			proceed := false
 			if accountResp.StatusCode == "200" {
-				helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay Startimes", req.Amount, req.ClientId, "debit")
+				accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay Startimes", req.Amount, req.ClientId, "debit")
 
-				// Log payment request
-				makePaymentRequest := requests.PaymentRequestApiRequestDTO{
-					ClientId:        req.ClientId,
-					Amount:          req.Amount,
-					PaymentMethod:   "ACCOUNT",
-					Service:         "STARTIMES BILL",
-					SenderAccount:   accountNumber,
-					ReceiverAccount: req.DestinationAccount,
-					Network:         network,
-					ServiceNetwork:  "STARTIMES",
-					ServicePackage:  req.PackageType,
-					MobileNumber:    phoneNumber,
+				if !accountCheckResp.StatusCode {
+					response = responses.StartimesBillPaymentApiResponse{
+						StatusCode:    false,
+						StatusMessage: accountCheckResp.StatusMessage,
+						Result:        nil,
+					}
+				} else {
+					logs.Info("Account activity logged successfully for account number: ", accountNumber)
+
+					// Log payment request
+					makePaymentRequest := requests.PaymentRequestApiRequestDTO{
+						ClientId:        req.ClientId,
+						Amount:          req.Amount,
+						PaymentMethod:   "ACCOUNT",
+						Service:         "STARTIMES BILL",
+						SenderAccount:   accountNumber,
+						ReceiverAccount: req.DestinationAccount,
+						Network:         network,
+						ServiceNetwork:  "STARTIMES",
+						ServicePackage:  req.PackageType,
+						MobileNumber:    phoneNumber,
+					}
+
+					helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
+
+					proceed = true
 				}
-
-				helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
-
-				proceed = true
 			} else {
 				logs.Error("Error fetching account details for account number: ", accountNumber)
 				logs.Info("Register Customer")

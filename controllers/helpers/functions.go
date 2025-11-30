@@ -848,7 +848,7 @@ func MakePaymentMain(c *beego.Controller, req requests.PaymentRequestApiRequestD
 			Network:         network,
 			ServiceNetwork:  req.ServiceNetwork,
 		}
-		logs.Info("Requesting money from customer for ", req.Service, " purchase: ", requestMoney)
+		logs.Info("Sending money for ", req.Service, " purchase: ", requestMoney)
 
 		reqMoneyResp, err := PaymentSendMoney(c, requestMoney)
 
