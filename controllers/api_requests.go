@@ -2861,6 +2861,7 @@ func (c *Api_requestsController) PayDSTV() {
 					Network:         network,
 					ServiceNetwork:  "DSTV",
 					ServicePackage:  req.PackageType,
+					MobileNumber:    accountNumber,
 				}
 				//
 
@@ -3067,6 +3068,7 @@ func (c *Api_requestsController) PayGOTV() {
 					Network:         network,
 					ServiceNetwork:  "GOTV",
 					ServicePackage:  req.PackageType,
+					MobileNumber:    accountNumber,
 				}
 				//
 
@@ -3269,6 +3271,7 @@ func (c *Api_requestsController) PayECG() {
 					Network:         network,
 					ServiceNetwork:  "ECG",
 					ServicePackage:  req.PackageType,
+					MobileNumber:    accountNumber,
 				}
 				//
 
@@ -3466,6 +3469,7 @@ func (c *Api_requestsController) PayWaterBill() {
 					Network:         network,
 					ServiceNetwork:  "WATER",
 					ServicePackage:  req.PackageType,
+					MobileNumber:    accountNumber,
 				}
 				//
 
@@ -3664,6 +3668,7 @@ func (c *Api_requestsController) PayStartimesTvBill() {
 					Network:         network,
 					ServiceNetwork:  "STARTIMES",
 					ServicePackage:  req.PackageType,
+					MobileNumber:    accountNumber,
 				}
 				//
 
