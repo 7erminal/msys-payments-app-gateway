@@ -2147,6 +2147,16 @@ func (c *Api_requestsController) BuyDataBundle() {
 		c.ServeJSON()
 		return
 	}
+
+	isSuccess := false
+	message := "Data bundle purchase failed"
+	result := responses.BuyDataBundleResponseResult{}
+
+	var response responses.BuyDataBundleResponse = responses.BuyDataBundleResponse{
+		StatusCode:    isSuccess,
+		StatusMessage: message,
+		Result:        nil,
+	}
 	var v models.Api_requests = models.Api_requests{
 		Request:      string(reqText),
 		PhoneNumber:  phoneNumber,
@@ -2158,8 +2168,6 @@ func (c *Api_requestsController) BuyDataBundle() {
 	if _, err := models.AddApi_requests(&v); err == nil {
 		logs.Info("API request logged successfully: ", v)
 
-		var response responses.BuyDataBundleResponse
-
 		if accountNumber != "" {
 			accountResp := apifunctions.GetCustomerAccount(&c.Controller, accountNumber)
 			proceed := false
@@ -2167,11 +2175,9 @@ func (c *Api_requestsController) BuyDataBundle() {
 				accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Data Bundle Purchase", req.Amount, req.ClientId, "debit")
 
 				if !accountCheckResp.StatusCode {
-					response = responses.BuyDataBundleResponse{
-						StatusCode:    false,
-						StatusMessage: accountCheckResp.StatusMessage,
-						Result:        nil,
-					}
+					isSuccess = false
+					message = accountCheckResp.StatusMessage
+					// result = nil
 					proceed = false
 				} else {
 					logs.Info("Account activity logged successfully for account number: ", accountNumber)
@@ -2193,6 +2199,10 @@ func (c *Api_requestsController) BuyDataBundle() {
 					helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
 
 					proceed = true
+
+					isSuccess = true
+					message = accountCheckResp.StatusMessage
+					// result = nil
 				}
 			} else {
 				logs.Error("Error fetching account details for account number: ", accountNumber)
@@ -2291,14 +2301,18 @@ func (c *Api_requestsController) BuyDataBundle() {
 				}
 			}
 		} else {
-			response = responses.BuyDataBundleResponse{
-				StatusCode:    false,
-				StatusMessage: "Something went wrong",
-				Result:        nil,
-			}
+
+			logs.Error("Account number is required for data bundle purchase")
+			isSuccess = false
+			message = "Account number is required for data bundle purchase"
 		}
 
 		c.Ctx.Output.SetStatus(200)
+		response = responses.BuyDataBundleResponse{
+			StatusCode:    isSuccess,
+			StatusMessage: message,
+			Result:        &result,
+		}
 		c.Data["json"] = response
 
 	} else {
