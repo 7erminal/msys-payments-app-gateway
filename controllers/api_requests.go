@@ -2449,6 +2449,7 @@ func (c *Api_requestsController) BuyAirtime() {
 					Network:         network,
 					ServiceNetwork:  req.Network,
 					ServicePackage:  strconv.FormatFloat(req.Amount, 'f', -1, 64),
+					MobileNumber:    accountNumber,
 				}
 				//
 
