@@ -28,9 +28,9 @@ type BuyDataBundleResponseResult struct {
 	TransactionDate   string  `json:"transaction_date"`
 }
 type BuyDataBundleResponse struct {
-	StatusCode    bool
-	StatusMessage string
-	Result        *BuyDataBundleResponseResult
+	StatusCode    bool                         `json:"status_code"`
+	StatusMessage string                       `json:"status_message"`
+	Result        *BuyDataBundleResponseResult `json:"result"`
 }
 
 type BuyDataBundleAPIResponse struct {

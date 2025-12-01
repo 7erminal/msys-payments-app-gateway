@@ -2225,25 +2225,16 @@ func (c *Api_requestsController) BuyDataBundle() {
 				resp, err := helpers.RequestPaymentMain(&c.Controller, req)
 				if err != nil {
 					logs.Error("Error requesting payment: ", err)
-					response = responses.BuyDataBundleResponse{
-						StatusCode:    false,
-						StatusMessage: "Error requesting payment: " + err.Error(),
-						Result:        nil,
-					}
+					message = "Error requesting payment: " + err.Error()
+					isSuccess = false
 				} else {
 					logs.Info("Payment requested successfully: ", resp)
 					if !resp.Success {
-						response = responses.BuyDataBundleResponse{
-							StatusCode:    false,
-							StatusMessage: resp.StatusMessage,
-							Result:        nil,
-						}
+						isSuccess = false
+						message = resp.StatusMessage
 					} else {
-						response = responses.BuyDataBundleResponse{
-							StatusCode:    true,
-							StatusMessage: "Data bundle purchase is being processed",
-							Result:        nil,
-						}
+						isSuccess = true
+						message = "Data bundle purchase is being processed"
 					}
 				}
 			}
