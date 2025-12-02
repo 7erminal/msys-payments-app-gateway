@@ -686,7 +686,7 @@ func UpdateAccountBalance(c *beego.Controller, request_ requests.UpdateAccountBa
 				if updateAccountBalanceResp.StatusCode == "200" {
 					logs.Info("Account balance updated successfully: ", updateAccountBalanceResp.Result)
 				} else {
-					logs.Error("Error updating account balance: ", updateAccountBalanceResp.StatusMessage)
+					logs.Error("Unable to update account balance: ", updateAccountBalanceResp.StatusMessage)
 				}
 
 			}
@@ -781,8 +781,8 @@ func TempRegisterCustomer(c *beego.Controller, mobileNumber string, channel stri
 					responseStatus = 200
 					responseMessage = "Customer registered successfully"
 				} else {
-					logs.Error("Error registering customer for phone number: ", mobileNumber)
-					responseMessage = "Error registering customer for phone number"
+					logs.Error("We are unable to register customer for phone number: ", mobileNumber)
+					responseMessage = "We are unable to register customer for phone number"
 				}
 			} else {
 				logs.Info("Registration skipped as per flag for phone number: ", mobileNumber)
@@ -791,8 +791,8 @@ func TempRegisterCustomer(c *beego.Controller, mobileNumber string, channel stri
 			}
 
 		} else {
-			logs.Error("Error in name inquiry for phone number: ", mobileNumber)
-			responseMessage = "Error in name inquiry for phone number"
+			logs.Error("Unable to process name inquiry for phone number: ", mobileNumber)
+			responseMessage = "Unable to process name inquiry for phone number"
 			responseStatus = 600
 		}
 	} else {
@@ -860,18 +860,18 @@ func MakePaymentMain(c *beego.Controller, req requests.PaymentRequestApiRequestD
 		reqMoneyResp, err := PaymentSendMoney(c, requestMoney)
 
 		if err != nil {
-			logs.Error("Error requesting money from customer: ", err)
+			logs.Error("Error sending money to customer: ", err)
 			isSuccess = false
-			statusMessage = "Error requesting money from customer: " + err.Error()
+			statusMessage = "Error sending money to customer: " + err.Error()
 		} else {
 			if reqMoneyResp.StatusCode == 200 {
 				logs.Info("Payment request successful: ", reqMoneyResp)
 				isSuccess = true
 				statusMessage = "Payment request successful"
 			} else {
-				logs.Error("Error in payment request response: ", reqMoneyResp.StatusDesc)
+				logs.Error("We could not process your payment request: ", reqMoneyResp.StatusDesc)
 				isSuccess = false
-				statusMessage = "Error requesting money from customer: " + reqMoneyResp.StatusDesc
+				statusMessage = "We could not process your payment request: " + reqMoneyResp.StatusDesc
 			}
 		}
 	}
