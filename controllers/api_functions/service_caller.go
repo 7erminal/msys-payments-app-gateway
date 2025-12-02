@@ -1313,7 +1313,7 @@ func NameInquiryViaMobileMoney(c *beego.Controller, req requests.NameInquiryApiR
 
 	client := api.Client{
 		Request: request,
-		Type_:   "params",
+		Type_:   "body",
 	}
 	res, err := client.SendRequest()
 	if err != nil {
