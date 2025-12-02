@@ -1160,12 +1160,24 @@ func (c *Api_requestsController) GetCustomerAccountStatement() {
 					var dateStr string
 					// TransactionDate is a string; try RFC3339, then unix timestamp, else keep original string
 					t := ah.TransactionDate
+					dateStr = t
+					// Try common parse layouts, then fall back to extracting the date portion
 					if parsed, err := time.Parse(time.RFC3339, t); err == nil {
-						dateStr = parsed.Format("02 January 2006")
+						dateStr = parsed.Format("Jan 2 2006")
+					} else if parsed, err := time.Parse("Jan 2 2006 03:04:05PM", t); err == nil {
+						dateStr = parsed.Format("Jan 2 2006")
+					} else if parsed, err := time.Parse("Jan 2 2006 15:04:05", t); err == nil {
+						dateStr = parsed.Format("Jan 2 2006")
 					} else if i, err := strconv.ParseInt(strings.TrimSpace(t), 10, 64); err == nil {
-						dateStr = time.Unix(i, 0).Format("02 January 2006")
+						dateStr = time.Unix(i, 0).Format("Jan 2 2006")
 					} else {
-						dateStr = t
+						parts := strings.Fields(t)
+						if len(parts) >= 3 {
+							// e.g. "Jun 17 2025 12:00:00AM" -> "Jun 17 2025"
+							dateStr = strings.Join(parts[:3], " ")
+						} else {
+							dateStr = t
+						}
 					}
 
 					accStatement := &responses.CustomerAccountStatementData{
