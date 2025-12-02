@@ -1374,6 +1374,18 @@ func (c *Api_requestsController) AccountBalance() {
 			ClientId:      req.ClientId,
 		}
 
+		if accountResp := apifunctions.GetCustomerAccount(&c.Controller, req.AccountNumber); accountResp.StatusCode != "200" {
+			logs.Error("Error fetching account details: ", accountResp.StatusMessage)
+			var response responses.AccountBalanceResponse = responses.AccountBalanceResponse{
+				StatusCode:    false,
+				StatusMessage: "Error fetching account details: " + accountResp.StatusMessage,
+				Result:        nil,
+			}
+			c.Ctx.Output.SetStatus(200)
+			c.Data["json"] = response
+			c.ServeJSON()
+			return
+		}
 		logs.Info("Formatted request for account balance: ", accountBalanceRequest)
 		resp := apifunctions.GetAccountBalance(&c.Controller, accountBalanceRequest)
 		logs.Info("Response from account balance API: ", resp)
