@@ -228,20 +228,20 @@ func (c *CallbackController) RequestMoneyCallback() {
 			}
 
 			if resp.Result.Service == "AIRTIME" {
-				network := ""
-				// Process airtime request or insert in a queue for the airtime service to pick up
-				for _, phist := range *resp.Result.PaymentHistory {
-					logs.Info("Processing airtime for payment history: ", phist)
-					// Get network
+				// network := ""
+				// // Process airtime request or insert in a queue for the airtime service to pick up
+				// for _, phist := range *resp.Result.PaymentHistory {
+				// 	logs.Info("Processing airtime for payment history: ", phist)
+				// 	// Get network
 
-					if phist.Service == "AIRTIME" {
-						network = phist.Reference
-					}
-				}
+				// 	if phist.Service == "AIRTIME" {
+				// 		network = phist.Reference
+				// 	}
+				// }
 				airtimeReq := requests.BuyAirtimeFormulatedRequest{
 					Amount:       resp.Result.PaymentAmount,
 					PhoneNumber:  resp.Result.ReceiverAccount,
-					Network:      network,
+					Network:      resp.Result.ServiceNetwork,
 					Destination:  resp.Result.ReceiverAccount,
 					SourceSystem: "MSYS_PAYMENT_APP_GATEWAY",
 					RequestId:    j.Id,
@@ -267,20 +267,20 @@ func (c *CallbackController) RequestMoneyCallback() {
 			}
 
 			if resp.Result.Service == "DATA_BUNDLE" {
-				network := ""
-				// Process airtime request or insert in a queue for the airtime service to pick up
-				for _, phist := range *resp.Result.PaymentHistory {
-					logs.Info("Processing data bundle for payment history: ", phist)
-					// Get network
+				// network := ""
+				// // Process airtime request or insert in a queue for the airtime service to pick up
+				// for _, phist := range *resp.Result.PaymentHistory {
+				// 	logs.Info("Processing data bundle for payment history: ", phist)
+				// 	// Get network
 
-					if phist.Service == "DATA_BUNDLE" {
-						network = phist.Reference
-					}
-				}
+				// 	if phist.Service == "DATA_BUNDLE" {
+				// 		network = phist.Reference
+				// 	}
+				// }
 				dataBundleReq := requests.BuyDataBundleFormulatedRequest{
 					Amount:       resp.Result.PaymentAmount,
 					PhoneNumber:  resp.Result.ReceiverAccount,
-					Network:      network,
+					Network:      resp.Result.ServiceNetwork,
 					Destination:  resp.Result.ReceiverAccount,
 					BundleId:     resp.Result.ServicePackage,
 					SourceSystem: "MSYS_PAYMENT_APP_GATEWAY",
@@ -306,114 +306,144 @@ func (c *CallbackController) RequestMoneyCallback() {
 				}
 			}
 
-			if resp.Result.Service == "DSTV" {
-				dstvReq := requests.DSTVPaymentRequest{
-					Amount:             resp.Result.PaymentAmount,
-					PhoneNumber:        resp.Result.ReceiverAccount,
-					DestinationAccount: resp.Result.ReceiverAccount,
-					PackageType:        resp.Result.ServicePackage,
-					SourceSystem:       "MSYS_PAYMENT_APP_GATEWAY",
-					RequestId:          j.Id,
-				}
-
-				dstvresp := services.PayDstv(&c.Controller, dstvReq)
-				logs.Info("Response from DSTV payment API: ", dstvresp)
-
-				if !dstvresp.StatusCode {
-					response = responses.CallbackResponse{
-						StatusCode:    false,
-						StatusMessage: resp.StatusMessage,
-						Result:        nil,
+			if resp.Result.Service == "BILL PAYMENT" {
+				if resp.Result.ServiceNetwork == "DSTV" {
+					dstvReq := requests.DSTVPaymentRequest{
+						Amount:             resp.Result.PaymentAmount,
+						PhoneNumber:        resp.Result.ReceiverAccount,
+						DestinationAccount: resp.Result.ReceiverAccount,
+						PackageType:        resp.Result.ServicePackage,
+						SourceSystem:       "MSYS_PAYMENT_APP_GATEWAY",
+						RequestId:          j.Id,
 					}
-				} else {
-					response = responses.CallbackResponse{
-						StatusCode:    true,
-						StatusMessage: "DSTV purchase successful",
-						Result:        resp.Result,
-					}
-				}
-			}
 
-			if resp.Result.Service == "GOTV" {
-				gotvReq := requests.GoTvPaymentApiRequest{
-					Amount:             resp.Result.PaymentAmount,
-					PhoneNumber:        resp.Result.ReceiverAccount,
-					DestinationAccount: resp.Result.ReceiverAccount,
-					PackageType:        resp.Result.ServicePackage,
-					SourceSystem:       "MSYS_PAYMENT_APP_GATEWAY",
-					RequestId:          j.Id,
-				}
+					dstvresp := services.PayDstv(&c.Controller, dstvReq)
+					logs.Info("Response from DSTV payment API: ", dstvresp)
 
-				gotvresp := services.PayGotv(&c.Controller, gotvReq)
-				logs.Info("Response from GOTV payment API: ", gotvresp)
-
-				if !gotvresp.StatusCode {
-					response = responses.CallbackResponse{
-						StatusCode:    false,
-						StatusMessage: resp.StatusMessage,
-						Result:        nil,
-					}
-				} else {
-					response = responses.CallbackResponse{
-						StatusCode:    true,
-						StatusMessage: "GOTV purchase successful",
-						Result:        resp.Result,
+					if !dstvresp.StatusCode {
+						response = responses.CallbackResponse{
+							StatusCode:    false,
+							StatusMessage: resp.StatusMessage,
+							Result:        nil,
+						}
+					} else {
+						response = responses.CallbackResponse{
+							StatusCode:    true,
+							StatusMessage: "DSTV purchase successful",
+							Result:        resp.Result,
+						}
 					}
 				}
-			}
 
-			if resp.Result.Service == "WATER" {
-				waterbillReq := requests.GhanaWaterPaymentApiRequest{
-					Amount:             resp.Result.PaymentAmount,
-					PhoneNumber:        resp.Result.ReceiverAccount,
-					DestinationAccount: resp.Result.ReceiverAccount,
-					PackageType:        resp.Result.ServicePackage,
-					SourceSystem:       "MSYS_PAYMENT_APP_GATEWAY",
-					RequestId:          j.Id,
+				if resp.Result.ServiceNetwork == "GOTV" {
+					gotvReq := requests.GoTvPaymentApiRequest{
+						Amount:             resp.Result.PaymentAmount,
+						PhoneNumber:        resp.Result.ReceiverAccount,
+						DestinationAccount: resp.Result.ReceiverAccount,
+						PackageType:        resp.Result.ServicePackage,
+						SourceSystem:       "MSYS_PAYMENT_APP_GATEWAY",
+						RequestId:          j.Id,
+					}
+
+					gotvresp := services.PayGotv(&c.Controller, gotvReq)
+					logs.Info("Response from GOTV payment API: ", gotvresp)
+
+					if !gotvresp.StatusCode {
+						response = responses.CallbackResponse{
+							StatusCode:    false,
+							StatusMessage: resp.StatusMessage,
+							Result:        nil,
+						}
+					} else {
+						response = responses.CallbackResponse{
+							StatusCode:    true,
+							StatusMessage: "GOTV purchase successful",
+							Result:        resp.Result,
+						}
+					}
 				}
 
-				waterbillresp := services.PayWater(&c.Controller, waterbillReq)
-				logs.Info("Response from WATER payment API: ", waterbillresp)
-
-				if !waterbillresp.StatusCode {
-					response = responses.CallbackResponse{
-						StatusCode:    false,
-						StatusMessage: resp.StatusMessage,
-						Result:        nil,
+				if resp.Result.ServiceNetwork == "STARTIMES" {
+					dstvReq := requests.DSTVPaymentRequest{
+						Amount:             resp.Result.PaymentAmount,
+						PhoneNumber:        resp.Result.ReceiverAccount,
+						DestinationAccount: resp.Result.ReceiverAccount,
+						PackageType:        resp.Result.ServicePackage,
+						SourceSystem:       "MSYS_PAYMENT_APP_GATEWAY",
+						RequestId:          j.Id,
 					}
-				} else {
-					response = responses.CallbackResponse{
-						StatusCode:    true,
-						StatusMessage: "Water bill purchase successful",
-						Result:        resp.Result,
+
+					dstvresp := services.PayDstv(&c.Controller, dstvReq)
+					logs.Info("Response from STARTIMES payment API: ", dstvresp)
+
+					if !dstvresp.StatusCode {
+						response = responses.CallbackResponse{
+							StatusCode:    false,
+							StatusMessage: resp.StatusMessage,
+							Result:        nil,
+						}
+					} else {
+						response = responses.CallbackResponse{
+							StatusCode:    true,
+							StatusMessage: "STARTIMES purchase successful",
+							Result:        resp.Result,
+						}
 					}
 				}
-			}
 
-			if resp.Result.Service == "ECG" {
-				ecgbillReq := requests.ECGPaymentApiRequest{
-					Amount:             resp.Result.PaymentAmount,
-					PhoneNumber:        resp.Result.ReceiverAccount,
-					DestinationAccount: resp.Result.ReceiverAccount,
-					PackageType:        resp.Result.ServicePackage,
-					SourceSystem:       "MSYS_PAYMENT_APP_GATEWAY",
-					RequestId:          j.Id,
+				if resp.Result.ServiceNetwork == "WATER" {
+					waterbillReq := requests.GhanaWaterPaymentApiRequest{
+						Amount:             resp.Result.PaymentAmount,
+						PhoneNumber:        resp.Result.ReceiverAccount,
+						DestinationAccount: resp.Result.ReceiverAccount,
+						PackageType:        resp.Result.ServicePackage,
+						SourceSystem:       "MSYS_PAYMENT_APP_GATEWAY",
+						RequestId:          j.Id,
+					}
+
+					waterbillresp := services.PayWater(&c.Controller, waterbillReq)
+					logs.Info("Response from WATER payment API: ", waterbillresp)
+
+					if !waterbillresp.StatusCode {
+						response = responses.CallbackResponse{
+							StatusCode:    false,
+							StatusMessage: resp.StatusMessage,
+							Result:        nil,
+						}
+					} else {
+						response = responses.CallbackResponse{
+							StatusCode:    true,
+							StatusMessage: "Water bill purchase successful",
+							Result:        resp.Result,
+						}
+					}
 				}
 
-				waterbillresp := services.PayEcg(&c.Controller, ecgbillReq)
-				logs.Info("Response from ECG payment API: ", waterbillresp)
-
-				if !waterbillresp.StatusCode {
-					response = responses.CallbackResponse{
-						StatusCode:    false,
-						StatusMessage: resp.StatusMessage,
-						Result:        nil,
+				if resp.Result.ServiceNetwork == "ECG" {
+					ecgbillReq := requests.ECGPaymentApiRequest{
+						Amount:             resp.Result.PaymentAmount,
+						PhoneNumber:        resp.Result.ReceiverAccount,
+						DestinationAccount: resp.Result.ReceiverAccount,
+						PackageType:        resp.Result.ServicePackage,
+						SourceSystem:       "MSYS_PAYMENT_APP_GATEWAY",
+						RequestId:          j.Id,
 					}
-				} else {
-					response = responses.CallbackResponse{
-						StatusCode:    true,
-						StatusMessage: "Water bill purchase successful",
-						Result:        resp.Result,
+
+					waterbillresp := services.PayEcg(&c.Controller, ecgbillReq)
+					logs.Info("Response from ECG payment API: ", waterbillresp)
+
+					if !waterbillresp.StatusCode {
+						response = responses.CallbackResponse{
+							StatusCode:    false,
+							StatusMessage: resp.StatusMessage,
+							Result:        nil,
+						}
+					} else {
+						response = responses.CallbackResponse{
+							StatusCode:    true,
+							StatusMessage: "ECG bill purchase successful",
+							Result:        resp.Result,
+						}
 					}
 				}
 			}

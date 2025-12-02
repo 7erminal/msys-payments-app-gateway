@@ -2825,7 +2825,7 @@ func (c *Api_requestsController) PayDSTV() {
 						ClientId:        req.ClientId,
 						Amount:          req.Amount,
 						PaymentMethod:   "ACCOUNT",
-						Service:         "DSTV",
+						Service:         "BILL PAYMENT",
 						SenderAccount:   accountNumber,
 						ReceiverAccount: req.DestinationAccount,
 						Network:         network,
@@ -2846,7 +2846,7 @@ func (c *Api_requestsController) PayDSTV() {
 					ClientId:        req.ClientId,
 					Amount:          req.Amount,
 					PaymentMethod:   "MOBILEMONEY",
-					Service:         "DSTV",
+					Service:         "BILL PAYMENT",
 					SenderAccount:   accountNumber,
 					ReceiverAccount: req.DestinationAccount,
 					Network:         network,
@@ -3032,7 +3032,7 @@ func (c *Api_requestsController) PayGOTV() {
 						ClientId:        req.ClientId,
 						Amount:          req.Amount,
 						PaymentMethod:   "ACCOUNT",
-						Service:         "GOTV",
+						Service:         "BILL PAYMENT",
 						SenderAccount:   accountNumber,
 						ReceiverAccount: req.DestinationAccount,
 						Network:         network,
@@ -3053,7 +3053,7 @@ func (c *Api_requestsController) PayGOTV() {
 					ClientId:        req.ClientId,
 					Amount:          req.Amount,
 					PaymentMethod:   "MOBILEMONEY",
-					Service:         "GOTV",
+					Service:         "BILL PAYMENT",
 					SenderAccount:   accountNumber,
 					ReceiverAccount: req.DestinationAccount,
 					Network:         network,
@@ -3235,7 +3235,7 @@ func (c *Api_requestsController) PayECG() {
 						ClientId:        req.ClientId,
 						Amount:          req.Amount,
 						PaymentMethod:   "ACCOUNT",
-						Service:         "ECG BILL",
+						Service:         "BILL PAYMENT",
 						SenderAccount:   accountNumber,
 						ReceiverAccount: req.DestinationAccount,
 						Network:         network,
@@ -3256,7 +3256,7 @@ func (c *Api_requestsController) PayECG() {
 					ClientId:        req.ClientId,
 					Amount:          req.Amount,
 					PaymentMethod:   "MOBILEMONEY",
-					Service:         "ECG BILL",
+					Service:         "BILL PAYMENT",
 					SenderAccount:   accountNumber,
 					ReceiverAccount: req.DestinationAccount,
 					Network:         network,
@@ -3433,7 +3433,7 @@ func (c *Api_requestsController) PayWaterBill() {
 						ClientId:        req.ClientId,
 						Amount:          req.Amount,
 						PaymentMethod:   "ACCOUNT",
-						Service:         "WATER BILL",
+						Service:         "BILL PAYMENT",
 						SenderAccount:   accountNumber,
 						ReceiverAccount: req.DestinationAccount,
 						Network:         network,
@@ -3454,7 +3454,7 @@ func (c *Api_requestsController) PayWaterBill() {
 					ClientId:        req.ClientId,
 					Amount:          req.Amount,
 					PaymentMethod:   "MOBILEMONEY",
-					Service:         "WATER BILL",
+					Service:         "BILL PAYMENT",
 					SenderAccount:   accountNumber,
 					ReceiverAccount: req.DestinationAccount,
 					Network:         network,
@@ -3595,7 +3595,7 @@ func (c *Api_requestsController) PayStartimesTvBill() {
 	}
 	if _, err := models.AddApi_requests(&v); err == nil {
 		logs.Info("API request logged successfully: ", v)
-		payDSTVRequest := requests.StartimesPaymentApiRequest{
+		payStartimesRequest := requests.StartimesPaymentApiRequest{
 			RequestId:          v.Id,
 			Amount:             req.Amount,
 			DestinationAccount: destinationAccount,
@@ -3632,7 +3632,7 @@ func (c *Api_requestsController) PayStartimesTvBill() {
 						ClientId:        req.ClientId,
 						Amount:          req.Amount,
 						PaymentMethod:   "ACCOUNT",
-						Service:         "STARTIMES BILL",
+						Service:         "BILL PAYMENT",
 						SenderAccount:   accountNumber,
 						ReceiverAccount: req.DestinationAccount,
 						Network:         network,
@@ -3653,7 +3653,7 @@ func (c *Api_requestsController) PayStartimesTvBill() {
 					ClientId:        req.ClientId,
 					Amount:          req.Amount,
 					PaymentMethod:   "MOBILEMONEY",
-					Service:         "STARTIMES BILL",
+					Service:         "BILL PAYMENT",
 					SenderAccount:   accountNumber,
 					ReceiverAccount: req.DestinationAccount,
 					Network:         network,
@@ -3690,9 +3690,9 @@ func (c *Api_requestsController) PayStartimesTvBill() {
 			}
 
 			if proceed {
-				logs.Info("Formatted request for Buy Bundle: ", payDSTVRequest)
-				resp := apifunctions.PayStartimesBill(&c.Controller, payDSTVRequest)
-				logs.Info("Response from Buy Bundle API: ", resp)
+				logs.Info("Formatted request for pay startimes: ", payStartimesRequest)
+				resp := apifunctions.PayStartimesBill(&c.Controller, payStartimesRequest)
+				logs.Info("Response from pay startimes API: ", resp)
 
 				if !resp.StatusCode {
 					response = responses.StartimesBillPaymentApiResponse{
