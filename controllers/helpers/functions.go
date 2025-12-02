@@ -901,6 +901,7 @@ func RequestPaymentMain(c *beego.Controller, req requests.PaymentRequestApiReque
 
 			if req.ServiceNetwork == req.Network {
 				logs.Info("Service network matches payment network, do name inquiry to confirm destination name")
+				logs.Info("Mobile Number: ", req.MobileNumber)
 
 				if req.PaymentMethod == "MOBILEMONEY" && (strings.HasPrefix(req.MobileNumber, "024") || strings.HasPrefix(req.MobileNumber, "054") || strings.HasPrefix(req.MobileNumber, "055") || strings.HasPrefix(req.MobileNumber, "059")) {
 					network = "MTN"
@@ -912,6 +913,7 @@ func RequestPaymentMain(c *beego.Controller, req requests.PaymentRequestApiReque
 					network = req.Network
 				}
 
+				logs.Info("Network found: ", network)
 				// Check phone number name inquiry
 				nameInquiryReq := requests.NameInquiryApiRequestDTO{
 					CustomerMsisdn: req.MobileNumber,
