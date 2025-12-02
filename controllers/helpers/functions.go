@@ -1044,31 +1044,33 @@ func PaymentSendMoney(c *beego.Controller, req requests.RequestMoneyApiRequestDT
 		logs.Error("Error making payment request: ", resp.StatusDesc)
 		return resp, errors.New(resp.StatusDesc)
 	} else {
-		logs.Info("Payment request made successfully: ", resp.Payment)
-		logs.Info("Initiating Momo Payment for Payment ID: ", resp.Payment.PaymentId)
+		if strings.EqualFold(req.Service, "WITHDRAWAL") {
+			logs.Info("Payment request made successfully: ", resp.Payment)
+			logs.Info("Initiating Momo Payment for Payment ID: ", resp.Payment.PaymentId)
 
-		momoRequest := requests.MomoPaymentApiRequestDTO{
-			PaymentId:          resp.Payment.PaymentId,
-			Amount:             resp.Payment.Amount,
-			CustomerName:       resp.Payment.Sender,
-			CustomerMsisdn:     req.CustomerMsisdn,
-			CustomerEmail:      req.CustomerEmail,
-			Operator:           req.Operator,
-			PrimaryCallbackUrl: resp.Payment.CallbackUrl,
-			Description:        "Payment Request for " + strconv.FormatFloat(resp.Payment.Amount, 'f', 2, 64),
-			ClientReference:    resp.Payment.PaymentId,
-			Channel:            req.Network,
-		}
+			momoRequest := requests.MomoPaymentApiRequestDTO{
+				PaymentId:          resp.Payment.PaymentId,
+				Amount:             resp.Payment.Amount,
+				CustomerName:       resp.Payment.Sender,
+				CustomerMsisdn:     req.CustomerMsisdn,
+				CustomerEmail:      req.CustomerEmail,
+				Operator:           req.Operator,
+				PrimaryCallbackUrl: resp.Payment.CallbackUrl,
+				Description:        "Payment Request for " + strconv.FormatFloat(resp.Payment.Amount, 'f', 2, 64),
+				ClientReference:    resp.Payment.PaymentId,
+				Channel:            req.Network,
+			}
 
-		momoResp := apifunctions.SendMoneyViaMobileMoney(c, momoRequest)
+			momoResp := apifunctions.SendMoneyViaMobileMoney(c, momoRequest)
 
-		if momoResp.StatusCode != 200 {
-			logs.Error("Error initiating momo payment: ", momoResp.StatusDesc)
-			return resp, errors.New(momoResp.StatusDesc)
-		} else {
-			logs.Info("Momo payment initiated successfully: ", momoResp.Payment)
+			if momoResp.StatusCode != 200 {
+				logs.Error("Error initiating momo payment: ", momoResp.StatusDesc)
+				return resp, errors.New(momoResp.StatusDesc)
+			} else {
+				logs.Info("Momo payment initiated successfully: ", momoResp.Payment)
 
-			logs.Info("Updated payment with momo details: ", resp.Payment)
+				logs.Info("Updated payment with momo details: ", resp.Payment)
+			}
 		}
 	}
 	return resp, nil
