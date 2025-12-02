@@ -422,7 +422,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 				if resp.Result.ServiceNetwork == "ECG" {
 					ecgbillReq := requests.ECGPaymentApiRequest{
 						Amount:             resp.Result.PaymentAmount,
-						PhoneNumber:        resp.Result.ReceiverAccount,
+						PhoneNumber:        resp.Result.SenderAccount,
 						DestinationAccount: resp.Result.ReceiverAccount,
 						PackageType:        resp.Result.ServicePackage,
 						SourceSystem:       "MSYS_PAYMENT_APP_GATEWAY",
