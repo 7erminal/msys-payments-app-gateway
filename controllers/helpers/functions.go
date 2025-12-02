@@ -904,11 +904,11 @@ func RequestPaymentMain(c *beego.Controller, req requests.PaymentRequestApiReque
 				logs.Info("Mobile Number: ", req.MobileNumber)
 
 				if req.PaymentMethod == "MOBILEMONEY" && (strings.HasPrefix(req.MobileNumber, "024") || strings.HasPrefix(req.MobileNumber, "054") || strings.HasPrefix(req.MobileNumber, "055") || strings.HasPrefix(req.MobileNumber, "059")) {
-					network = "MTN"
+					network = "MTN" + "_" + req.PaymentMethod
 				} else if req.PaymentMethod == "MOBILEMONEY" && (strings.HasPrefix(req.MobileNumber, "020") || strings.HasPrefix(req.MobileNumber, "050")) {
-					network = "TELECEL"
+					network = "TELECEL" + "_" + req.PaymentMethod
 				} else if req.PaymentMethod == "MOBILEMONEY" && (strings.HasPrefix(req.MobileNumber, "027") || strings.HasPrefix(req.MobileNumber, "057")) {
-					network = "AIRTELTIGO"
+					network = "AIRTELTIGO" + "_" + req.PaymentMethod
 				} else {
 					network = req.Network
 				}
