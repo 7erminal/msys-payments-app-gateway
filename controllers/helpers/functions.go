@@ -819,11 +819,6 @@ func MakePaymentMain(c *beego.Controller, req requests.PaymentRequestApiRequestD
 	statusMessage := "Unable to process payment at the moment"
 	var destinationPhoneNumber string
 	var network string
-	response := responses.MakePaymentResponse{
-		Success:       isSuccess,
-		StatusMessage: statusMessage,
-		Result:        nil,
-	}
 
 	regCustResp, err := TempRegisterCustomer(c, req.MobileNumber, req.ClientId, false)
 	if err != nil {
@@ -876,7 +871,7 @@ func MakePaymentMain(c *beego.Controller, req requests.PaymentRequestApiRequestD
 		}
 	}
 
-	response = responses.MakePaymentResponse{
+	response := responses.MakePaymentResponse{
 		Success:       isSuccess,
 		StatusMessage: statusMessage,
 		Result:        nil,
@@ -892,11 +887,6 @@ func RequestPaymentMain(c *beego.Controller, req requests.PaymentRequestApiReque
 	statusMessage := "Unable to process payment at the moment"
 	var destinationPhoneNumber string
 	var network string
-	response := responses.MakePaymentResponse{
-		Success:       isSuccess,
-		StatusMessage: statusMessage,
-		Result:        nil,
-	}
 
 	regCustResp, err := TempRegisterCustomer(c, req.MobileNumber, network, true)
 	if err != nil {
@@ -905,6 +895,40 @@ func RequestPaymentMain(c *beego.Controller, req requests.PaymentRequestApiReque
 		logs.Info("Customer registered successfully: ", regCustResp)
 		network = req.Network
 		destinationPhoneNumber = req.ReceiverAccount
+
+		if req.PaymentMethod == "MOBILEMONEY" {
+			logs.Info("Determined network for mobile money payment: ", network)
+
+			if req.ServiceNetwork == req.Network {
+				logs.Info("Service network matches payment network, do name inquiry to confirm destination name")
+
+				if req.PaymentMethod == "MOBILEMONEY" && (strings.HasPrefix(req.MobileNumber, "024") || strings.HasPrefix(req.MobileNumber, "054") || strings.HasPrefix(req.MobileNumber, "055") || strings.HasPrefix(req.MobileNumber, "059")) {
+					network = "MTN"
+				} else if req.PaymentMethod == "MOBILEMONEY" && (strings.HasPrefix(req.MobileNumber, "020") || strings.HasPrefix(req.MobileNumber, "050")) {
+					network = "TELECEL"
+				} else if req.PaymentMethod == "MOBILEMONEY" && (strings.HasPrefix(req.MobileNumber, "027") || strings.HasPrefix(req.MobileNumber, "057")) {
+					network = "AIRTELTIGO"
+				} else {
+					network = req.Network
+				}
+
+				// Check phone number name inquiry
+				nameInquiryReq := requests.NameInquiryApiRequestDTO{
+					CustomerMsisdn: req.MobileNumber,
+					Channel:        network,
+				}
+				nameInquiryResp := apifunctions.NameInquiryViaMobileMoney(c, nameInquiryReq)
+
+				if nameInquiryResp.Success {
+					logs.Info("Name inquiry successful, updating destination phone number to: ", nameInquiryResp.Result.Name, " Network: ", nameInquiryResp.Result.Profile)
+					// destinationPhoneNumber = nameInquiryResp.Result.Name
+				} else {
+					logs.Error("Name inquiry failed, cannot proceed with payment request")
+					isSuccess = false
+					statusMessage = "Name inquiry failed, cannot proceed with payment request: " + nameInquiryResp.StatusDesc
+				}
+			}
+		}
 
 		requestMoney := requests.RequestMoneyApiRequestDTO{
 			InitiatedBy:     regCustResp.Customer.CustomerId,
@@ -950,7 +974,7 @@ func RequestPaymentMain(c *beego.Controller, req requests.PaymentRequestApiReque
 		}
 	}
 
-	response = responses.MakePaymentResponse{
+	response := responses.MakePaymentResponse{
 		Success:       isSuccess,
 		StatusMessage: statusMessage,
 		Result:        nil,

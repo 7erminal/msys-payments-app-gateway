@@ -391,7 +391,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 					}
 				}
 
-				if resp.Result.ServiceNetwork == "WATER" {
+				if resp.Result.ServiceNetwork == "GH_WATER" {
 					waterbillReq := requests.GhanaWaterPaymentApiRequest{
 						Amount:             resp.Result.PaymentAmount,
 						PhoneNumber:        resp.Result.SenderAccount,
