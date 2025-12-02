@@ -1157,9 +1157,20 @@ func (c *Api_requestsController) GetCustomerAccountStatement() {
 				for _, ah := range resp.Result {
 					// Map each account history to the response object
 
+					var dateStr string
+					// TransactionDate is a string; try RFC3339, then unix timestamp, else keep original string
+					t := ah.TransactionDate
+					if parsed, err := time.Parse(time.RFC3339, t); err == nil {
+						dateStr = parsed.Format("02 January 2006")
+					} else if i, err := strconv.ParseInt(strings.TrimSpace(t), 10, 64); err == nil {
+						dateStr = time.Unix(i, 0).Format("02 January 2006")
+					} else {
+						dateStr = t
+					}
+
 					accStatement := &responses.CustomerAccountStatementData{
 						Account:                req.AccountNumber,
-						TransactionDate:        ah.TransactionDate,
+						TransactionDate:        dateStr,
 						TransactionDescription: ah.TransactionDescription,
 						Credit:                 ah.Credit,
 						Debit:                  ah.Debit,
