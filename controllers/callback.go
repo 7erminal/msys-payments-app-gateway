@@ -240,7 +240,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 				// }
 				airtimeReq := requests.BuyAirtimeFormulatedRequest{
 					Amount:       resp.Result.PaymentAmount,
-					PhoneNumber:  resp.Result.ReceiverAccount,
+					PhoneNumber:  resp.Result.SenderAccount,
 					Network:      resp.Result.ServiceNetwork,
 					Destination:  resp.Result.ReceiverAccount,
 					SourceSystem: "MSYS_PAYMENT_APP_GATEWAY",
@@ -279,7 +279,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 				// }
 				dataBundleReq := requests.BuyDataBundleFormulatedRequest{
 					Amount:       resp.Result.PaymentAmount,
-					PhoneNumber:  resp.Result.ReceiverAccount,
+					PhoneNumber:  resp.Result.SenderAccount,
 					Network:      resp.Result.ServiceNetwork,
 					Destination:  resp.Result.ReceiverAccount,
 					BundleId:     resp.Result.ServicePackage,
@@ -310,7 +310,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 				if resp.Result.ServiceNetwork == "DSTV" {
 					dstvReq := requests.DSTVPaymentRequest{
 						Amount:             resp.Result.PaymentAmount,
-						PhoneNumber:        resp.Result.ReceiverAccount,
+						PhoneNumber:        resp.Result.SenderAccount,
 						DestinationAccount: resp.Result.ReceiverAccount,
 						PackageType:        resp.Result.ServicePackage,
 						SourceSystem:       "MSYS_PAYMENT_APP_GATEWAY",
@@ -338,7 +338,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 				if resp.Result.ServiceNetwork == "GOTV" {
 					gotvReq := requests.GoTvPaymentApiRequest{
 						Amount:             resp.Result.PaymentAmount,
-						PhoneNumber:        resp.Result.ReceiverAccount,
+						PhoneNumber:        resp.Result.SenderAccount,
 						DestinationAccount: resp.Result.ReceiverAccount,
 						PackageType:        resp.Result.ServicePackage,
 						SourceSystem:       "MSYS_PAYMENT_APP_GATEWAY",
@@ -366,7 +366,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 				if resp.Result.ServiceNetwork == "STARTIMES" {
 					dstvReq := requests.DSTVPaymentRequest{
 						Amount:             resp.Result.PaymentAmount,
-						PhoneNumber:        resp.Result.ReceiverAccount,
+						PhoneNumber:        resp.Result.SenderAccount,
 						DestinationAccount: resp.Result.ReceiverAccount,
 						PackageType:        resp.Result.ServicePackage,
 						SourceSystem:       "MSYS_PAYMENT_APP_GATEWAY",
@@ -394,7 +394,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 				if resp.Result.ServiceNetwork == "WATER" {
 					waterbillReq := requests.GhanaWaterPaymentApiRequest{
 						Amount:             resp.Result.PaymentAmount,
-						PhoneNumber:        resp.Result.ReceiverAccount,
+						PhoneNumber:        resp.Result.SenderAccount,
 						DestinationAccount: resp.Result.ReceiverAccount,
 						PackageType:        resp.Result.ServicePackage,
 						SourceSystem:       "MSYS_PAYMENT_APP_GATEWAY",
