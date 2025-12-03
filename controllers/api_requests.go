@@ -3452,6 +3452,7 @@ func (c *Api_requestsController) PayWaterBill() {
 
 			proceed := false
 			if accountResp.StatusCode == "200" {
+				logs.Info("Client ID::: ", req.ClientId)
 				accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay Water", req.Amount, req.ClientId, "debit")
 
 				if !accountCheckResp.StatusCode {
