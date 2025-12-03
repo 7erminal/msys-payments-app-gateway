@@ -65,8 +65,6 @@ type GhanaWaterPaymentRequest struct {
 	DestinationAccount string
 	Amount             float64
 	PackageType        string
-	PhoneNumber        string
-	SourceSystem       string
 	ClientId           string
 }
 
