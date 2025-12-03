@@ -2734,14 +2734,14 @@ func (c *Api_requestsController) GhanaWaterAccountQuery() {
 		resp := apifunctions.GhanaWaterAccountQuery(&c.Controller, accountQueryRequest)
 		logs.Info("Response from Account query API: ", resp)
 
-		var response responses.AccountQueryAPIResponse = responses.AccountQueryAPIResponse{
+		var response responses.AccountQueryResponse = responses.AccountQueryResponse{
 			StatusCode:    false,
 			StatusMessage: "Something went wrong",
 			Result:        resp.Result,
 		}
 
 		if !resp.StatusCode {
-			response = responses.AccountQueryAPIResponse{
+			response = responses.AccountQueryResponse{
 				StatusCode:    false,
 				StatusMessage: resp.StatusMessage,
 				Result:        resp.Result,
@@ -2761,7 +2761,7 @@ func (c *Api_requestsController) GhanaWaterAccountQuery() {
 				logs.Info("API request updated with response successfully: ", v)
 			}
 
-			response = responses.AccountQueryAPIResponse{
+			response = responses.AccountQueryResponse{
 				StatusCode:    true,
 				StatusMessage: "Accounts queried successfully",
 				Result:        resp.Result,
@@ -2772,7 +2772,7 @@ func (c *Api_requestsController) GhanaWaterAccountQuery() {
 		c.Data["json"] = response
 
 	} else {
-		var response responses.AccountQueryAPIResponse = responses.AccountQueryAPIResponse{
+		var response responses.AccountQueryResponse = responses.AccountQueryResponse{
 			StatusCode:    false,
 			StatusMessage: "Something went wrong:: " + err.Error(),
 			Result:        nil,
