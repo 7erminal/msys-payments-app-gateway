@@ -47,90 +47,90 @@ func (c *Auth_requestsController) Login() {
 	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
 
 	logs.Info("Login called with PhoneNumber: %s, SourceSystem: %s", phoneNumber, sourceSystem)
-	reqBody := c.Ctx.Input.RequestBody
-	reqHeaders := c.Ctx.Request.Header
+	// reqBody := c.Ctx.Input.RequestBody
+	// reqHeaders := c.Ctx.Request.Header
 
-	requestMap := map[string]interface{}{
-		"headers": reqHeaders,
-		"body":    string(reqBody),
+	// requestMap := map[string]interface{}{
+	// 	"headers": reqHeaders,
+	// 	"body":    string(reqBody),
+	// }
+
+	// reqText, err := json.Marshal(requestMap)
+	// if err != nil {
+	// 	logs.Error("Error marshalling request input: ", err)
+	// 	c.Data["json"] = err.Error()
+	// 	c.ServeJSON()
+	// 	return
+	// }
+	// var v models.Api_requests = models.Api_requests{
+	// 	Request:      string(reqText),
+	// 	PhoneNumber:  phoneNumber,
+	// 	RequestType:  "Login",
+	// 	RequestDate:  time.Now(),
+	// 	DateCreated:  time.Now(),
+	// 	DateModified: time.Now(),
+	// }
+	// if _, err := models.AddApi_requests(&v); err == nil {
+	// 	logs.Info("API request logged successfully: ", v)
+	loginRequest := requests.LoginApiRequest{
+		PhoneNumber:  req.PhoneNumber,
+		SourceSystem: sourceSystem,
+		Password:     req.Password,
+		ClientId:     req.ClientId,
 	}
 
-	reqText, err := json.Marshal(requestMap)
-	if err != nil {
-		logs.Error("Error marshalling request input: ", err)
-		c.Data["json"] = err.Error()
-		c.ServeJSON()
-		return
-	}
-	var v models.Api_requests = models.Api_requests{
-		Request:      string(reqText),
-		PhoneNumber:  phoneNumber,
-		RequestType:  "Login",
-		RequestDate:  time.Now(),
-		DateCreated:  time.Now(),
-		DateModified: time.Now(),
-	}
-	if _, err := models.AddApi_requests(&v); err == nil {
-		logs.Info("API request logged successfully: ", v)
-		loginRequest := requests.LoginApiRequest{
-			PhoneNumber:  req.PhoneNumber,
-			SourceSystem: sourceSystem,
-			Password:     req.Password,
-			ClientId:     req.ClientId,
-		}
+	logs.Info("Formatted request for Login: ", loginRequest)
+	resp := apifunctions.Login(&c.Controller, loginRequest)
+	logs.Info("Response from Login API: ", resp)
 
-		logs.Info("Formatted request for Login: ", loginRequest)
-		resp := apifunctions.Login(&c.Controller, loginRequest)
-		logs.Info("Response from Login API: ", resp)
+	var response responses.LoginResponse = responses.LoginResponse{
+		StatusCode:    false,
+		StatusMessage: "Something went wrong",
+		Result:        "",
+	}
 
-		var response responses.LoginResponse = responses.LoginResponse{
+	if resp.StatusCode != 200 {
+		response = responses.LoginResponse{
 			StatusCode:    false,
-			StatusMessage: "Something went wrong",
+			StatusMessage: resp.StatusDesc,
 			Result:        "",
 		}
-
-		if resp.StatusCode != 200 {
-			response = responses.LoginResponse{
-				StatusCode:    false,
-				StatusMessage: resp.StatusDesc,
-				Result:        "",
-			}
-		} else {
-			responseText, err := json.Marshal(response.Result)
-			if err != nil {
-				logs.Error("Error marshalling response result: ", err)
-				responseText = []byte("[]")
-			}
-			v.RequestResponse = string(responseText)
-			v.DateModified = time.Now()
-			v.ResponseDate = time.Now()
-			if err := models.UpdateApi_requestsById(&v); err != nil {
-				logs.Error("Error updating API request with response: ", err)
-			} else {
-				logs.Info("API request updated with response successfully: ", v)
-			}
-
-			// Check if account is verified
-
-			response = responses.LoginResponse{
-				StatusCode:    true,
-				StatusMessage: "Login successful",
-				Result:        resp.Value,
-			}
-		}
-
-		c.Ctx.Output.SetStatus(200)
-		c.Data["json"] = response
-
 	} else {
-		var response responses.LoginResponse = responses.LoginResponse{
-			StatusCode:    false,
-			StatusMessage: "Something went wrong:: " + err.Error(),
-			Result:        "",
-		}
+		// responseText, err := json.Marshal(response.Result)
+		// if err != nil {
+		// 	logs.Error("Error marshalling response result: ", err)
+		// 	responseText = []byte("[]")
+		// }
+		// v.RequestResponse = string(responseText)
+		// v.DateModified = time.Now()
+		// v.ResponseDate = time.Now()
+		// if err := models.UpdateApi_requestsById(&v); err != nil {
+		// 	logs.Error("Error updating API request with response: ", err)
+		// } else {
+		// 	logs.Info("API request updated with response successfully: ", v)
+		// }
 
-		c.Data["json"] = response
+		// Check if account is verified
+
+		response = responses.LoginResponse{
+			StatusCode:    true,
+			StatusMessage: "Login successful",
+			Result:        resp.Value,
+		}
 	}
+
+	c.Ctx.Output.SetStatus(200)
+	c.Data["json"] = response
+
+	// } else {
+	// 	var response responses.LoginResponse = responses.LoginResponse{
+	// 		StatusCode:    false,
+	// 		StatusMessage: "Something went wrong:: " + err.Error(),
+	// 		Result:        "",
+	// 	}
+
+	// 	c.Data["json"] = response
+	// }
 	c.ServeJSON()
 }
 
