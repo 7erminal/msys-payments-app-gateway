@@ -10,13 +10,27 @@ import (
 )
 
 // Pay Water
-func PayWater(c *beego.Controller, payWaterRequest requests.GhanaWaterPaymentApiRequest) (response responses.GhanaWaterBillPaymentApiResponse) {
+func PayWater(c *beego.Controller, payWaterRequest requests.GhanaWaterPaymentFuncRequest) (response responses.GhanaWaterBillPaymentApiResponse) {
 	logs.Info("Formatted request for Pay Water: ", payWaterRequest)
 	status := false
 	message := ""
 	result := responses.GhanaWaterBillPaymentDataResponse{}
 
-	resp := apifunctions.PayGhanaWaterBill(c, payWaterRequest)
+	req := requests.GhanaWaterPaymentApiRequest{
+		RequestId:          payWaterRequest.RequestId,
+		Amount:             payWaterRequest.Amount,
+		DestinationAccount: payWaterRequest.DestinationAccount,
+		PackageType:        payWaterRequest.PackageType,
+		PhoneNumber:        payWaterRequest.PhoneNumber,
+		SourceSystem:       payWaterRequest.SourceSystem,
+		ExtraData: requests.GhanaWaterExtraData{
+			Bundle:    payWaterRequest.Name,
+			Email:     payWaterRequest.Email,
+			SessionId: payWaterRequest.PackageType,
+		},
+	}
+
+	resp := apifunctions.PayGhanaWaterBill(c, req)
 	logs.Info("Response from Pay Water API: ", resp)
 
 	if !resp.StatusCode {

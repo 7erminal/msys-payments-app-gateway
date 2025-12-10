@@ -693,6 +693,71 @@ func GetCustomerAccountHistory(c *beego.Controller, accountNumber string) (resp 
 	return data
 }
 
+func LogTransaction(c *beego.Controller, req requests.LogTransactionApiRequest) (resp responses.TransactionApiResponse) {
+	host, _ := beego.AppConfig.String("transactionBaseUrl")
+
+	logs.Info("Logging transaction for account number ", req.SourceAccountNumber)
+
+	request := api.NewRequest(
+		host,
+		"/v2/transactions",
+		api.POST)
+	// request.Params["username"] = username
+	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+
+	type ExtraData struct {
+		ExtraDetails1 string
+		ExtraDetails2 string
+		ExtraDetails3 string
+	}
+
+	extraData := ExtraData{
+		ExtraDetails1: req.ExtraDetails1,
+		ExtraDetails2: req.ExtraDetails2,
+		ExtraDetails3: req.ExtraDetails3,
+	}
+
+	request.InterfaceParams["RequestId"] = req.RequestId
+	request.InterfaceParams["Amount"] = req.Amount
+	request.InterfaceParams["ServiceCode"] = req.ServiceCode
+	request.InterfaceParams["Source"] = req.SourceAccountNumber
+	request.InterfaceParams["PhoneNumber"] = req.PhoneNumber
+	request.InterfaceParams["Destination"] = req.DestinationAccountNumber
+	request.InterfaceParams["ExtraData"] = extraData
+	request.InterfaceParams["BillerCode"] = req.TransactionReference
+	request.InterfaceParams["ClientReference"] = req.ExternalReferenceNumber
+	client := api.Client{
+		Request: request,
+		Type_:   "body",
+	}
+	res, err := client.SendRequest()
+	if err != nil {
+		logs.Error("client.Error: %v", err)
+		c.Data["json"] = err.Error()
+	}
+	defer res.Body.Close()
+	read, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	}
+
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, read, "", "  "); err != nil {
+		logs.Info("Raw response received is ", string(read))
+	} else {
+		logs.Info("Raw response received is \n", prettyJSON.String())
+	}
+	// data := map[string]interface{}{}
+	var data responses.TransactionApiResponse
+	json.Unmarshal(read, &data)
+	c.Data["json"] = data
+
+	logs.Info("Resp is ", data)
+	// logs.Info("Resp is ", data.User)
+
+	return data
+}
+
 func GetCustomerAirtimeBundleBillPayHistory(c *beego.Controller, query string) (resp responses.BilTransactionsApiResponse) {
 	host, _ := beego.AppConfig.String("airtimeBaseUrl")
 
@@ -2217,8 +2282,11 @@ func PayGhanaWaterBill(c *beego.Controller, req requests.GhanaWaterPaymentApiReq
 
 	request.InterfaceParams["DestinationAccount"] = req.DestinationAccount
 	request.InterfaceParams["Amount"] = req.Amount
-	request.InterfaceParams["PackageType"] = req.PackageType
+	request.InterfaceParams["Bundle"] = req.PackageType
 	request.InterfaceParams["RequestId"] = req.RequestId
+	request.InterfaceParams["SessionId"] = req.ExtraData.SessionId
+	request.InterfaceParams["Email"] = req.ExtraData.Email
+	request.InterfaceParams["PhoneNumber"] = req.ExtraData.Bundle
 	client := api.Client{
 		Request: request,
 		Type_:   "body",

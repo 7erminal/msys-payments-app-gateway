@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	apifunctions "msys_payment_app_gateway/controllers/api_functions"
 	"msys_payment_app_gateway/controllers/helpers"
 	"msys_payment_app_gateway/controllers/services"
@@ -3422,6 +3423,17 @@ func (c *Api_requestsController) PayWaterBill() {
 		c.ServeJSON()
 		return
 	}
+
+	responseStatus := false
+	responseMessage := "Something went wrong"
+
+	result_ := responses.GhanaWaterBillPaymentDataResponse{}
+
+	var response responses.GhanaWaterBillPaymentResponse = responses.GhanaWaterBillPaymentResponse{
+		StatusCode:    responseStatus,
+		StatusMessage: responseMessage,
+		Result:        nil,
+	}
 	var v models.Api_requests = models.Api_requests{
 		PhoneNumber:  phoneNumber,
 		Request:      string(reqText),
@@ -3432,138 +3444,145 @@ func (c *Api_requestsController) PayWaterBill() {
 	}
 	if _, err := models.AddApi_requests(&v); err == nil {
 		logs.Info("API request logged successfully: ", v)
-		payWaterRequest := requests.GhanaWaterPaymentApiRequest{
-			RequestId:          v.Id,
-			Amount:             req.Amount,
-			DestinationAccount: destinationAccount,
-			PackageType:        req.PackageType,
-			SourceSystem:       sourceSystem,
-			PhoneNumber:        phoneNumber,
+		logs.Info("Log transaction")
+
+		requestIdStr := fmt.Sprintf("%d", v.Id)
+		transactionLog := requests.LogTransactionRequest{
+			RequestId:                requestIdStr,
+			SourceAccountNumber:      accountNumber,
+			DestinationAccountNumber: req.DestinationAccount,
+			Amount:                   req.Amount,
+			Charge:                   0.0,
+			TransactionType:          "GH_WATER",
+			ServiceCode:              "BILL_PAYMENT",
+			TransactionReference:     "GH_WATER",
+			StatusCode:               "PENDING",
+			ExtraDetails1:            req.CustomerName,
+			ExtraDetails2:            req.CustomerEmail,
+			ExtraDetails3:            req.PackageType,
+			Reference:                req.PackageType,
+			ClientID:                 req.ClientId,
+			PhoneNumber:              phoneNumber,
+			TransactionPackage:       req.PackageType,
+			ExternalReferenceNumber:  "",
 		}
 
-		var response responses.GhanaWaterBillPaymentResponse = responses.GhanaWaterBillPaymentResponse{
-			StatusCode:    false,
-			StatusMessage: "Something went wrong",
-			Result:        nil,
-		}
+		if _, err := helpers.LogTransaction(&c.Controller, transactionLog); err != nil {
+			logs.Error("Error logging transaction: ", err)
 
-		if accountNumber != "" {
-			accountResp := apifunctions.GetCustomerAccount(&c.Controller, accountNumber)
+		} else {
+			logs.Info("Transaction logged successfully")
 
-			proceed := false
-			if accountResp.StatusCode == "200" {
-				logs.Info("Client ID::: ", req.ClientId)
-				accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay Water", req.Amount, req.ClientId, "debit")
+			payWaterRequest := requests.GhanaWaterPaymentFuncRequest{
+				RequestId:          v.Id,
+				Amount:             req.Amount,
+				DestinationAccount: destinationAccount,
+				PackageType:        req.PackageType,
+				SourceSystem:       sourceSystem,
+				PhoneNumber:        phoneNumber,
+				Name:               req.CustomerName,
+				Email:              req.CustomerEmail,
+			}
 
-				if !accountCheckResp.StatusCode {
-					response = responses.GhanaWaterBillPaymentResponse{
-						StatusCode:    false,
-						StatusMessage: accountCheckResp.StatusMessage,
-						Result:        nil,
+			if accountNumber != "" {
+				accountResp := apifunctions.GetCustomerAccount(&c.Controller, accountNumber)
+
+				proceed := false
+				if accountResp.StatusCode == "200" {
+					logs.Info("Client ID::: ", req.ClientId)
+					accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay Water", req.Amount, req.ClientId, "debit")
+
+					if !accountCheckResp.StatusCode {
+						logs.Error("Error logging account activity for account number: ", accountNumber)
+						responseStatus = false
+						responseMessage = accountCheckResp.StatusMessage
+					} else {
+						logs.Info("Account activity logged successfully for account number: ", accountNumber)
+
+						// Log payment request
+						makePaymentRequest := requests.PaymentRequestApiRequestDTO{
+							ClientId:        req.ClientId,
+							Amount:          req.Amount,
+							PaymentMethod:   "ACCOUNT",
+							Service:         "BILL PAYMENT",
+							SenderAccount:   accountNumber,
+							ReceiverAccount: req.DestinationAccount,
+							Network:         network,
+							ServiceNetwork:  "WATER",
+							ServicePackage:  req.PackageType,
+							MobileNumber:    phoneNumber,
+						}
+
+						helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
+
+						proceed = true
 					}
 				} else {
-					logs.Info("Account activity logged successfully for account number: ", accountNumber)
+					logs.Error("Error fetching account details for account number: ", accountNumber)
+					logs.Info("Register Customer")
 
-					// Log payment request
-					makePaymentRequest := requests.PaymentRequestApiRequestDTO{
+					req := requests.PaymentRequestApiRequestDTO{
 						ClientId:        req.ClientId,
 						Amount:          req.Amount,
-						PaymentMethod:   "ACCOUNT",
+						PaymentMethod:   "MOBILEMONEY",
 						Service:         "BILL PAYMENT",
 						SenderAccount:   accountNumber,
 						ReceiverAccount: req.DestinationAccount,
 						Network:         network,
 						ServiceNetwork:  "WATER",
 						ServicePackage:  req.PackageType,
-						MobileNumber:    phoneNumber,
+						MobileNumber:    accountNumber,
 					}
+					//
 
-					helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
+					resp, err := helpers.RequestPaymentMain(&c.Controller, req)
+					if err != nil {
+						logs.Error("Error requesting payment: ", err)
+						responseStatus = false
+						responseMessage = "Error requesting payment: " + err.Error()
+					} else {
+						logs.Info("Payment requested successfully: ", resp)
+						if !resp.Success {
+							responseStatus = false
+							responseMessage = resp.StatusMessage
+						} else {
+							responseStatus = true
+							responseMessage = "Water bill purchase is being processed"
+						}
+					}
+				}
 
-					proceed = true
+				if proceed {
+					logs.Info("Formatted request to pay water: ", payWaterRequest)
+					resp := services.PayWater(&c.Controller, payWaterRequest)
+					logs.Info("Response from pay water: ", resp)
+
+					if !resp.StatusCode {
+						responseStatus = false
+						responseMessage = resp.StatusMessage
+						result_ = *resp.Result
+					} else {
+						responseText, err := json.Marshal(response.Result)
+						if err != nil {
+							logs.Error("Error marshalling response result: ", err)
+							responseText = []byte("[]")
+						}
+						v.RequestResponse = string(responseText)
+						v.DateModified = time.Now()
+						v.ResponseDate = time.Now()
+						if err := models.UpdateApi_requestsById(&v); err != nil {
+							logs.Error("Error updating API request with response: ", err)
+						} else {
+							logs.Info("API request updated with response successfully: ", v)
+						}
+						responseStatus = true
+						responseMessage = resp.StatusMessage
+						result_ = *resp.Result
+					}
 				}
 			} else {
-				logs.Error("Error fetching account details for account number: ", accountNumber)
-				logs.Info("Register Customer")
-
-				req := requests.PaymentRequestApiRequestDTO{
-					ClientId:        req.ClientId,
-					Amount:          req.Amount,
-					PaymentMethod:   "MOBILEMONEY",
-					Service:         "BILL PAYMENT",
-					SenderAccount:   accountNumber,
-					ReceiverAccount: req.DestinationAccount,
-					Network:         network,
-					ServiceNetwork:  "WATER",
-					ServicePackage:  req.PackageType,
-					MobileNumber:    accountNumber,
-				}
-				//
-
-				resp, err := helpers.RequestPaymentMain(&c.Controller, req)
-				if err != nil {
-					logs.Error("Error requesting payment: ", err)
-					response = responses.GhanaWaterBillPaymentResponse{
-						StatusCode:    false,
-						StatusMessage: "Error requesting payment: " + err.Error(),
-						Result:        nil,
-					}
-				} else {
-					logs.Info("Payment requested successfully: ", resp)
-					if !resp.Success {
-						response = responses.GhanaWaterBillPaymentResponse{
-							StatusCode:    false,
-							StatusMessage: resp.StatusMessage,
-							Result:        nil,
-						}
-					} else {
-						response = responses.GhanaWaterBillPaymentResponse{
-							StatusCode:    true,
-							StatusMessage: "Water bill purchase is being processed",
-							Result:        nil,
-						}
-					}
-				}
-			}
-
-			if proceed {
-				logs.Info("Formatted request to pay water: ", payWaterRequest)
-				resp := services.PayWater(&c.Controller, payWaterRequest)
-				logs.Info("Response from pay water: ", resp)
-
-				if !resp.StatusCode {
-					response = responses.GhanaWaterBillPaymentResponse{
-						StatusCode:    false,
-						StatusMessage: resp.StatusMessage,
-						Result:        resp.Result,
-					}
-				} else {
-					responseText, err := json.Marshal(response.Result)
-					if err != nil {
-						logs.Error("Error marshalling response result: ", err)
-						responseText = []byte("[]")
-					}
-					v.RequestResponse = string(responseText)
-					v.DateModified = time.Now()
-					v.ResponseDate = time.Now()
-					if err := models.UpdateApi_requestsById(&v); err != nil {
-						logs.Error("Error updating API request with response: ", err)
-					} else {
-						logs.Info("API request updated with response successfully: ", v)
-					}
-
-					response = responses.GhanaWaterBillPaymentResponse{
-						StatusCode:    true,
-						StatusMessage: "Payment is being processed",
-						Result:        resp.Result,
-					}
-				}
-			}
-		} else {
-			response = responses.GhanaWaterBillPaymentResponse{
-				StatusCode:    false,
-				StatusMessage: "Account number is required to process this request",
-				Result:        nil,
+				responseStatus = false
+				responseMessage = "Account number is required to process this request"
 			}
 		}
 
@@ -3579,6 +3598,13 @@ func (c *Api_requestsController) PayWaterBill() {
 
 		c.Data["json"] = response
 	}
+
+	response = responses.GhanaWaterBillPaymentResponse{
+		StatusCode:    responseStatus,
+		StatusMessage: responseMessage,
+		Result:        &result_,
+	}
+	c.Data["json"] = response
 	c.ServeJSON()
 }
 

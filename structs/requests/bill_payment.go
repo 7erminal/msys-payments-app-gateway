@@ -66,6 +66,25 @@ type GhanaWaterPaymentRequest struct {
 	Amount             float64
 	PackageType        string
 	ClientId           string
+	CustomerName       string
+	CustomerEmail      string
+}
+
+type GhanaWaterPaymentFuncRequest struct {
+	RequestId          int64
+	DestinationAccount string
+	Amount             float64
+	PackageType        string
+	PhoneNumber        string
+	SourceSystem       string
+	Name               string
+	Email              string
+}
+
+type GhanaWaterExtraData struct {
+	Bundle    string `json:"bundle"`
+	Email     string `json:"Email"`
+	SessionId string `json:"SessionId"`
 }
 
 type GhanaWaterPaymentApiRequest struct {
@@ -75,6 +94,7 @@ type GhanaWaterPaymentApiRequest struct {
 	PackageType        string
 	PhoneNumber        string
 	SourceSystem       string
+	ExtraData          GhanaWaterExtraData
 }
 
 type GoTvPaymentRequest struct {

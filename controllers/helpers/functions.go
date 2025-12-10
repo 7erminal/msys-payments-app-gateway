@@ -343,6 +343,47 @@ func CheckAccountsStatus(c *beego.Controller, customerData *responses.Customer) 
 	}
 }
 
+func LogTransaction(c *beego.Controller, transactionRequest requests.LogTransactionRequest) (transactionResponse responses.LogTransactionResponse, err error) {
+	logs.Info("Logging transaction with request: ", transactionRequest)
+
+	responseCode := 400
+	responseMessage := "Error logging transaction"
+	transaction := responses.Bil_transactions{}
+
+	logTransactionRequest := requests.LogTransactionApiRequest{
+		RequestId:                transactionRequest.RequestId,
+		ServiceCode:              transactionRequest.ServiceCode,
+		Amount:                   transactionRequest.Amount,
+		Reference:                transactionRequest.Reference,
+		Charge:                   transactionRequest.Charge,
+		StatusCode:               transactionRequest.StatusCode,
+		SourceAccountNumber:      transactionRequest.SourceAccountNumber,
+		DestinationAccountNumber: transactionRequest.DestinationAccountNumber,
+		TransactionType:          transactionRequest.TransactionType,
+		ExternalReferenceNumber:  transactionRequest.ExternalReferenceNumber,
+		TransactionReference:     transactionRequest.TransactionReference,
+		ClientID:                 transactionRequest.ClientID,
+		PhoneNumber:              transactionRequest.PhoneNumber,
+		TransactionPackage:       transactionRequest.TransactionPackage,
+	}
+
+	resp := apifunctions.LogTransaction(c, logTransactionRequest)
+	if resp.StatusCode != true {
+		logs.Error("Error logging transaction: ", err)
+		responseCode = 501
+		responseMessage = "Error logging transaction: " + err.Error()
+	} else {
+		transaction = *resp.Result
+	}
+
+	return responses.LogTransactionResponse{
+		StatusCode: responseCode,
+		Result:     &transaction,
+		StatusDesc: responseMessage,
+	}, nil
+
+}
+
 func LogAccountActivity(c *beego.Controller, accountNumber string, reference string, amount float64, clientid string, activityType string) (activityResponse responses.AccountActivityResponse) {
 	// type DebitAccountRequestV2 struct {
 	// 	AccountNumber string

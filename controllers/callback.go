@@ -392,13 +392,15 @@ func (c *CallbackController) RequestMoneyCallback() {
 				}
 
 				if resp.Result.ServiceNetwork == "GH_WATER" {
-					waterbillReq := requests.GhanaWaterPaymentApiRequest{
+					waterbillReq := requests.GhanaWaterPaymentFuncRequest{
 						Amount:             resp.Result.PaymentAmount,
 						PhoneNumber:        resp.Result.SenderAccount,
 						DestinationAccount: resp.Result.ReceiverAccount,
 						PackageType:        resp.Result.ServicePackage,
 						SourceSystem:       "MSYS_PAYMENT_APP_GATEWAY",
 						RequestId:          j.Id,
+						Name:               resp.Result.CustomerName,
+						Email:              resp.Result.CustomerEmail,
 					}
 
 					waterbillresp := services.PayWater(&c.Controller, waterbillReq)
