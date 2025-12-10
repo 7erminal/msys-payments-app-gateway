@@ -15,16 +15,15 @@ func PayWater(c *beego.Controller, payWaterRequest requests.GhanaWaterPaymentFun
 	status := false
 	message := ""
 	result := responses.GhanaWaterBillPaymentDataResponse{}
-
 	req := requests.GhanaWaterPaymentApiRequest{
-		RequestId:          payWaterRequest.RequestId,
+		TransactionId:      payWaterRequest.TransactionId,
 		Amount:             payWaterRequest.Amount,
 		DestinationAccount: payWaterRequest.DestinationAccount,
 		PackageType:        payWaterRequest.PackageType,
 		PhoneNumber:        payWaterRequest.PhoneNumber,
 		SourceSystem:       payWaterRequest.SourceSystem,
 		ExtraData: requests.GhanaWaterExtraData{
-			Bundle:    payWaterRequest.Name,
+			Bundle:    payWaterRequest.DestinationAccount,
 			Email:     payWaterRequest.Email,
 			SessionId: payWaterRequest.PackageType,
 		},

@@ -30,7 +30,7 @@ type DSTVAccountQueryRequest struct {
 }
 
 type DSTVPaymentRequest struct {
-	RequestId          int64
+	TransactionId      string
 	DestinationAccount string
 	Amount             float64
 	PackageType        string
@@ -53,7 +53,7 @@ type ECGPaymentRequest struct {
 }
 
 type ECGPaymentApiRequest struct {
-	RequestId          int64
+	TransactionId      string
 	DestinationAccount string
 	Amount             float64
 	PackageType        string
@@ -71,7 +71,7 @@ type GhanaWaterPaymentRequest struct {
 }
 
 type GhanaWaterPaymentFuncRequest struct {
-	RequestId          int64
+	TransactionId      string
 	DestinationAccount string
 	Amount             float64
 	PackageType        string
@@ -88,7 +88,7 @@ type GhanaWaterExtraData struct {
 }
 
 type GhanaWaterPaymentApiRequest struct {
-	RequestId          int64
+	TransactionId      string
 	DestinationAccount string
 	Amount             float64
 	PackageType        string
@@ -116,7 +116,7 @@ type GoTvPaymentRequest1 struct {
 }
 
 type GoTvPaymentApiRequest struct {
-	RequestId          int64
+	TransactionId      string
 	DestinationAccount string
 	Amount             float64
 	PackageType        string
@@ -134,7 +134,7 @@ type StartimesPaymentRequest struct {
 }
 
 type StartimesPaymentApiRequest struct {
-	RequestId          int64
+	TransactionId      string
 	DestinationAccount string
 	Amount             float64
 	PackageType        string

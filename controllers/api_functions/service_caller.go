@@ -758,6 +758,50 @@ func LogTransaction(c *beego.Controller, req requests.LogTransactionApiRequest) 
 	return data
 }
 
+func GetBilTransaction(c *beego.Controller, id string) (resp responses.LogTransactionResponse) {
+	host, _ := beego.AppConfig.String("transactionBaseUrl")
+
+	logs.Info("Getting transaction for ", id)
+	request := api.NewRequest(
+		host,
+		"/v2/transactions/"+id,
+		api.GET)
+	// request.Params["username"] = username
+	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+	// request.HeaderField["clientId"] = req.ClientId
+
+	client := api.Client{
+		Request: request,
+		Type_:   "params",
+	}
+	res, err := client.SendRequest()
+	if err != nil {
+		logs.Error("client.Error: %v", err)
+		c.Data["json"] = err.Error()
+	}
+	defer res.Body.Close()
+	read, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	}
+
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, read, "", "  "); err != nil {
+		logs.Info("Raw response received is ", string(read))
+	} else {
+		logs.Info("Raw response received is \n", prettyJSON.String())
+	}
+	// data := map[string]interface{}{}
+	var data responses.LogTransactionResponse
+	json.Unmarshal(read, &data)
+	c.Data["json"] = data
+
+	logs.Info("Resp is ", data)
+	// logs.Info("Resp is ", data.User)
+
+	return data
+}
+
 func GetCustomerAirtimeBundleBillPayHistory(c *beego.Controller, query string) (resp responses.BilTransactionsApiResponse) {
 	host, _ := beego.AppConfig.String("airtimeBaseUrl")
 
@@ -1828,7 +1872,7 @@ func BuyAirtime(c *beego.Controller, req requests.BuyAirtimeFormulatedRequest) (
 	request.InterfaceParams["destination"] = req.Destination
 	request.InterfaceParams["amount"] = req.Amount
 	request.InterfaceParams["network"] = req.Network
-	request.InterfaceParams["request_id"] = req.RequestId
+	request.InterfaceParams["transaction_id"] = req.RequestId
 	client := api.Client{
 		Request: request,
 		Type_:   "body",
@@ -1879,7 +1923,7 @@ func BuyDataBundle(c *beego.Controller, req requests.BuyDataBundleFormulatedRequ
 	request.InterfaceParams["amount"] = req.Amount
 	request.InterfaceParams["network"] = req.Network
 	request.InterfaceParams["bundle_id"] = req.BundleId
-	request.InterfaceParams["request_id"] = req.RequestId
+	request.InterfaceParams["transaction_id"] = req.RequestId
 	client := api.Client{
 		Request: request,
 		Type_:   "body",
@@ -1914,12 +1958,12 @@ func BuyDataBundle(c *beego.Controller, req requests.BuyDataBundleFormulatedRequ
 }
 
 func Callback(c *beego.Controller, req requests.CallbackFormulateRequest) (resp responses.CallbackResponse) {
-	host, _ := beego.AppConfig.String("airtimeBaseUrl")
+	host, _ := beego.AppConfig.String("transactionBaseUrl")
 
 	logs.Info("Sending callback ", req.ResponseCode, " for ", req.Data.TransactionId)
 	request := api.NewRequest(
 		host,
-		"/v1/callback/process",
+		"/v2/callback/process",
 		api.POST)
 	// request.Params["username"] = username
 	// request.Params = {"UserId": strconv.Itoa(int(userid))}
@@ -2032,7 +2076,7 @@ func PayDSTVBill(c *beego.Controller, req requests.DSTVPaymentRequest) (resp res
 	request.InterfaceParams["DestinationAccount"] = req.DestinationAccount
 	request.InterfaceParams["Amount"] = req.Amount
 	request.InterfaceParams["PackageType"] = req.PackageType
-	request.InterfaceParams["RequestId"] = req.RequestId
+	request.InterfaceParams["TransactionId"] = req.RequestId
 	client := api.Client{
 		Request: request,
 		Type_:   "body",
@@ -2232,7 +2276,7 @@ func PayECGBill(c *beego.Controller, req requests.ECGPaymentApiRequest) (resp re
 	request.InterfaceParams["DestinationAccount"] = req.DestinationAccount
 	request.InterfaceParams["Amount"] = req.Amount
 	request.InterfaceParams["PackageType"] = req.PackageType
-	request.InterfaceParams["RequestId"] = req.RequestId
+	request.InterfaceParams["TransactionId"] = req.TransactionId
 	client := api.Client{
 		Request: request,
 		Type_:   "body",
@@ -2283,7 +2327,7 @@ func PayGhanaWaterBill(c *beego.Controller, req requests.GhanaWaterPaymentApiReq
 	request.InterfaceParams["DestinationAccount"] = req.DestinationAccount
 	request.InterfaceParams["Amount"] = req.Amount
 	request.InterfaceParams["Bundle"] = req.PackageType
-	request.InterfaceParams["RequestId"] = req.RequestId
+	request.InterfaceParams["TransactionId"] = req.TransactionId
 	request.InterfaceParams["SessionId"] = req.ExtraData.SessionId
 	request.InterfaceParams["Email"] = req.ExtraData.Email
 	request.InterfaceParams["PhoneNumber"] = req.ExtraData.Bundle
@@ -2337,7 +2381,7 @@ func PayGoTvBill(c *beego.Controller, req requests.GoTvPaymentApiRequest) (resp 
 	request.InterfaceParams["DestinationAccount"] = req.DestinationAccount
 	request.InterfaceParams["Amount"] = req.Amount
 	request.InterfaceParams["PackageType"] = req.PackageType
-	request.InterfaceParams["RequestId"] = req.RequestId
+	request.InterfaceParams["TransactionId"] = req.RequestId
 	client := api.Client{
 		Request: request,
 		Type_:   "body",
@@ -2388,7 +2432,7 @@ func PayStartimesBill(c *beego.Controller, req requests.StartimesPaymentApiReque
 	request.InterfaceParams["DestinationAccount"] = req.DestinationAccount
 	request.InterfaceParams["Amount"] = req.Amount
 	request.InterfaceParams["PackageType"] = req.PackageType
-	request.InterfaceParams["RequestId"] = req.RequestId
+	request.InterfaceParams["TransactionId"] = req.TransactionId
 	client := api.Client{
 		Request: request,
 		Type_:   "body",

@@ -14,13 +14,13 @@ type DataBundlesListFormulatedRequest struct {
 }
 
 type BuyDataBundleFormulatedRequest struct {
-	RequestId    int64   `json:"request_id"`
-	Amount       float64 `json:"amount"`
-	Network      string  `json:"network"`
-	Destination  string  `json:"destination"`
-	BundleId     string  `json:"bundle_id"`
-	SourceSystem string  `json:"source_system"`
-	PhoneNumber  string  `json:"phone_number"`
+	TransactionId string  `json:"transaction_id"`
+	Amount        float64 `json:"amount"`
+	Network       string  `json:"network"`
+	Destination   string  `json:"destination"`
+	BundleId      string  `json:"bundle_id"`
+	SourceSystem  string  `json:"source_system"`
+	PhoneNumber   string  `json:"phone_number"`
 }
 
 type GetBundlesAPIRequest struct {
