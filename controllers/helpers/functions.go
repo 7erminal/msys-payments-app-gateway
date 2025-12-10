@@ -368,7 +368,7 @@ func LogTransaction(c *beego.Controller, transactionRequest requests.LogTransact
 	}
 
 	resp := apifunctions.LogTransaction(c, logTransactionRequest)
-	if resp.StatusCode != 200 || resp.StatusCode != 201 {
+	if resp.StatusCode != 200 && resp.StatusCode != 201 {
 		logs.Error("Error logging transaction: ", err)
 		responseCode = 501
 		responseMessage = "Error logging transaction: " + err.Error()
