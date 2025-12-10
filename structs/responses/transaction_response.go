@@ -6,7 +6,7 @@ import (
 )
 
 type TransactionApiResponse struct {
-	StatusCode bool
+	StatusCode int
 	StatusDesc string
 	Result     *Bil_transactions
 }
