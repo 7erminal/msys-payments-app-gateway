@@ -184,6 +184,8 @@ func (c *CallbackController) RequestMoneyCallback() {
 				OrderId:               v.Data.OrderId,
 				Status:                "SUCCESS",
 			}
+
+			proceed = true
 		} else {
 			logs.Info("Failed payment callback received for transaction: ", v.Data.ClientReference)
 			callbackReq = requests.PaymentCallbackData{
