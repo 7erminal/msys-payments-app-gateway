@@ -1822,7 +1822,7 @@ func NameInquiryPhoneNumber(c *beego.Controller, req requests.BuyAirtimeFormulat
 	request.InterfaceParams["destination"] = req.Destination
 	request.InterfaceParams["amount"] = req.Amount
 	request.InterfaceParams["network"] = req.Network
-	request.InterfaceParams["request_id"] = req.RequestId
+	request.InterfaceParams["request_id"] = req.TransactionId
 	client := api.Client{
 		Request: request,
 		Type_:   "body",
@@ -1872,7 +1872,7 @@ func BuyAirtime(c *beego.Controller, req requests.BuyAirtimeFormulatedRequest) (
 	request.InterfaceParams["destination"] = req.Destination
 	request.InterfaceParams["amount"] = req.Amount
 	request.InterfaceParams["network"] = req.Network
-	request.InterfaceParams["transaction_id"] = req.RequestId
+	request.InterfaceParams["transaction_id"] = req.TransactionId
 	client := api.Client{
 		Request: request,
 		Type_:   "body",
@@ -1923,7 +1923,7 @@ func BuyDataBundle(c *beego.Controller, req requests.BuyDataBundleFormulatedRequ
 	request.InterfaceParams["amount"] = req.Amount
 	request.InterfaceParams["network"] = req.Network
 	request.InterfaceParams["bundle_id"] = req.BundleId
-	request.InterfaceParams["transaction_id"] = req.RequestId
+	request.InterfaceParams["transaction_id"] = req.TransactionId
 	client := api.Client{
 		Request: request,
 		Type_:   "body",
@@ -2076,7 +2076,7 @@ func PayDSTVBill(c *beego.Controller, req requests.DSTVPaymentRequest) (resp res
 	request.InterfaceParams["DestinationAccount"] = req.DestinationAccount
 	request.InterfaceParams["Amount"] = req.Amount
 	request.InterfaceParams["PackageType"] = req.PackageType
-	request.InterfaceParams["TransactionId"] = req.RequestId
+	request.InterfaceParams["TransactionId"] = req.TransactionId
 	client := api.Client{
 		Request: request,
 		Type_:   "body",
@@ -2381,7 +2381,7 @@ func PayGoTvBill(c *beego.Controller, req requests.GoTvPaymentApiRequest) (resp 
 	request.InterfaceParams["DestinationAccount"] = req.DestinationAccount
 	request.InterfaceParams["Amount"] = req.Amount
 	request.InterfaceParams["PackageType"] = req.PackageType
-	request.InterfaceParams["TransactionId"] = req.RequestId
+	request.InterfaceParams["TransactionId"] = req.TransactionId
 	client := api.Client{
 		Request: request,
 		Type_:   "body",
