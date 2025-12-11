@@ -2478,6 +2478,7 @@ func (c *Api_requestsController) BuyAirtime() {
 
 		} else {
 			txnString := fmt.Sprintf("%d", txn.Result.TransactionId)
+			logs.Info("Transaction ID returned is ", txn.Result.TransactionId)
 			buyAirtimeRequest := requests.BuyAirtimeFormulatedRequest{
 				TransactionId: txnString,
 				Amount:        req.Amount,
