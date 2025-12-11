@@ -68,6 +68,7 @@ type PaymentRequestApiRequestDTO struct {
 	ServiceNetwork  string
 	ServicePackage  string
 	MobileNumber    string
+	TransactionId   string
 }
 
 type MomoPaymentRequestDTO struct {

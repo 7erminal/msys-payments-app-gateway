@@ -2257,6 +2257,7 @@ func (c *Api_requestsController) BuyDataBundle() {
 							ServiceNetwork:  req.Network,
 							ServicePackage:  req.BundleId,
 							MobileNumber:    phoneNumber,
+							TransactionId:   txn.Result.TransactionRefNumber,
 						}
 
 						helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
@@ -2282,6 +2283,7 @@ func (c *Api_requestsController) BuyDataBundle() {
 						ServiceNetwork:  req.Network,
 						ServicePackage:  req.BundleId,
 						MobileNumber:    accountNumber,
+						TransactionId:   txn.Result.TransactionRefNumber,
 					}
 					//
 
@@ -2302,9 +2304,9 @@ func (c *Api_requestsController) BuyDataBundle() {
 					}
 				}
 
-				txnString := fmt.Sprintf("%d", txn.Result.TransactionId)
+				// txnString := fmt.Sprintf("%d", txn.Result.TransactionId)
 				buyBundleRequest := requests.BuyDataBundleFormulatedRequest{
-					TransactionId: txnString,
+					TransactionId: txn.Result.TransactionRefNumber,
 					Amount:        req.Amount,
 					Network:       network,
 					Destination:   destinationPhoneNumber,
@@ -2477,10 +2479,10 @@ func (c *Api_requestsController) BuyAirtime() {
 			message = "Error logging transaction: " + err.Error()
 
 		} else {
-			txnString := fmt.Sprintf("%d", txn.Result.TransactionId)
+			// txnString := fmt.Sprintf("%d", txn.Result.TransactionId)
 			logs.Info("Transaction ID returned is ", txn.Result.TransactionId)
 			buyAirtimeRequest := requests.BuyAirtimeFormulatedRequest{
-				TransactionId: txnString,
+				TransactionId: txn.Result.TransactionRefNumber,
 				Amount:        req.Amount,
 				Network:       req.Network,
 				Destination:   destinationPhoneNumber,
@@ -2521,6 +2523,7 @@ func (c *Api_requestsController) BuyAirtime() {
 							Network:         network,
 							ServiceNetwork:  req.Network,
 							MobileNumber:    phoneNumber,
+							TransactionId:   txn.Result.TransactionRefNumber,
 						}
 
 						helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
@@ -2543,6 +2546,7 @@ func (c *Api_requestsController) BuyAirtime() {
 						ServiceNetwork:  req.Network,
 						ServicePackage:  strconv.FormatFloat(req.Amount, 'f', -1, 64),
 						MobileNumber:    accountNumber,
+						TransactionId:   txn.Result.TransactionRefNumber,
 					}
 					//
 
@@ -2950,6 +2954,7 @@ func (c *Api_requestsController) PayDSTV() {
 							ServiceNetwork:  "DSTV",
 							ServicePackage:  req.PackageType,
 							MobileNumber:    phoneNumber,
+							TransactionId:   txn.Result.TransactionRefNumber,
 						}
 
 						helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
@@ -2971,6 +2976,7 @@ func (c *Api_requestsController) PayDSTV() {
 						ServiceNetwork:  "DSTV",
 						ServicePackage:  req.PackageType,
 						MobileNumber:    accountNumber,
+						TransactionId:   txn.Result.TransactionRefNumber,
 					}
 					//
 
@@ -2993,9 +2999,9 @@ func (c *Api_requestsController) PayDSTV() {
 				}
 
 				if proceed {
-					txnString := fmt.Sprintf("%d", txn.Result.TransactionId)
+					// txnString := fmt.Sprintf("%d", txn.Result.TransactionId)
 					payDSTVRequest := requests.DSTVPaymentRequest{
-						TransactionId:      txnString,
+						TransactionId:      txn.Result.TransactionRefNumber,
 						Amount:             req.Amount,
 						DestinationAccount: destinationAccount,
 						PackageType:        req.PackageType,
@@ -3135,9 +3141,9 @@ func (c *Api_requestsController) PayGOTV() {
 
 		} else {
 			logs.Info("Transaction logged successfully: ", txn)
-			txnString := fmt.Sprintf("%d", txn.Result.TransactionId)
+			// txnString := fmt.Sprintf("%d", txn.Result.TransactionId)
 			payGOTVRequest := requests.GoTvPaymentApiRequest{
-				TransactionId:      txnString,
+				TransactionId:      txn.Result.TransactionRefNumber,
 				Amount:             req.Amount,
 				DestinationAccount: destinationAccount,
 				PackageType:        req.PackageType,
@@ -3170,6 +3176,7 @@ func (c *Api_requestsController) PayGOTV() {
 							ServiceNetwork:  "GOTV",
 							ServicePackage:  req.PackageType,
 							MobileNumber:    phoneNumber,
+							TransactionId:   txn.Result.TransactionRefNumber,
 						}
 
 						helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
@@ -3191,6 +3198,7 @@ func (c *Api_requestsController) PayGOTV() {
 						ServiceNetwork:  "GOTV",
 						ServicePackage:  req.PackageType,
 						MobileNumber:    accountNumber,
+						TransactionId:   txn.Result.TransactionRefNumber,
 					}
 					//
 
@@ -3350,9 +3358,9 @@ func (c *Api_requestsController) PayECG() {
 			responseMessage = "Error logging transaction: " + err.Error()
 
 		} else {
-			txnString := fmt.Sprintf("%d", txn.Result.TransactionId)
+			// txnString := fmt.Sprintf("%d", txn.Result.TransactionId)
 			payECGRequest := requests.ECGPaymentApiRequest{
-				TransactionId:      txnString,
+				TransactionId:      txn.Result.TransactionRefNumber,
 				Amount:             req.Amount,
 				DestinationAccount: destinationAccount,
 				PackageType:        req.PackageType,
@@ -3390,6 +3398,7 @@ func (c *Api_requestsController) PayECG() {
 							ServiceNetwork:  "ECG",
 							ServicePackage:  req.PackageType,
 							MobileNumber:    phoneNumber,
+							TransactionId:   txn.Result.TransactionRefNumber,
 						}
 
 						helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
@@ -3411,6 +3420,7 @@ func (c *Api_requestsController) PayECG() {
 						ServiceNetwork:  "ECG",
 						ServicePackage:  req.PackageType,
 						MobileNumber:    accountNumber,
+						TransactionId:   txn.Result.TransactionRefNumber,
 					}
 					//
 
@@ -3574,9 +3584,9 @@ func (c *Api_requestsController) PayWaterBill() {
 		} else {
 			logs.Info("Transaction logged successfully")
 
-			transactionString := fmt.Sprintf("%d", txn.Result.TransactionId)
+			// transactionString := fmt.Sprintf("%d", txn.Result.TransactionId)
 			payWaterRequest := requests.GhanaWaterPaymentFuncRequest{
-				TransactionId:      transactionString,
+				TransactionId:      txn.Result.TransactionRefNumber,
 				Amount:             req.Amount,
 				DestinationAccount: destinationAccount,
 				PackageType:        req.PackageType,
@@ -3613,6 +3623,7 @@ func (c *Api_requestsController) PayWaterBill() {
 							ServiceNetwork:  "WATER",
 							ServicePackage:  req.PackageType,
 							MobileNumber:    phoneNumber,
+							TransactionId:   txn.Result.TransactionRefNumber,
 						}
 
 						helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
@@ -3634,6 +3645,7 @@ func (c *Api_requestsController) PayWaterBill() {
 						ServiceNetwork:  "WATER",
 						ServicePackage:  req.PackageType,
 						MobileNumber:    accountNumber,
+						TransactionId:   txn.Result.TransactionRefNumber,
 					}
 					//
 
@@ -3792,9 +3804,9 @@ func (c *Api_requestsController) PayStartimesTvBill() {
 			responseMessage = "Error logging transaction: " + err.Error()
 
 		} else {
-			transactionString := fmt.Sprintf("%d", txn.Result.TransactionId)
+			// transactionString := fmt.Sprintf("%d", txn.Result.TransactionId)
 			payStartimesRequest := requests.StartimesPaymentApiRequest{
-				TransactionId:      transactionString,
+				TransactionId:      txn.Result.TransactionRefNumber,
 				Amount:             req.Amount,
 				DestinationAccount: destinationAccount,
 				PackageType:        req.PackageType,
@@ -3828,6 +3840,7 @@ func (c *Api_requestsController) PayStartimesTvBill() {
 							ServiceNetwork:  "STARTIMES",
 							ServicePackage:  req.PackageType,
 							MobileNumber:    phoneNumber,
+							TransactionId:   txn.Result.TransactionRefNumber,
 						}
 
 						helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
@@ -3849,6 +3862,7 @@ func (c *Api_requestsController) PayStartimesTvBill() {
 						ServiceNetwork:  "STARTIMES",
 						ServicePackage:  req.PackageType,
 						MobileNumber:    accountNumber,
+						TransactionId:   txn.Result.TransactionRefNumber,
 					}
 					//
 
