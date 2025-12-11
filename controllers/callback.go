@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	apifunctions "msys_payment_app_gateway/controllers/api_functions"
 	"msys_payment_app_gateway/controllers/helpers"
 	"msys_payment_app_gateway/controllers/services"
@@ -244,7 +243,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 						Network:       resp.Result.ServiceNetwork,
 						Destination:   resp.Result.ReceiverAccount,
 						SourceSystem:  "MSYS_PAYMENT_APP_GATEWAY",
-						TransactionId: resp.Result.TransactionId,
+						TransactionId: resp.Result.ClientReference,
 					}
 
 					airtimeresp := services.BuyAirtime(&c.Controller, airtimeReq)
@@ -277,7 +276,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 						Destination:   resp.Result.ReceiverAccount,
 						BundleId:      resp.Result.ServicePackage,
 						SourceSystem:  "MSYS_PAYMENT_APP_GATEWAY",
-						TransactionId: resp.Result.TransactionId,
+						TransactionId: resp.Result.ClientReference,
 					}
 
 					dataresp := services.BuyDataBundle(&c.Controller, dataBundleReq)
@@ -300,7 +299,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 							DestinationAccount: resp.Result.ReceiverAccount,
 							PackageType:        resp.Result.ServicePackage,
 							SourceSystem:       "MSYS_PAYMENT_APP_GATEWAY",
-							TransactionId:      resp.Result.TransactionId,
+							TransactionId:      resp.Result.ClientReference,
 						}
 
 						dstvresp := services.PayDstv(&c.Controller, dstvReq)
@@ -322,7 +321,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 							DestinationAccount: resp.Result.ReceiverAccount,
 							PackageType:        resp.Result.ServicePackage,
 							SourceSystem:       "MSYS_PAYMENT_APP_GATEWAY",
-							TransactionId:      resp.Result.TransactionId,
+							TransactionId:      resp.Result.ClientReference,
 						}
 
 						gotvresp := services.PayGotv(&c.Controller, gotvReq)
@@ -344,7 +343,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 							DestinationAccount: resp.Result.ReceiverAccount,
 							PackageType:        resp.Result.ServicePackage,
 							SourceSystem:       "MSYS_PAYMENT_APP_GATEWAY",
-							TransactionId:      resp.Result.TransactionId,
+							TransactionId:      resp.Result.ClientReference,
 						}
 
 						dstvresp := services.PayDstv(&c.Controller, dstvReq)
@@ -361,14 +360,14 @@ func (c *CallbackController) RequestMoneyCallback() {
 
 					if resp.Result.ServiceNetwork == "GH_WATER" {
 						if bilTxn := apifunctions.GetBilTransaction(&c.Controller, resp.Result.TransactionId); bilTxn.StatusCode == 200 {
-							transactionString := fmt.Sprintf("%d", bilTxn.Result.TransactionId)
+							// transactionString := fmt.Sprintf("%d", bilTxn.Result.TransactionId)
 							waterbillReq := requests.GhanaWaterPaymentFuncRequest{
 								Amount:             resp.Result.PaymentAmount,
 								PhoneNumber:        resp.Result.SenderAccount,
 								DestinationAccount: resp.Result.ReceiverAccount,
 								PackageType:        bilTxn.Result.ExtraDetails3,
 								SourceSystem:       "MSYS_PAYMENT_APP_GATEWAY",
-								TransactionId:      transactionString,
+								TransactionId:      resp.Result.ClientReference,
 								Name:               bilTxn.Result.ExtraDetails1,
 								Email:              bilTxn.Result.ExtraDetails2,
 							}
@@ -397,7 +396,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 							DestinationAccount: resp.Result.ReceiverAccount,
 							PackageType:        resp.Result.ServicePackage,
 							SourceSystem:       "MSYS_PAYMENT_APP_GATEWAY",
-							TransactionId:      resp.Result.TransactionId,
+							TransactionId:      resp.Result.ClientReference,
 						}
 
 						waterbillresp := services.PayEcg(&c.Controller, ecgbillReq)
