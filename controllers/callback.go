@@ -202,7 +202,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 			}
 		}
 
-		transaction := apifunctions.GetBilTransactionWithTransactionRef(&c.Controller, *v.Data.ClientReference)
+		transaction := apifunctions.GetBilTransactionWithTransactionRef(&c.Controller, v.Data.ClientReference)
 
 		if transaction.StatusCode == 200 {
 			if proceed {
@@ -500,7 +500,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 				c.Data["json"] = response
 			}
 		} else {
-			logs.Info("Transaction not found for ID: %s", *v.Data.ClientReference)
+			logs.Info("Transaction not found for ID: %s", v.Data.ClientReference)
 			response := responses.CallbackResponse{
 				StatusCode:    false,
 				StatusMessage: "Transaction not found",
