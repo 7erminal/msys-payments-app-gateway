@@ -883,7 +883,7 @@ func MakePaymentMain(c *beego.Controller, req requests.PaymentRequestApiRequestD
 			SenderAccount:   req.SenderAccount,
 			ReceiverAccount: destinationPhoneNumber,
 			PaymentMethod:   req.PaymentMethod,
-			TransactionId:   "1",
+			TransactionId:   req.TransactionId,
 			PaymentProofUrl: "",
 			ReferenceNumber: "",
 			CallThirdParty:  true,
