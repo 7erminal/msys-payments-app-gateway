@@ -422,7 +422,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 					}
 
 					if resp.Result.Service == "WITHDRAWAL" {
-						helpers.LogAccountActivity(&c.Controller, resp.Result.ReceiverAccount, "Withdrawal", resp.Result.PaymentAmount, resp.Result.ServiceNetwork, "debit")
+						helpers.LogAccountActivity(&c.Controller, resp.Result.SenderAccount, "Withdrawal", resp.Result.PaymentAmount, resp.Result.ServiceNetwork, "debit")
 						responseStatus = true
 						responseMessage = resp.StatusMessage
 					}
