@@ -13,6 +13,9 @@ type CallbackRequest struct {
 	Amount                float64
 	Charges               float64
 	Status                string
+	Commission            string
+	ClientResponseCode    string
+	ClientResponseMessage string
 }
 
 type CallbackData struct {
@@ -53,8 +56,9 @@ type PaymentCallbackFormulateRequest struct {
 }
 
 type CallbackAPIRequest struct {
-	ResponseCode string
-	Data         CallbackData
+	ResponseCode  string
+	Data          CallbackData
+	RecipientName string
 }
 
 type TransactionStatusRequest struct {

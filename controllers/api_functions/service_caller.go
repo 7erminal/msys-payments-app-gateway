@@ -2028,6 +2028,9 @@ func Callback(c *beego.Controller, req requests.CallbackRequest) (resp responses
 	request.InterfaceParams["Amount"] = req.Amount
 	request.InterfaceParams["Charges"] = req.Charges
 	request.InterfaceParams["Status"] = req.Status
+	request.InterfaceParams["Commission"] = req.Commission
+	request.InterfaceParams["ClientResponseCode"] = req.ClientResponseCode
+	request.InterfaceParams["ClientResponseMessage"] = req.ClientResponseMessage
 
 	client := api.Client{
 		Request: request,

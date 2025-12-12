@@ -69,7 +69,37 @@ func (c *CallbackController) Callback() {
 		DateModified: time.Now(),
 	}
 	if _, err := models.AddApi_requests(&j); err == nil {
-		callbackReq := requests.CallbackFormulateRequest(v)
+
+		// AmountCharged         float64
+		// TransactionId         string
+		// ClientReference       string
+		// Description           string
+		// ExternalTransactionId string
+		// Amount                float64
+		// Charges               float64
+		// Status                string
+
+		status := "FAILED"
+
+		if v.ResponseCode == "0000" {
+			status = "SUCCESS"
+		} else if v.ResponseCode == "0001" {
+			status = "PENDING"
+		}
+
+		callbackReq := requests.CallbackRequest{
+			AmountCharged:         v.Data.AmountDebited,
+			TransactionId:         v.Data.ClientReference,
+			ClientReference:       v.Data.TransactionId,
+			Description:           v.Data.Description,
+			ExternalTransactionId: v.Data.ExternalTransactionId,
+			Amount:                v.Data.Amount,
+			Charges:               v.Data.Charges,
+			Status:                status,
+			Commission:            v.Data.Meta.Commission,
+			ClientResponseCode:    v.ResponseCode,
+			ClientResponseMessage: v.Data.Description,
+		}
 
 		logs.Info("Sending callback request: ", callbackReq)
 		resp := apifunctions.Callback(&c.Controller, callbackReq)
