@@ -1065,7 +1065,7 @@ func PaymentRequestMoney(c *beego.Controller, req requests.RequestMoneyApiReques
 			Operator:           req.Operator,
 			PrimaryCallbackUrl: resp.Payment.CallbackUrl,
 			Description:        "Payment Request for " + strconv.FormatFloat(resp.Payment.Amount, 'f', 2, 64),
-			ClientReference:    resp.Payment.PaymentId,
+			ClientReference:    req.TransactionId,
 			Channel:            req.Network,
 		}
 
@@ -1124,7 +1124,7 @@ func PaymentSendMoney(c *beego.Controller, req requests.RequestMoneyApiRequestDT
 				Operator:           req.Operator,
 				PrimaryCallbackUrl: resp.Payment.CallbackUrl,
 				Description:        "Payment Request for " + strconv.FormatFloat(resp.Payment.Amount, 'f', 2, 64),
-				ClientReference:    resp.Payment.PaymentId,
+				ClientReference:    req.TransactionId,
 				Channel:            req.Network,
 			}
 
