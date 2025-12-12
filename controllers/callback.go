@@ -225,6 +225,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 				ExternalTransactionId: v.Data.ExternalTransactionId,
 				Amount:                v.Data.Amount,
 				Charges:               v.Data.Charges,
+				Commission:            v.Data.Commission,
 				AmountAfterCharges:    v.Data.AmountAfterCharges,
 				PaymentDate:           v.Data.PaymentDate,
 				OrderId:               v.Data.OrderId,

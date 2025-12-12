@@ -2082,6 +2082,7 @@ func ReceivePaymentCallback(c *beego.Controller, req requests.PaymentCallbackDat
 	request.InterfaceParams["ExternalTransactionId"] = req.ExternalTransactionId
 	request.InterfaceParams["Amount"] = req.Amount
 	request.InterfaceParams["Charges"] = req.Charges
+	request.InterfaceParams["Commission"] = req.Commission
 	request.InterfaceParams["AmountAfterCharges"] = req.AmountAfterCharges
 	request.InterfaceParams["PaymentDate"] = req.PaymentDate
 	request.InterfaceParams["OrderId"] = req.OrderId

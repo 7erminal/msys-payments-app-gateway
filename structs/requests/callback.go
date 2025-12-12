@@ -41,6 +41,7 @@ type PaymentCallbackData struct {
 	ClientReference       string
 	Description           string
 	ExternalTransactionId string
+	Commission            string
 	Amount                float64
 	Charges               float64
 	AmountAfterCharges    float64
