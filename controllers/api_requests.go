@@ -2630,7 +2630,10 @@ func (c *Api_requestsController) BuyAirtime() {
 				}
 
 				if proceed {
-					logs.Info("Formatted request for Buy Airtime: ", buyAirtimeRequest)
+					logs.Info("Formatted request for Buy Airtime: %s", func() string {
+						b, _ := json.Marshal(buyAirtimeRequest)
+						return string(b)
+					}())
 					resp := services.BuyAirtime(&c.Controller, buyAirtimeRequest)
 					logs.Info("Response from Buy Airtime API: ", resp)
 
