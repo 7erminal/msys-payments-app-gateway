@@ -2076,8 +2076,8 @@ func ReceivePaymentCallback(c *beego.Controller, req requests.PaymentCallbackDat
 	// request.Params = {"UserId": strconv.Itoa(int(userid))}
 
 	request.InterfaceParams["AmountCharged"] = req.AmountCharged
-	request.InterfaceParams["ClientReference"] = req.ClientReference
-	request.InterfaceParams["TransactionId"] = req.TransactionId
+	request.InterfaceParams["ClientReference"] = req.TransactionId
+	request.InterfaceParams["TransactionId"] = req.ClientReference
 	request.InterfaceParams["Description"] = req.Description
 	request.InterfaceParams["ExternalTransactionId"] = req.ExternalTransactionId
 	request.InterfaceParams["Amount"] = req.Amount
