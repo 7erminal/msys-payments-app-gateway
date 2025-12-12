@@ -4,6 +4,17 @@ type CallbackMeta struct {
 	Commission string
 }
 
+type CallbackRequest struct {
+	AmountCharged         float64
+	TransactionId         string
+	ClientReference       string
+	Description           string
+	ExternalTransactionId string
+	Amount                float64
+	Charges               float64
+	Status                string
+}
+
 type CallbackData struct {
 	AmountDebited         float64
 	TransactionId         string

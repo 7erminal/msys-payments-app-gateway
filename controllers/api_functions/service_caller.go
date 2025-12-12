@@ -2002,19 +2002,32 @@ func BuyDataBundle(c *beego.Controller, req requests.BuyDataBundleFormulatedRequ
 	return data
 }
 
-func Callback(c *beego.Controller, req requests.CallbackFormulateRequest) (resp responses.CallbackResponse) {
+func Callback(c *beego.Controller, req requests.CallbackRequest) (resp responses.CallbackResponse) {
 	host, _ := beego.AppConfig.String("transactionBaseUrl")
 
-	logs.Info("Sending callback ", req.ResponseCode, " for ", req.Data.TransactionId)
+	logs.Info("Sending callback ", req.ExternalTransactionId, " for ", req.ClientReference)
 	request := api.NewRequest(
 		host,
 		"/v2/callback/process",
 		api.POST)
 	// request.Params["username"] = username
 	// request.Params = {"UserId": strconv.Itoa(int(userid))}
-
-	request.InterfaceParams["ResponseCode"] = req.ResponseCode
-	request.InterfaceParams["Data"] = req.Data
+	// AmountCharged         float64
+	// TransactionId         string
+	// ClientReference       string
+	// Description           string
+	// ExternalTransactionId string
+	// Amount                float64
+	// Charges               float64
+	// Status                string
+	request.InterfaceParams["AmountCharged"] = req.AmountCharged
+	request.InterfaceParams["ClientReference"] = req.ClientReference
+	request.InterfaceParams["TransactionId"] = req.TransactionId
+	request.InterfaceParams["Description"] = req.Description
+	request.InterfaceParams["ExternalTransactionId"] = req.ExternalTransactionId
+	request.InterfaceParams["Amount"] = req.Amount
+	request.InterfaceParams["Charges"] = req.Charges
+	request.InterfaceParams["Status"] = req.Status
 
 	client := api.Client{
 		Request: request,
