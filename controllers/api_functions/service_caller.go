@@ -1903,7 +1903,7 @@ func NameInquiryPhoneNumber(c *beego.Controller, req requests.BuyAirtimeFormulat
 func BuyAirtime(c *beego.Controller, req requests.BuyAirtimeFormulatedRequest) (resp responses.BuyAirtimeResponse) {
 	host, _ := beego.AppConfig.String("airtimeBaseUrl")
 
-	logs.Info("Buying Airtime ", req.Amount, " for ", req.Destination)
+	logs.Info("Buying Airtime ", req.Amount, " for ", req.Destination, " on network ", req.Network)
 
 	request := api.NewRequest(
 		host,
