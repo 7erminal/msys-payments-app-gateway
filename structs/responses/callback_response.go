@@ -7,7 +7,7 @@ type CallbackResponse struct {
 }
 
 type CallbackAPIResponse struct {
-	StatusCode    bool
+	StatusCode    int
 	StatusMessage string
 	Result        *PaymentResponse
 }

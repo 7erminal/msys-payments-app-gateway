@@ -2002,7 +2002,7 @@ func BuyDataBundle(c *beego.Controller, req requests.BuyDataBundleFormulatedRequ
 	return data
 }
 
-func Callback(c *beego.Controller, req requests.CallbackRequest) (resp responses.CallbackResponse) {
+func Callback(c *beego.Controller, req requests.CallbackRequest) (resp responses.CallbackAPIResponse) {
 	host, _ := beego.AppConfig.String("transactionBaseUrl")
 
 	logs.Info("Sending callback ", req.ExternalTransactionId, " for ", req.ClientReference)
@@ -2055,7 +2055,7 @@ func Callback(c *beego.Controller, req requests.CallbackRequest) (resp responses
 		logs.Info("Raw response received is \n", prettyJSON.String())
 	}
 	// data := map[string]interface{}{}
-	var data responses.CallbackResponse
+	var data responses.CallbackAPIResponse
 	json.Unmarshal(read, &data)
 	c.Data["json"] = data
 

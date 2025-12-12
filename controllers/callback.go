@@ -106,16 +106,16 @@ func (c *CallbackController) Callback() {
 		logs.Info("Callback response: ", resp)
 
 		var response responses.CallbackAPIResponse = responses.CallbackAPIResponse{
-			StatusCode:    false,
+			StatusCode:    401,
 			StatusMessage: "Something went wrong",
 			Result:        resp.Result,
 		}
 
-		if !resp.StatusCode {
+		if resp.StatusCode != 200 {
 			logs.Error("Callback failed with response: ", resp)
 			response = responses.CallbackAPIResponse{
-				StatusCode:    false,
-				StatusMessage: "Something went wrong",
+				StatusCode:    400,
+				StatusMessage: resp.StatusMessage,
 				Result:        resp.Result,
 			}
 
@@ -136,7 +136,7 @@ func (c *CallbackController) Callback() {
 			}
 
 			response = responses.CallbackAPIResponse{
-				StatusCode:    true,
+				StatusCode:    200,
 				StatusMessage: "Callback processed successfully",
 				Result:        resp.Result,
 			}
@@ -244,10 +244,10 @@ func (c *CallbackController) RequestMoneyCallback() {
 				respJSON, _ := json.Marshal(resp)
 				logs.Info("Callback response JSON: ", string(respJSON))
 
-				if !resp.StatusCode {
+				if resp.StatusCode != 200 {
 					logs.Error("Callback failed with response: ", resp)
 					responseStatus = false
-					responseMessage = "Something went wrong"
+					responseMessage = resp.StatusMessage
 				} else {
 					responseText, err := json.Marshal(resp.Result)
 					if err != nil {
