@@ -207,6 +207,8 @@ func (c *CallbackController) RequestMoneyCallback() {
 		if transaction.StatusCode == 200 {
 			if proceed {
 				logs.Info("Sending callback request: ", callbackReq)
+				callbackReqJSON, _ := json.Marshal(callbackReq)
+				logs.Info("Callback request JSON: ", string(callbackReqJSON))
 				resp := apifunctions.ReceivePaymentCallback(&c.Controller, callbackReq)
 				logs.Info("Callback response: ", resp)
 
