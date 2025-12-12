@@ -210,7 +210,9 @@ func (c *CallbackController) RequestMoneyCallback() {
 				callbackReqJSON, _ := json.Marshal(callbackReq)
 				logs.Info("Callback request JSON: ", string(callbackReqJSON))
 				resp := apifunctions.ReceivePaymentCallback(&c.Controller, callbackReq)
-				logs.Info("Callback response: ", resp)
+				// logs.Info("Callback response: ", resp)
+				respJSON, _ := json.Marshal(resp)
+				logs.Info("Callback response JSON: ", string(respJSON))
 
 				if !resp.StatusCode {
 					logs.Error("Callback failed with response: ", resp)
