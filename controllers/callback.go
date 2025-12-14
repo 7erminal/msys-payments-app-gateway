@@ -440,10 +440,10 @@ func (c *CallbackController) RequestMoneyCallback() {
 								TransactionId:      resp.Result.TransactionId,
 							}
 
-							waterbillresp := services.PayEcg(&c.Controller, ecgbillReq)
-							logs.Info("Response from ECG payment API: ", waterbillresp)
+							ecgbillresp := services.PayEcg(&c.Controller, ecgbillReq)
+							logs.Info("Response from ECG payment API: ", ecgbillresp)
 
-							if !waterbillresp.StatusCode {
+							if ecgbillresp.StatusCode != "200" {
 								responseStatus = false
 								responseMessage = resp.StatusMessage
 							} else {

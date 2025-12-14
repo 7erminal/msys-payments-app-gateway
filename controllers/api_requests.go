@@ -3507,11 +3507,11 @@ func (c *Api_requestsController) PayECG() {
 				}
 
 				if proceed {
-					logs.Info("Formatted request to pay ECB: ", payECGRequest)
+					logs.Info("Formatted request to pay ECG: ", payECGRequest)
 					resp := services.PayEcg(&c.Controller, payECGRequest)
-					logs.Info("Response from pay ECB: ", resp)
+					logs.Info("Response from pay ECG: ", resp)
 
-					if !resp.StatusCode {
+					if resp.StatusCode != "200" {
 						response = responses.ECGBillPaymentResponse{
 							StatusCode:    false,
 							StatusMessage: resp.StatusMessage,

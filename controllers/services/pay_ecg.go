@@ -12,18 +12,18 @@ import (
 // Pay ECG
 func PayEcg(c *beego.Controller, payEcgRequest requests.ECGPaymentApiRequest) (response responses.ECGBillPaymentApiResponse) {
 	logs.Info("Formatted request for Pay ECG: ", payEcgRequest)
-	status := false
+	status := "401"
 	message := ""
 	result := responses.ECGBillPaymentDataResponse{}
 
 	resp := apifunctions.PayECGBill(c, payEcgRequest)
 	logs.Info("Response from Pay ECG API: ", resp)
 
-	if !resp.StatusCode {
-		status = false
+	if resp.StatusCode != "200" {
+		status = "01"
 		message = resp.StatusMessage
 	} else {
-		status = true
+		status = "200"
 		logs.Info("ECG payment successful: ", resp)
 		message = "ECG payment is being processed"
 		result = *resp.Result

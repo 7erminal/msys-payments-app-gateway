@@ -157,7 +157,7 @@ type ECGBillPaymentResponse struct {
 }
 
 type ECGBillPaymentApiResponse struct {
-	StatusCode    bool
+	StatusCode    string
 	StatusMessage string
 	Result        *ECGBillPaymentDataResponse
 }
