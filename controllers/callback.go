@@ -400,7 +400,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 						}
 
 						if resp.Result.ServiceNetwork == "WATER" {
-							if bilTxn := apifunctions.GetBilTransaction(&c.Controller, resp.Result.TransactionId); bilTxn.StatusCode == 200 {
+							if bilTxn := apifunctions.GetBilTransactionWithTransactionRef(&c.Controller, resp.Result.TransactionId); bilTxn.StatusCode == 200 {
 								// transactionString := fmt.Sprintf("%d", bilTxn.Result.TransactionId)
 								waterbillReq := requests.GhanaWaterPaymentFuncRequest{
 									Amount:             resp.Result.PaymentAmount,
