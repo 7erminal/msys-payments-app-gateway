@@ -67,9 +67,9 @@ type AccountQueryResponse struct {
 }
 
 type AccountQueryAPIResponse struct {
-	StatusCode    bool                `json:"status_code"`
-	StatusMessage string              `json:"status_message"`
-	Result        *[]AccountQueryData `json:"result"`
+	StatusCode    bool
+	StatusMessage string
+	Result        *[]AccountQueryData
 }
 
 type DSTVBillPaymentDataResponse struct {
