@@ -264,6 +264,8 @@ func (c *CallbackController) RequestMoneyCallback() {
 						logs.Info("API request updated with response successfully: ", v)
 					}
 
+					logs.Info("Callback received. Service is ", resp.Result.Service)
+
 					if resp.Result.Service == "AIRTIME" {
 						// network := ""
 						// // Process airtime request or insert in a queue for the airtime service to pick up
