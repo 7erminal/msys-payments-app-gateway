@@ -399,7 +399,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 							}
 						}
 
-						if resp.Result.ServiceNetwork == "WATER" {
+						if resp.Result.ServiceNetwork == "GH_WATER" {
 							if bilTxn := apifunctions.GetBilTransactionWithTransactionRef(&c.Controller, resp.Result.TransactionId); bilTxn.StatusCode == 200 {
 								// transactionString := fmt.Sprintf("%d", bilTxn.Result.TransactionId)
 								waterbillReq := requests.GhanaWaterPaymentFuncRequest{
