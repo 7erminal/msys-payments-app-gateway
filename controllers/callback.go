@@ -332,6 +332,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 					}
 
 					if resp.Result.Service == "BILL PAYMENT" {
+						logs.Info("Service network is ", resp.Result.ServiceNetwork)
 						if resp.Result.ServiceNetwork == "DSTV" {
 							dstvReq := requests.DSTVPaymentRequest{
 								Amount:             resp.Result.PaymentAmount,
