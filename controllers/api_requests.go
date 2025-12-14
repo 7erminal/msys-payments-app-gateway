@@ -1882,16 +1882,16 @@ func (c *Api_requestsController) Deposit() {
 				message = err.Error()
 			} else {
 				if resp.Success {
-					accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Deposit", req.Amount, req.ClientId, "credit")
+					// accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Deposit", req.Amount, req.ClientId, "credit")
 
 					isSuccess = true
 					message = "Deposit successful"
 					responseText, err := json.Marshal(resp)
 
-					if !accountCheckResp.StatusCode {
-						logs.Error("Error logging account activity for deposit: ", accountCheckResp.StatusMessage)
-						message = "Deposit failed: " + accountCheckResp.StatusMessage
-					}
+					// if !accountCheckResp.StatusCode {
+					// 	logs.Error("Error logging account activity for deposit: ", accountCheckResp.StatusMessage)
+					// 	message = "Deposit failed: " + accountCheckResp.StatusMessage
+					// }
 
 					if err != nil {
 						logs.Error("Error marshalling response result: ", err)
@@ -2012,71 +2012,71 @@ func (c *Api_requestsController) Withdrawal() {
 
 		} else {
 
-			accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Withdrawal", req.Amount, req.ClientId, "debit")
+			// accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Withdrawal", req.Amount, req.ClientId, "debit")
 
-			if !accountCheckResp.StatusCode {
-				message = "Withdrawal failed: " + accountCheckResp.StatusMessage
-				c.Ctx.Output.SetStatus(200)
+			// if !accountCheckResp.StatusCode {
+			// 	message = "Withdrawal failed: " + accountCheckResp.StatusMessage
+			// 	c.Ctx.Output.SetStatus(200)
 
-				var response responses.PaymentRequestResponse = responses.PaymentRequestResponse{
-					Success:       isSuccess,
-					StatusMessage: message,
-					Result:        nil,
-				}
+			// 	var response responses.PaymentRequestResponse = responses.PaymentRequestResponse{
+			// 		Success:       isSuccess,
+			// 		StatusMessage: message,
+			// 		Result:        nil,
+			// 	}
 
-				c.Ctx.Output.SetStatus(200)
-				c.Data["json"] = response
+			// 	c.Ctx.Output.SetStatus(200)
+			// 	c.Data["json"] = response
+			// } else {
+			req := requests.PaymentRequestApiRequestDTO{
+				ClientId:        req.ClientId,
+				Amount:          req.Amount,
+				PaymentMethod:   "MOBILEMONEY",
+				Service:         "WITHDRAWAL",
+				SenderAccount:   accountNumber,
+				ReceiverAccount: destinationPhoneNumber,
+				Network:         network,
+				ServiceNetwork:  req.ClientId,
+				ServicePackage:  strconv.FormatFloat(req.Amount, 'f', -1, 64),
+				MobileNumber:    phoneNumber,
+				TransactionId:   txn.Result.TransactionRefNumber,
+			}
+			//
+
+			resp, err := helpers.MakePaymentMain(&c.Controller, req)
+
+			logs.Info("Response from Withdrawal API: ", resp)
+
+			if err != nil {
+				message = err.Error()
 			} else {
-				req := requests.PaymentRequestApiRequestDTO{
-					ClientId:        req.ClientId,
-					Amount:          req.Amount,
-					PaymentMethod:   "MOBILEMONEY",
-					Service:         "WITHDRAWAL",
-					SenderAccount:   accountNumber,
-					ReceiverAccount: destinationPhoneNumber,
-					Network:         network,
-					ServiceNetwork:  req.ClientId,
-					ServicePackage:  strconv.FormatFloat(req.Amount, 'f', -1, 64),
-					MobileNumber:    phoneNumber,
-					TransactionId:   txn.Result.TransactionRefNumber,
-				}
-				//
-
-				resp, err := helpers.MakePaymentMain(&c.Controller, req)
-
-				logs.Info("Response from Withdrawal API: ", resp)
-
-				if err != nil {
-					message = err.Error()
-				} else {
-					if resp.Success {
-						isSuccess = true
-						message = "Withdrawal successful"
-						responseText, err := json.Marshal(resp)
-						if err != nil {
-							logs.Error("Error marshalling response result: ", err)
-							responseText = []byte("[]")
-						}
-						v.RequestResponse = string(responseText)
-						v.DateModified = time.Now()
-						v.ResponseDate = time.Now()
-						if err := models.UpdateApi_requestsById(&v); err != nil {
-							logs.Error("Error updating API request with response: ", err)
-						} else {
-							logs.Info("API request updated with response successfully: ", v)
-						}
-					} else {
-						message = "Withdrawal failed: " + resp.StatusMessage
+				if resp.Success {
+					isSuccess = true
+					message = "Withdrawal successful"
+					responseText, err := json.Marshal(resp)
+					if err != nil {
+						logs.Error("Error marshalling response result: ", err)
+						responseText = []byte("[]")
 					}
-				}
-
-				c.Ctx.Output.SetStatus(200)
-				c.Data["json"] = responses.PaymentRequestResponse{
-					Success:       isSuccess,
-					StatusMessage: message,
-					Result:        resp,
+					v.RequestResponse = string(responseText)
+					v.DateModified = time.Now()
+					v.ResponseDate = time.Now()
+					if err := models.UpdateApi_requestsById(&v); err != nil {
+						logs.Error("Error updating API request with response: ", err)
+					} else {
+						logs.Info("API request updated with response successfully: ", v)
+					}
+				} else {
+					message = "Withdrawal failed: " + resp.StatusMessage
 				}
 			}
+
+			c.Ctx.Output.SetStatus(200)
+			c.Data["json"] = responses.PaymentRequestResponse{
+				Success:       isSuccess,
+				StatusMessage: message,
+				Result:        resp,
+			}
+			// }
 		}
 
 	} else {

@@ -454,7 +454,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 					}
 
 					if resp.Result.Service == "DEPOSIT" {
-						helpers.LogAccountActivity(&c.Controller, resp.Result.ReceiverAccount, "Deposit", resp.Result.PaymentAmount, resp.Result.ServiceNetwork, "credit")
+						helpers.LogAccountActivity(&c.Controller, resp.Result.ReceiverAccount, "Deposit", resp.Result.Amount, resp.Result.ServiceNetwork, "credit")
 						responseStatus = true
 						responseMessage = resp.StatusMessage
 					}
