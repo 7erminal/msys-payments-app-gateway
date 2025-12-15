@@ -818,7 +818,7 @@ func TempRegisterCustomer(c *beego.Controller, mobileNumber string, channel stri
 				AddedBy:      "1",
 				CustomerType: "Individual", // Assuming default customer type
 				Branch:       "1",
-				Dob:          "",
+				Dob:          "2000-01-02",
 				Status:       "Pending",
 			}
 			regResp := apifunctions.Register(c, newCustomer)
