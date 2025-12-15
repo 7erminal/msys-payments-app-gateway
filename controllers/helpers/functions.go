@@ -795,46 +795,49 @@ func TempRegisterCustomer(c *beego.Controller, mobileNumber string, channel stri
 		nameInquiryResp := apifunctions.NameInquiryViaMobileMoney(c, nameInquiryReq)
 		logs.Info("Response from name inquiry API: ", nameInquiryResp)
 
+		tempName := "Unknown"
+
 		if nameInquiryResp.Success {
 			// Register customer
-			if registerIfNotFound {
-				newCustomer := requests.AddCustomer{
-					PhoneNumber:  mobileNumber,
-					Name:         nameInquiryResp.Result.Name,
-					Email:        "",
-					Location:     "",
-					IdType:       "",
-					IdNumber:     "",
-					ImagePath:    "",
-					AddedBy:      "1",
-					CustomerType: "Individual", // Assuming default customer type
-					Branch:       "1",
-					Dob:          "",
-					Status:       "Pending",
-				}
-				regResp := apifunctions.Register(c, newCustomer)
-				logs.Info("Response from register customer API: ", regResp)
-
-				if regResp.StatusCode == 200 {
-					logs.Info("Customer registered successfully with phone number: ", mobileNumber)
-
-					customer = *regResp.Customer
-					responseStatus = 200
-					responseMessage = "Customer registered successfully"
-				} else {
-					logs.Error("We are unable to register customer for phone number: ", mobileNumber)
-					responseMessage = "We are unable to register customer for phone number"
-				}
-			} else {
-				logs.Info("Registration skipped as per flag for phone number: ", mobileNumber)
-				responseMessage = "Customer does not exist"
-				responseStatus = 200
-			}
-
+			tempName = nameInquiryResp.Result.Name
 		} else {
 			logs.Error("Unable to process name inquiry for phone number: ", mobileNumber)
 			responseMessage = "Unable to process name inquiry for phone number"
 			responseStatus = 600
+		}
+
+		if registerIfNotFound {
+			newCustomer := requests.AddCustomer{
+				PhoneNumber:  mobileNumber,
+				Name:         tempName,
+				Email:        "",
+				Location:     "",
+				IdType:       "",
+				IdNumber:     "",
+				ImagePath:    "",
+				AddedBy:      "1",
+				CustomerType: "Individual", // Assuming default customer type
+				Branch:       "1",
+				Dob:          "",
+				Status:       "Pending",
+			}
+			regResp := apifunctions.Register(c, newCustomer)
+			logs.Info("Response from register customer API: ", regResp)
+
+			if regResp.StatusCode == 200 {
+				logs.Info("Customer registered successfully with phone number: ", mobileNumber)
+
+				customer = *regResp.Customer
+				responseStatus = 200
+				responseMessage = "Customer registered successfully"
+			} else {
+				logs.Error("We are unable to register customer for phone number: ", mobileNumber)
+				responseMessage = "We are unable to register customer for phone number"
+			}
+		} else {
+			logs.Info("Registration skipped as per flag for phone number: ", mobileNumber)
+			responseMessage = "Customer does not exist"
+			responseStatus = 200
 		}
 	} else {
 		logs.Info("Customer already exists with phone number: ", mobileNumber)
