@@ -2287,143 +2287,151 @@ func (c *Api_requestsController) BuyDataBundle() {
 			ExternalReferenceNumber:  "",
 		}
 
-		if txn, err := helpers.LogTransaction(&c.Controller, transactionLog); err != nil {
-			logs.Error("Error logging transaction: ", err)
+		_, err := helpers.TempRegisterCustomer(&c.Controller, phoneNumber, network, true)
+
+		if err != nil {
+			logs.Error("Error registering customer temporarily: ", err)
 			isSuccess = false
-			message = "Error logging transaction: " + err.Error()
-
+			message = "Error registering customer: " + err.Error()
 		} else {
-			if accountNumber != "" {
-				accountResp := apifunctions.GetCustomerAccount(&c.Controller, accountNumber)
-				proceed := false
-				if accountResp.StatusCode == "200" {
-					accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Data Bundle Purchase", req.Amount, req.ClientId, "debit")
+			if txn, err := helpers.LogTransaction(&c.Controller, transactionLog); err != nil {
+				logs.Error("Error logging transaction: ", err)
+				isSuccess = false
+				message = "Error logging transaction: " + err.Error()
 
-					if !accountCheckResp.StatusCode {
-						isSuccess = false
-						message = accountCheckResp.StatusMessage
-						// result = nil
-						proceed = false
+			} else {
+				if accountNumber != "" {
+					accountResp := apifunctions.GetCustomerAccount(&c.Controller, accountNumber)
+					proceed := false
+					if accountResp.StatusCode == "200" {
+						accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Data Bundle Purchase", req.Amount, req.ClientId, "debit")
+
+						if !accountCheckResp.StatusCode {
+							isSuccess = false
+							message = accountCheckResp.StatusMessage
+							// result = nil
+							proceed = false
+						} else {
+							logs.Info("Account activity logged successfully for account number: ", accountNumber)
+
+							// Log payment request
+							makePaymentRequest := requests.PaymentRequestApiRequestDTO{
+								ClientId:        req.ClientId,
+								Amount:          req.Amount,
+								PaymentMethod:   "ACCOUNT",
+								Service:         "DATA_BUNDLE",
+								SenderAccount:   accountNumber,
+								ReceiverAccount: destinationPhoneNumber,
+								Network:         network,
+								ServiceNetwork:  req.Network,
+								ServicePackage:  req.BundleId,
+								MobileNumber:    phoneNumber,
+								TransactionId:   txn.Result.TransactionRefNumber,
+							}
+
+							helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
+
+							proceed = true
+
+							isSuccess = true
+							message = accountCheckResp.StatusMessage
+							// result = nil
+						}
 					} else {
-						logs.Info("Account activity logged successfully for account number: ", accountNumber)
+						logs.Error("Error fetching account details for account number: ", accountNumber)
+						logs.Info("Register Customer")
 
-						// Log payment request
-						makePaymentRequest := requests.PaymentRequestApiRequestDTO{
+						req := requests.PaymentRequestApiRequestDTO{
 							ClientId:        req.ClientId,
 							Amount:          req.Amount,
-							PaymentMethod:   "ACCOUNT",
+							PaymentMethod:   "MOBILEMONEY",
 							Service:         "DATA_BUNDLE",
 							SenderAccount:   accountNumber,
 							ReceiverAccount: destinationPhoneNumber,
 							Network:         network,
 							ServiceNetwork:  req.Network,
 							ServicePackage:  req.BundleId,
-							MobileNumber:    phoneNumber,
+							MobileNumber:    accountNumber,
 							TransactionId:   txn.Result.TransactionRefNumber,
 						}
+						//
 
-						helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
+						resp, err := helpers.RequestPaymentMain(&c.Controller, req)
+						if err != nil {
+							logs.Error("Error requesting payment: ", err)
+							message = "Error requesting payment: " + err.Error()
+							isSuccess = false
+						} else {
+							logs.Info("Payment requested successfully: ", resp)
+							if !resp.Success {
+								isSuccess = false
+								message = resp.StatusMessage
+							} else {
+								isSuccess = true
+								message = "Data bundle purchase is being processed"
+							}
+						}
+					}
 
-						proceed = true
+					// txnString := fmt.Sprintf("%d", txn.Result.TransactionId)
+					buyBundleRequest := requests.BuyDataBundleFormulatedRequest{
+						TransactionId: txn.Result.TransactionRefNumber,
+						Amount:        req.Amount,
+						Network:       network,
+						Destination:   destinationPhoneNumber,
+						BundleId:      req.BundleId,
+						SourceSystem:  sourceSystem,
+						PhoneNumber:   phoneNumber,
+					}
 
-						isSuccess = true
-						message = accountCheckResp.StatusMessage
-						// result = nil
+					if proceed {
+						logs.Info("Formatted request for Buy Bundle: ", buyBundleRequest)
+						resp := services.BuyDataBundle(&c.Controller, buyBundleRequest)
+						logs.Info("Response from Buy Bundle API: ", resp)
+
+						var response responses.BuyDataBundleResponse = responses.BuyDataBundleResponse{
+							StatusCode:    false,
+							StatusMessage: "Something went wrong",
+							Result:        resp.Result,
+						}
+
+						if !resp.StatusCode {
+							response = responses.BuyDataBundleResponse{
+								StatusCode:    false,
+								StatusMessage: resp.StatusMessage,
+								Result:        resp.Result,
+							}
+						} else {
+							responseText, err := json.Marshal(response.Result)
+							if err != nil {
+								logs.Error("Error marshalling response result: ", err)
+								responseText = []byte("[]")
+							}
+							v.RequestResponse = string(responseText)
+							v.DateModified = time.Now()
+							v.ResponseDate = time.Now()
+							if err := models.UpdateApi_requestsById(&v); err != nil {
+								logs.Error("Error updating API request with response: ", err)
+							} else {
+								logs.Info("API request updated with response successfully: ", v)
+							}
+
+							// if accountNumber != "" {
+							// 	helpers.LogAccountActivity(&c.Controller, accountNumber, "Data Bundle Purchase", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
+							// }
+							response = responses.BuyDataBundleResponse{
+								StatusCode:    true,
+								StatusMessage: "Data bundle purchase is being processed",
+								Result:        resp.Result,
+							}
+						}
 					}
 				} else {
-					logs.Error("Error fetching account details for account number: ", accountNumber)
-					logs.Info("Register Customer")
 
-					req := requests.PaymentRequestApiRequestDTO{
-						ClientId:        req.ClientId,
-						Amount:          req.Amount,
-						PaymentMethod:   "MOBILEMONEY",
-						Service:         "DATA_BUNDLE",
-						SenderAccount:   accountNumber,
-						ReceiverAccount: destinationPhoneNumber,
-						Network:         network,
-						ServiceNetwork:  req.Network,
-						ServicePackage:  req.BundleId,
-						MobileNumber:    accountNumber,
-						TransactionId:   txn.Result.TransactionRefNumber,
-					}
-					//
-
-					resp, err := helpers.RequestPaymentMain(&c.Controller, req)
-					if err != nil {
-						logs.Error("Error requesting payment: ", err)
-						message = "Error requesting payment: " + err.Error()
-						isSuccess = false
-					} else {
-						logs.Info("Payment requested successfully: ", resp)
-						if !resp.Success {
-							isSuccess = false
-							message = resp.StatusMessage
-						} else {
-							isSuccess = true
-							message = "Data bundle purchase is being processed"
-						}
-					}
+					logs.Error("Account number is required for data bundle purchase")
+					isSuccess = false
+					message = "Account number is required for data bundle purchase"
 				}
-
-				// txnString := fmt.Sprintf("%d", txn.Result.TransactionId)
-				buyBundleRequest := requests.BuyDataBundleFormulatedRequest{
-					TransactionId: txn.Result.TransactionRefNumber,
-					Amount:        req.Amount,
-					Network:       network,
-					Destination:   destinationPhoneNumber,
-					BundleId:      req.BundleId,
-					SourceSystem:  sourceSystem,
-					PhoneNumber:   phoneNumber,
-				}
-
-				if proceed {
-					logs.Info("Formatted request for Buy Bundle: ", buyBundleRequest)
-					resp := services.BuyDataBundle(&c.Controller, buyBundleRequest)
-					logs.Info("Response from Buy Bundle API: ", resp)
-
-					var response responses.BuyDataBundleResponse = responses.BuyDataBundleResponse{
-						StatusCode:    false,
-						StatusMessage: "Something went wrong",
-						Result:        resp.Result,
-					}
-
-					if !resp.StatusCode {
-						response = responses.BuyDataBundleResponse{
-							StatusCode:    false,
-							StatusMessage: resp.StatusMessage,
-							Result:        resp.Result,
-						}
-					} else {
-						responseText, err := json.Marshal(response.Result)
-						if err != nil {
-							logs.Error("Error marshalling response result: ", err)
-							responseText = []byte("[]")
-						}
-						v.RequestResponse = string(responseText)
-						v.DateModified = time.Now()
-						v.ResponseDate = time.Now()
-						if err := models.UpdateApi_requestsById(&v); err != nil {
-							logs.Error("Error updating API request with response: ", err)
-						} else {
-							logs.Info("API request updated with response successfully: ", v)
-						}
-
-						// if accountNumber != "" {
-						// 	helpers.LogAccountActivity(&c.Controller, accountNumber, "Data Bundle Purchase", strconv.FormatFloat(req.Amount, 'f', -1, 64), req.ClientId, "debit")
-						// }
-						response = responses.BuyDataBundleResponse{
-							StatusCode:    true,
-							StatusMessage: "Data bundle purchase is being processed",
-							Result:        resp.Result,
-						}
-					}
-				}
-			} else {
-
-				logs.Error("Account number is required for data bundle purchase")
-				isSuccess = false
-				message = "Account number is required for data bundle purchase"
 			}
 		}
 
@@ -2535,135 +2543,143 @@ func (c *Api_requestsController) BuyAirtime() {
 			ExternalReferenceNumber:  "",
 		}
 
-		if txn, err := helpers.LogTransaction(&c.Controller, transactionLog); err != nil {
-			logs.Error("Error logging transaction: ", err)
+		_, err := helpers.TempRegisterCustomer(&c.Controller, phoneNumber, network, true)
+
+		if err != nil {
+			logs.Error("Error registering customer temporarily: ", err)
 			isSuccess = false
-			message = "Error logging transaction: " + err.Error()
-
+			message = "Error registering customer: " + err.Error()
 		} else {
-			// txnString := fmt.Sprintf("%d", txn.Result.TransactionId)
-			logs.Info("Transaction ID returned is ", txn.Result.TransactionId)
-			buyAirtimeRequest := requests.BuyAirtimeFormulatedRequest{
-				TransactionId: txn.Result.TransactionRefNumber,
-				Amount:        req.Amount,
-				Network:       req.Network,
-				Destination:   destinationPhoneNumber,
-				SourceSystem:  sourceSystem,
-				PhoneNumber:   phoneNumber,
-			}
+			if txn, err := helpers.LogTransaction(&c.Controller, transactionLog); err != nil {
+				logs.Error("Error logging transaction: ", err)
+				isSuccess = false
+				message = "Error logging transaction: " + err.Error()
 
-			var response responses.BuyAirtimeAPIResponse = responses.BuyAirtimeAPIResponse{
-				StatusCode:    false,
-				StatusMessage: "Something went wrong",
-				Result:        nil,
-			}
+			} else {
+				// txnString := fmt.Sprintf("%d", txn.Result.TransactionId)
+				logs.Info("Transaction ID returned is ", txn.Result.TransactionId)
+				buyAirtimeRequest := requests.BuyAirtimeFormulatedRequest{
+					TransactionId: txn.Result.TransactionRefNumber,
+					Amount:        req.Amount,
+					Network:       req.Network,
+					Destination:   destinationPhoneNumber,
+					SourceSystem:  sourceSystem,
+					PhoneNumber:   phoneNumber,
+				}
 
-			if accountNumber != "" {
-				accountResp := apifunctions.GetCustomerAccount(&c.Controller, accountNumber)
+				var response responses.BuyAirtimeAPIResponse = responses.BuyAirtimeAPIResponse{
+					StatusCode:    false,
+					StatusMessage: "Something went wrong",
+					Result:        nil,
+				}
 
-				proceed := false
-				if accountResp.StatusCode == "200" {
-					accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Airtime Purchase", req.Amount, req.ClientId, "debit")
+				if accountNumber != "" {
+					accountResp := apifunctions.GetCustomerAccount(&c.Controller, accountNumber)
 
-					if !accountCheckResp.StatusCode {
-						logs.Debug("Error: ", accountCheckResp.StatusMessage)
-						response = responses.BuyAirtimeAPIResponse{
-							StatusCode:    false,
-							StatusMessage: accountCheckResp.StatusMessage,
-							Result:        nil,
+					proceed := false
+					if accountResp.StatusCode == "200" {
+						accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Airtime Purchase", req.Amount, req.ClientId, "debit")
+
+						if !accountCheckResp.StatusCode {
+							logs.Debug("Error: ", accountCheckResp.StatusMessage)
+							response = responses.BuyAirtimeAPIResponse{
+								StatusCode:    false,
+								StatusMessage: accountCheckResp.StatusMessage,
+								Result:        nil,
+							}
+						} else {
+							logs.Info("Account activity logged successfully for account number: ", accountNumber)
+							// Log payment request
+							makePaymentRequest := requests.PaymentRequestApiRequestDTO{
+								ClientId:        req.ClientId,
+								Amount:          req.Amount,
+								PaymentMethod:   "ACCOUNT",
+								Service:         "AIRTIME",
+								SenderAccount:   accountNumber,
+								ReceiverAccount: destinationPhoneNumber,
+								Network:         network,
+								ServiceNetwork:  req.Network,
+								MobileNumber:    phoneNumber,
+								TransactionId:   txn.Result.TransactionRefNumber,
+							}
+
+							helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
+
+							proceed = true
 						}
 					} else {
-						logs.Info("Account activity logged successfully for account number: ", accountNumber)
-						// Log payment request
-						makePaymentRequest := requests.PaymentRequestApiRequestDTO{
+						// Get customer by number before registering
+						logs.Error("Error fetching account details for account number: ", accountNumber)
+						logs.Info("Register Customer")
+
+						req := requests.PaymentRequestApiRequestDTO{
 							ClientId:        req.ClientId,
 							Amount:          req.Amount,
-							PaymentMethod:   "ACCOUNT",
+							PaymentMethod:   "MOBILEMONEY",
 							Service:         "AIRTIME",
 							SenderAccount:   accountNumber,
 							ReceiverAccount: destinationPhoneNumber,
 							Network:         network,
 							ServiceNetwork:  req.Network,
-							MobileNumber:    phoneNumber,
+							ServicePackage:  strconv.FormatFloat(req.Amount, 'f', -1, 64),
+							MobileNumber:    accountNumber,
 							TransactionId:   txn.Result.TransactionRefNumber,
 						}
+						//
 
-						helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
-
-						proceed = true
+						resp, err := helpers.RequestPaymentMain(&c.Controller, req)
+						if err != nil {
+							logs.Error("Error requesting payment: ", err)
+							isSuccess = false
+							message = "Error requesting payment: " + err.Error()
+						} else {
+							logs.Info("Payment requested successfully: ", resp)
+							if !resp.Success {
+								isSuccess = false
+								message = resp.StatusMessage
+							} else {
+								isSuccess = true
+								message = "Airtime purchase is being processed"
+							}
+						}
 					}
-				} else {
-					// Get customer by number before registering
-					logs.Error("Error fetching account details for account number: ", accountNumber)
-					logs.Info("Register Customer")
 
-					req := requests.PaymentRequestApiRequestDTO{
-						ClientId:        req.ClientId,
-						Amount:          req.Amount,
-						PaymentMethod:   "MOBILEMONEY",
-						Service:         "AIRTIME",
-						SenderAccount:   accountNumber,
-						ReceiverAccount: destinationPhoneNumber,
-						Network:         network,
-						ServiceNetwork:  req.Network,
-						ServicePackage:  strconv.FormatFloat(req.Amount, 'f', -1, 64),
-						MobileNumber:    accountNumber,
-						TransactionId:   txn.Result.TransactionRefNumber,
-					}
-					//
+					if proceed {
+						logs.Info("Formatted request for Buy Airtime: %s", func() string {
+							b, _ := json.Marshal(buyAirtimeRequest)
+							return string(b)
+						}())
+						resp := services.BuyAirtime(&c.Controller, buyAirtimeRequest)
+						logs.Info("Response from Buy Airtime API: ", resp)
 
-					resp, err := helpers.RequestPaymentMain(&c.Controller, req)
-					if err != nil {
-						logs.Error("Error requesting payment: ", err)
-						isSuccess = false
-						message = "Error requesting payment: " + err.Error()
-					} else {
-						logs.Info("Payment requested successfully: ", resp)
-						if !resp.Success {
+						if !resp.StatusCode {
 							isSuccess = false
 							message = resp.StatusMessage
 						} else {
+							responseText, err := json.Marshal(response.Result)
+							if err != nil {
+								logs.Error("Error marshalling response result: ", err)
+								responseText = []byte("[]")
+							}
+							v.RequestResponse = string(responseText)
+							v.DateModified = time.Now()
+							v.ResponseDate = time.Now()
+							if err := models.UpdateApi_requestsById(&v); err != nil {
+								logs.Error("Error updating API request with response: ", err)
+							} else {
+								logs.Info("API request updated with response successfully: ", v)
+							}
+
 							isSuccess = true
 							message = "Airtime purchase is being processed"
+							result = *resp.Result
 						}
 					}
+				} else {
+					logs.Error("Account number is required to process airtime purchase")
+					isSuccess = false
+					message = "Account number is required to process this request"
 				}
-
-				if proceed {
-					logs.Info("Formatted request for Buy Airtime: %s", func() string {
-						b, _ := json.Marshal(buyAirtimeRequest)
-						return string(b)
-					}())
-					resp := services.BuyAirtime(&c.Controller, buyAirtimeRequest)
-					logs.Info("Response from Buy Airtime API: ", resp)
-
-					if !resp.StatusCode {
-						isSuccess = false
-						message = resp.StatusMessage
-					} else {
-						responseText, err := json.Marshal(response.Result)
-						if err != nil {
-							logs.Error("Error marshalling response result: ", err)
-							responseText = []byte("[]")
-						}
-						v.RequestResponse = string(responseText)
-						v.DateModified = time.Now()
-						v.ResponseDate = time.Now()
-						if err := models.UpdateApi_requestsById(&v); err != nil {
-							logs.Error("Error updating API request with response: ", err)
-						} else {
-							logs.Info("API request updated with response successfully: ", v)
-						}
-
-						isSuccess = true
-						message = "Airtime purchase is being processed"
-						result = *resp.Result
-					}
-				}
-			} else {
-				logs.Error("Account number is required to process airtime purchase")
-				isSuccess = false
-				message = "Account number is required to process this request"
 			}
 		}
 
@@ -2979,134 +2995,142 @@ func (c *Api_requestsController) PayDSTV() {
 			ExternalReferenceNumber:  "",
 		}
 
-		if txn, err := helpers.LogTransaction(&c.Controller, transactionLog); err != nil {
-			logs.Error("Error logging transaction: ", err)
+		_, err := helpers.TempRegisterCustomer(&c.Controller, phoneNumber, network, true)
+
+		if err != nil {
+			logs.Error("Error registering customer temporarily: ", err)
 			responseStatus = false
-			responseMessage = "Error logging transaction: " + err.Error()
-
+			responseMessage = "Error registering customer: " + err.Error()
 		} else {
-			var response responses.DSTVBillPaymentResponse = responses.DSTVBillPaymentResponse{
-				StatusCode:    false,
-				StatusMessage: "Something went wrong",
-				Result:        nil,
-			}
+			if txn, err := helpers.LogTransaction(&c.Controller, transactionLog); err != nil {
+				logs.Error("Error logging transaction: ", err)
+				responseStatus = false
+				responseMessage = "Error logging transaction: " + err.Error()
 
-			if accountNumber != "" {
+			} else {
+				var response responses.DSTVBillPaymentResponse = responses.DSTVBillPaymentResponse{
+					StatusCode:    false,
+					StatusMessage: "Something went wrong",
+					Result:        nil,
+				}
 
-				accountResp := apifunctions.GetCustomerAccount(&c.Controller, accountNumber)
+				if accountNumber != "" {
 
-				proceed := false
-				if accountResp.StatusCode == "200" {
-					accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay DSTV", req.Amount, req.ClientId, "debit")
+					accountResp := apifunctions.GetCustomerAccount(&c.Controller, accountNumber)
 
-					if !accountCheckResp.StatusCode {
-						response = responses.DSTVBillPaymentResponse{
-							StatusCode:    false,
-							StatusMessage: accountCheckResp.StatusMessage,
-							Result:        nil,
+					proceed := false
+					if accountResp.StatusCode == "200" {
+						accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay DSTV", req.Amount, req.ClientId, "debit")
+
+						if !accountCheckResp.StatusCode {
+							response = responses.DSTVBillPaymentResponse{
+								StatusCode:    false,
+								StatusMessage: accountCheckResp.StatusMessage,
+								Result:        nil,
+							}
+						} else {
+							logs.Info("Account activity logged successfully for account number: ", accountNumber)
+							// Log payment request
+							makePaymentRequest := requests.PaymentRequestApiRequestDTO{
+								ClientId:        req.ClientId,
+								Amount:          req.Amount,
+								PaymentMethod:   "ACCOUNT",
+								Service:         "BILL PAYMENT",
+								SenderAccount:   accountNumber,
+								ReceiverAccount: req.DestinationAccount,
+								Network:         network,
+								ServiceNetwork:  "DSTV",
+								ServicePackage:  req.PackageType,
+								MobileNumber:    phoneNumber,
+								TransactionId:   txn.Result.TransactionRefNumber,
+							}
+
+							helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
+
+							proceed = true
 						}
 					} else {
-						logs.Info("Account activity logged successfully for account number: ", accountNumber)
-						// Log payment request
-						makePaymentRequest := requests.PaymentRequestApiRequestDTO{
+						logs.Error("Error fetching account details for account number: ", accountNumber)
+						logs.Info("Register Customer")
+
+						req := requests.PaymentRequestApiRequestDTO{
 							ClientId:        req.ClientId,
 							Amount:          req.Amount,
-							PaymentMethod:   "ACCOUNT",
+							PaymentMethod:   "MOBILEMONEY",
 							Service:         "BILL PAYMENT",
 							SenderAccount:   accountNumber,
 							ReceiverAccount: req.DestinationAccount,
 							Network:         network,
 							ServiceNetwork:  "DSTV",
 							ServicePackage:  req.PackageType,
-							MobileNumber:    phoneNumber,
+							MobileNumber:    accountNumber,
 							TransactionId:   txn.Result.TransactionRefNumber,
 						}
+						//
 
-						helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
+						resp, err := helpers.RequestPaymentMain(&c.Controller, req)
+						if err != nil {
+							logs.Error("Error requesting payment: ", err)
+							responseStatus = false
+							responseMessage = "Error requesting payment: " + err.Error()
 
-						proceed = true
+						} else {
+							logs.Info("Payment requested successfully: ", resp)
+							if !resp.Success {
+								responseStatus = false
+								responseMessage = resp.StatusMessage
+							} else {
+								responseStatus = true
+								responseMessage = "DSTV payment is being processed"
+							}
+						}
+					}
+
+					if proceed {
+						// txnString := fmt.Sprintf("%d", txn.Result.TransactionId)
+						payDSTVRequest := requests.DSTVPaymentRequest{
+							TransactionId:      txn.Result.TransactionRefNumber,
+							Amount:             req.Amount,
+							DestinationAccount: destinationAccount,
+							PackageType:        req.PackageType,
+							SourceSystem:       sourceSystem,
+							PhoneNumber:        phoneNumber,
+						}
+
+						logs.Info("Formatted request to pay DSTV: ", payDSTVRequest)
+						resp := services.PayDstv(&c.Controller, payDSTVRequest)
+						logs.Info("Response from DSTV payment: ", resp)
+
+						if !resp.StatusCode {
+							response = responses.DSTVBillPaymentResponse{
+								StatusCode:    false,
+								StatusMessage: resp.StatusMessage,
+								Result:        resp.Result,
+							}
+						} else {
+							responseText, err := json.Marshal(response.Result)
+							if err != nil {
+								logs.Error("Error marshalling response result: ", err)
+								responseText = []byte("[]")
+							}
+							v.RequestResponse = string(responseText)
+							v.DateModified = time.Now()
+							v.ResponseDate = time.Now()
+							if err := models.UpdateApi_requestsById(&v); err != nil {
+								logs.Error("Error updating API request with response: ", err)
+							} else {
+								logs.Info("API request updated with response successfully: ", v)
+							}
+							responseStatus = true
+							responseMessage = resp.StatusMessage
+							result = *resp.Result
+						}
 					}
 				} else {
-					logs.Error("Error fetching account details for account number: ", accountNumber)
-					logs.Info("Register Customer")
-
-					req := requests.PaymentRequestApiRequestDTO{
-						ClientId:        req.ClientId,
-						Amount:          req.Amount,
-						PaymentMethod:   "MOBILEMONEY",
-						Service:         "BILL PAYMENT",
-						SenderAccount:   accountNumber,
-						ReceiverAccount: req.DestinationAccount,
-						Network:         network,
-						ServiceNetwork:  "DSTV",
-						ServicePackage:  req.PackageType,
-						MobileNumber:    accountNumber,
-						TransactionId:   txn.Result.TransactionRefNumber,
-					}
-					//
-
-					resp, err := helpers.RequestPaymentMain(&c.Controller, req)
-					if err != nil {
-						logs.Error("Error requesting payment: ", err)
-						responseStatus = false
-						responseMessage = "Error requesting payment: " + err.Error()
-
-					} else {
-						logs.Info("Payment requested successfully: ", resp)
-						if !resp.Success {
-							responseStatus = false
-							responseMessage = resp.StatusMessage
-						} else {
-							responseStatus = true
-							responseMessage = "DSTV payment is being processed"
-						}
-					}
+					logs.Error("Account number is required to process DSTV payment")
+					responseStatus = false
+					responseMessage = "Account number is required to process this request"
 				}
-
-				if proceed {
-					// txnString := fmt.Sprintf("%d", txn.Result.TransactionId)
-					payDSTVRequest := requests.DSTVPaymentRequest{
-						TransactionId:      txn.Result.TransactionRefNumber,
-						Amount:             req.Amount,
-						DestinationAccount: destinationAccount,
-						PackageType:        req.PackageType,
-						SourceSystem:       sourceSystem,
-						PhoneNumber:        phoneNumber,
-					}
-
-					logs.Info("Formatted request to pay DSTV: ", payDSTVRequest)
-					resp := services.PayDstv(&c.Controller, payDSTVRequest)
-					logs.Info("Response from DSTV payment: ", resp)
-
-					if !resp.StatusCode {
-						response = responses.DSTVBillPaymentResponse{
-							StatusCode:    false,
-							StatusMessage: resp.StatusMessage,
-							Result:        resp.Result,
-						}
-					} else {
-						responseText, err := json.Marshal(response.Result)
-						if err != nil {
-							logs.Error("Error marshalling response result: ", err)
-							responseText = []byte("[]")
-						}
-						v.RequestResponse = string(responseText)
-						v.DateModified = time.Now()
-						v.ResponseDate = time.Now()
-						if err := models.UpdateApi_requestsById(&v); err != nil {
-							logs.Error("Error updating API request with response: ", err)
-						} else {
-							logs.Info("API request updated with response successfully: ", v)
-						}
-						responseStatus = true
-						responseMessage = resp.StatusMessage
-						result = *resp.Result
-					}
-				}
-			} else {
-				logs.Error("Account number is required to process DSTV payment")
-				responseStatus = false
-				responseMessage = "Account number is required to process this request"
 			}
 		}
 
@@ -3199,131 +3223,139 @@ func (c *Api_requestsController) PayGOTV() {
 			ExternalReferenceNumber:  "",
 		}
 
-		if txn, err := helpers.LogTransaction(&c.Controller, transactionLog); err != nil {
-			logs.Error("Error logging transaction: ", err)
+		_, err := helpers.TempRegisterCustomer(&c.Controller, phoneNumber, network, true)
+
+		if err != nil {
+			logs.Error("Error registering customer temporarily: ", err)
 			responseStatus = false
-			responseMessage = "Error logging transaction: " + err.Error()
-
+			responseMessage = "Error registering customer: " + err.Error()
 		} else {
-			logs.Info("Transaction logged successfully: ", txn)
-			// txnString := fmt.Sprintf("%d", txn.Result.TransactionId)
-			payGOTVRequest := requests.GoTvPaymentApiRequest{
-				TransactionId:      txn.Result.TransactionRefNumber,
-				Amount:             req.Amount,
-				DestinationAccount: destinationAccount,
-				PackageType:        req.PackageType,
-				SourceSystem:       sourceSystem,
-				PhoneNumber:        phoneNumber,
-			}
+			if txn, err := helpers.LogTransaction(&c.Controller, transactionLog); err != nil {
+				logs.Error("Error logging transaction: ", err)
+				responseStatus = false
+				responseMessage = "Error logging transaction: " + err.Error()
 
-			if accountNumber != "" {
-				accountResp := apifunctions.GetCustomerAccount(&c.Controller, accountNumber)
+			} else {
+				logs.Info("Transaction logged successfully: ", txn)
+				// txnString := fmt.Sprintf("%d", txn.Result.TransactionId)
+				payGOTVRequest := requests.GoTvPaymentApiRequest{
+					TransactionId:      txn.Result.TransactionRefNumber,
+					Amount:             req.Amount,
+					DestinationAccount: destinationAccount,
+					PackageType:        req.PackageType,
+					SourceSystem:       sourceSystem,
+					PhoneNumber:        phoneNumber,
+				}
 
-				proceed := false
-				if accountResp.StatusCode == "200" {
-					accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay GOTV", req.Amount, req.ClientId, "debit")
+				if accountNumber != "" {
+					accountResp := apifunctions.GetCustomerAccount(&c.Controller, accountNumber)
 
-					if !accountCheckResp.StatusCode {
-						responseStatus = false
-						responseMessage = accountCheckResp.StatusMessage
+					proceed := false
+					if accountResp.StatusCode == "200" {
+						accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay GOTV", req.Amount, req.ClientId, "debit")
+
+						if !accountCheckResp.StatusCode {
+							responseStatus = false
+							responseMessage = accountCheckResp.StatusMessage
+						} else {
+							logs.Info("Account activity logged successfully for account number: ", accountNumber)
+
+							// Log payment request
+							makePaymentRequest := requests.PaymentRequestApiRequestDTO{
+								ClientId:        req.ClientId,
+								Amount:          req.Amount,
+								PaymentMethod:   "ACCOUNT",
+								Service:         "BILL PAYMENT",
+								SenderAccount:   accountNumber,
+								ReceiverAccount: req.DestinationAccount,
+								Network:         network,
+								ServiceNetwork:  "GOTV",
+								ServicePackage:  req.PackageType,
+								MobileNumber:    phoneNumber,
+								TransactionId:   txn.Result.TransactionRefNumber,
+							}
+
+							helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
+
+							proceed = true
+						}
 					} else {
-						logs.Info("Account activity logged successfully for account number: ", accountNumber)
+						logs.Error("Error fetching account details for account number: ", accountNumber)
+						logs.Info("Register Customer")
 
-						// Log payment request
-						makePaymentRequest := requests.PaymentRequestApiRequestDTO{
+						req := requests.PaymentRequestApiRequestDTO{
 							ClientId:        req.ClientId,
 							Amount:          req.Amount,
-							PaymentMethod:   "ACCOUNT",
+							PaymentMethod:   "MOBILEMONEY",
 							Service:         "BILL PAYMENT",
 							SenderAccount:   accountNumber,
 							ReceiverAccount: req.DestinationAccount,
 							Network:         network,
 							ServiceNetwork:  "GOTV",
 							ServicePackage:  req.PackageType,
-							MobileNumber:    phoneNumber,
+							MobileNumber:    accountNumber,
 							TransactionId:   txn.Result.TransactionRefNumber,
 						}
+						//
 
-						helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
+						resp, err := helpers.RequestPaymentMain(&c.Controller, req)
+						if err != nil {
+							logs.Error("Error requesting payment: ", err)
+							responseStatus = false
+							responseMessage = "Error requesting payment: " + err.Error()
+						} else {
+							logs.Info("Payment requested successfully: ", resp)
+							if !resp.Success {
+								responseStatus = false
+								responseMessage = resp.StatusMessage
+							} else {
 
-						proceed = true
+								responseStatus = true
+								responseMessage = "GOTV payment is being processed"
+
+							}
+						}
 					}
-				} else {
-					logs.Error("Error fetching account details for account number: ", accountNumber)
-					logs.Info("Register Customer")
 
-					req := requests.PaymentRequestApiRequestDTO{
-						ClientId:        req.ClientId,
-						Amount:          req.Amount,
-						PaymentMethod:   "MOBILEMONEY",
-						Service:         "BILL PAYMENT",
-						SenderAccount:   accountNumber,
-						ReceiverAccount: req.DestinationAccount,
-						Network:         network,
-						ServiceNetwork:  "GOTV",
-						ServicePackage:  req.PackageType,
-						MobileNumber:    accountNumber,
-						TransactionId:   txn.Result.TransactionRefNumber,
-					}
-					//
+					if proceed {
+						logs.Info("Formatted request to pay GOTV: ", payGOTVRequest)
+						resp := services.PayGotv(&c.Controller, payGOTVRequest)
+						logs.Info("Response from GOTV API: ", resp)
 
-					resp, err := helpers.RequestPaymentMain(&c.Controller, req)
-					if err != nil {
-						logs.Error("Error requesting payment: ", err)
-						responseStatus = false
-						responseMessage = "Error requesting payment: " + err.Error()
-					} else {
-						logs.Info("Payment requested successfully: ", resp)
-						if !resp.Success {
+						var response responses.GoTvBillPaymentResponse = responses.GoTvBillPaymentResponse{
+							StatusCode:    false,
+							StatusMessage: "Something went wrong",
+							Result:        resp.Result,
+						}
+
+						if !resp.StatusCode {
 							responseStatus = false
 							responseMessage = resp.StatusMessage
 						} else {
+							responseText, err := json.Marshal(response.Result)
+							if err != nil {
+								logs.Error("Error marshalling response result: ", err)
+								responseText = []byte("[]")
+							}
+							v.RequestResponse = string(responseText)
+							v.DateModified = time.Now()
+							v.ResponseDate = time.Now()
+							if err := models.UpdateApi_requestsById(&v); err != nil {
+								logs.Error("Error updating API request with response: ", err)
+							} else {
+								logs.Info("API request updated with response successfully: ", v)
+							}
 
 							responseStatus = true
-							responseMessage = "GOTV payment is being processed"
-
+							responseMessage = resp.StatusMessage
+							result = *resp.Result
 						}
 					}
+				} else {
+					responseStatus = false
+					responseMessage = "Account number is required to process this request"
+					logs.Error("Account number is required to process GOTV payment")
 				}
-
-				if proceed {
-					logs.Info("Formatted request to pay GOTV: ", payGOTVRequest)
-					resp := services.PayGotv(&c.Controller, payGOTVRequest)
-					logs.Info("Response from GOTV API: ", resp)
-
-					var response responses.GoTvBillPaymentResponse = responses.GoTvBillPaymentResponse{
-						StatusCode:    false,
-						StatusMessage: "Something went wrong",
-						Result:        resp.Result,
-					}
-
-					if !resp.StatusCode {
-						responseStatus = false
-						responseMessage = resp.StatusMessage
-					} else {
-						responseText, err := json.Marshal(response.Result)
-						if err != nil {
-							logs.Error("Error marshalling response result: ", err)
-							responseText = []byte("[]")
-						}
-						v.RequestResponse = string(responseText)
-						v.DateModified = time.Now()
-						v.ResponseDate = time.Now()
-						if err := models.UpdateApi_requestsById(&v); err != nil {
-							logs.Error("Error updating API request with response: ", err)
-						} else {
-							logs.Info("API request updated with response successfully: ", v)
-						}
-
-						responseStatus = true
-						responseMessage = resp.StatusMessage
-						result = *resp.Result
-					}
-				}
-			} else {
-				responseStatus = false
-				responseMessage = "Account number is required to process this request"
-				logs.Error("Account number is required to process GOTV payment")
 			}
 		}
 
@@ -3417,129 +3449,137 @@ func (c *Api_requestsController) PayECG() {
 			ExternalReferenceNumber:  "",
 		}
 
-		if txn, err := helpers.LogTransaction(&c.Controller, transactionLog); err != nil {
-			logs.Error("Error logging transaction: ", err)
+		_, err := helpers.TempRegisterCustomer(&c.Controller, phoneNumber, network, true)
+
+		if err != nil {
+			logs.Error("Error registering customer temporarily: ", err)
 			responseStatus = false
-			responseMessage = "Error logging transaction: " + err.Error()
-
+			responseMessage = "Error registering customer: " + err.Error()
 		} else {
-			// txnString := fmt.Sprintf("%d", txn.Result.TransactionId)
-			payECGRequest := requests.ECGPaymentApiRequest{
-				TransactionId:      txn.Result.TransactionRefNumber,
-				Amount:             req.Amount,
-				DestinationAccount: destinationAccount,
-				PackageType:        req.PackageType,
-				SourceSystem:       sourceSystem,
-				PhoneNumber:        phoneNumber,
-			}
+			if txn, err := helpers.LogTransaction(&c.Controller, transactionLog); err != nil {
+				logs.Error("Error logging transaction: ", err)
+				responseStatus = false
+				responseMessage = "Error logging transaction: " + err.Error()
 
-			var response responses.ECGBillPaymentResponse = responses.ECGBillPaymentResponse{
-				StatusCode:    false,
-				StatusMessage: "Something went wrong",
-				Result:        nil,
-			}
+			} else {
+				// txnString := fmt.Sprintf("%d", txn.Result.TransactionId)
+				payECGRequest := requests.ECGPaymentApiRequest{
+					TransactionId:      txn.Result.TransactionRefNumber,
+					Amount:             req.Amount,
+					DestinationAccount: destinationAccount,
+					PackageType:        req.PackageType,
+					SourceSystem:       sourceSystem,
+					PhoneNumber:        phoneNumber,
+				}
 
-			if accountNumber != "" {
-				accountResp := apifunctions.GetCustomerAccount(&c.Controller, accountNumber)
+				var response responses.ECGBillPaymentResponse = responses.ECGBillPaymentResponse{
+					StatusCode:    false,
+					StatusMessage: "Something went wrong",
+					Result:        nil,
+				}
 
-				proceed := false
-				if accountResp.StatusCode == "200" {
-					accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay ECG", req.Amount, req.ClientId, "debit")
+				if accountNumber != "" {
+					accountResp := apifunctions.GetCustomerAccount(&c.Controller, accountNumber)
 
-					if !accountCheckResp.StatusCode {
-						responseStatus = false
-						responseMessage = accountCheckResp.StatusMessage
+					proceed := false
+					if accountResp.StatusCode == "200" {
+						accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay ECG", req.Amount, req.ClientId, "debit")
+
+						if !accountCheckResp.StatusCode {
+							responseStatus = false
+							responseMessage = accountCheckResp.StatusMessage
+						} else {
+							logs.Info("Account activity logged successfully for account number: ", accountNumber)
+							// Log payment request
+							makePaymentRequest := requests.PaymentRequestApiRequestDTO{
+								ClientId:        req.ClientId,
+								Amount:          req.Amount,
+								PaymentMethod:   "ACCOUNT",
+								Service:         "BILL PAYMENT",
+								SenderAccount:   accountNumber,
+								ReceiverAccount: req.DestinationAccount,
+								Network:         network,
+								ServiceNetwork:  "ECG",
+								ServicePackage:  req.PackageType,
+								MobileNumber:    phoneNumber,
+								TransactionId:   txn.Result.TransactionRefNumber,
+							}
+
+							helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
+
+							proceed = true
+						}
 					} else {
-						logs.Info("Account activity logged successfully for account number: ", accountNumber)
-						// Log payment request
-						makePaymentRequest := requests.PaymentRequestApiRequestDTO{
+						logs.Error("Error fetching account details for account number: ", accountNumber)
+						logs.Info("Register Customer")
+
+						req := requests.PaymentRequestApiRequestDTO{
 							ClientId:        req.ClientId,
 							Amount:          req.Amount,
-							PaymentMethod:   "ACCOUNT",
+							PaymentMethod:   "MOBILEMONEY",
 							Service:         "BILL PAYMENT",
 							SenderAccount:   accountNumber,
 							ReceiverAccount: req.DestinationAccount,
 							Network:         network,
 							ServiceNetwork:  "ECG",
 							ServicePackage:  req.PackageType,
-							MobileNumber:    phoneNumber,
+							MobileNumber:    accountNumber,
 							TransactionId:   txn.Result.TransactionRefNumber,
 						}
+						//
 
-						helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
-
-						proceed = true
-					}
-				} else {
-					logs.Error("Error fetching account details for account number: ", accountNumber)
-					logs.Info("Register Customer")
-
-					req := requests.PaymentRequestApiRequestDTO{
-						ClientId:        req.ClientId,
-						Amount:          req.Amount,
-						PaymentMethod:   "MOBILEMONEY",
-						Service:         "BILL PAYMENT",
-						SenderAccount:   accountNumber,
-						ReceiverAccount: req.DestinationAccount,
-						Network:         network,
-						ServiceNetwork:  "ECG",
-						ServicePackage:  req.PackageType,
-						MobileNumber:    accountNumber,
-						TransactionId:   txn.Result.TransactionRefNumber,
-					}
-					//
-
-					resp, err := helpers.RequestPaymentMain(&c.Controller, req)
-					if err != nil {
-						logs.Error("Error requesting payment: ", err)
-						responseStatus = false
-						responseMessage = "Error requesting payment: " + err.Error()
-					} else {
-						logs.Info("Payment requested successfully: ", resp)
-						if !resp.Success {
+						resp, err := helpers.RequestPaymentMain(&c.Controller, req)
+						if err != nil {
+							logs.Error("Error requesting payment: ", err)
 							responseStatus = false
-							responseMessage = resp.StatusMessage
+							responseMessage = "Error requesting payment: " + err.Error()
 						} else {
+							logs.Info("Payment requested successfully: ", resp)
+							if !resp.Success {
+								responseStatus = false
+								responseMessage = resp.StatusMessage
+							} else {
+								responseStatus = true
+								responseMessage = "Payment is being processed"
+							}
+						}
+					}
+
+					if proceed {
+						logs.Info("Formatted request to pay ECG: ", payECGRequest)
+						resp := services.PayEcg(&c.Controller, payECGRequest)
+						logs.Info("Response from pay ECG: ", resp)
+
+						if resp.StatusCode != "200" {
+							response = responses.ECGBillPaymentResponse{
+								StatusCode:    false,
+								StatusMessage: resp.StatusMessage,
+								Result:        resp.Result,
+							}
+						} else {
+							responseText, err := json.Marshal(response.Result)
+							if err != nil {
+								logs.Error("Error marshalling response result: ", err)
+								responseText = []byte("[]")
+							}
+							v.RequestResponse = string(responseText)
+							v.DateModified = time.Now()
+							v.ResponseDate = time.Now()
+							if err := models.UpdateApi_requestsById(&v); err != nil {
+								logs.Error("Error updating API request with response: ", err)
+							} else {
+								logs.Info("API request updated with response successfully: ", v)
+							}
+
 							responseStatus = true
 							responseMessage = "Payment is being processed"
+							result = *resp.Result
 						}
 					}
+				} else {
+					responseStatus = false
+					responseMessage = "Account number is required to process this request"
 				}
-
-				if proceed {
-					logs.Info("Formatted request to pay ECG: ", payECGRequest)
-					resp := services.PayEcg(&c.Controller, payECGRequest)
-					logs.Info("Response from pay ECG: ", resp)
-
-					if resp.StatusCode != "200" {
-						response = responses.ECGBillPaymentResponse{
-							StatusCode:    false,
-							StatusMessage: resp.StatusMessage,
-							Result:        resp.Result,
-						}
-					} else {
-						responseText, err := json.Marshal(response.Result)
-						if err != nil {
-							logs.Error("Error marshalling response result: ", err)
-							responseText = []byte("[]")
-						}
-						v.RequestResponse = string(responseText)
-						v.DateModified = time.Now()
-						v.ResponseDate = time.Now()
-						if err := models.UpdateApi_requestsById(&v); err != nil {
-							logs.Error("Error updating API request with response: ", err)
-						} else {
-							logs.Info("API request updated with response successfully: ", v)
-						}
-
-						responseStatus = true
-						responseMessage = "Payment is being processed"
-						result = *resp.Result
-					}
-				}
-			} else {
-				responseStatus = false
-				responseMessage = "Account number is required to process this request"
 			}
 		}
 
@@ -3641,127 +3681,135 @@ func (c *Api_requestsController) PayWaterBill() {
 			ExternalReferenceNumber:  "",
 		}
 
-		if txn, err := helpers.LogTransaction(&c.Controller, transactionLog); err != nil {
-			logs.Error("Error logging transaction: ", err)
+		_, err := helpers.TempRegisterCustomer(&c.Controller, phoneNumber, network, true)
+
+		if err != nil {
+			logs.Error("Error registering customer temporarily: ", err)
 			responseStatus = false
-			responseMessage = "Error logging transaction: " + err.Error()
-
+			responseMessage = "Error registering customer: " + err.Error()
 		} else {
-			logs.Info("Transaction logged successfully")
+			if txn, err := helpers.LogTransaction(&c.Controller, transactionLog); err != nil {
+				logs.Error("Error logging transaction: ", err)
+				responseStatus = false
+				responseMessage = "Error logging transaction: " + err.Error()
 
-			// transactionString := fmt.Sprintf("%d", txn.Result.TransactionId)
-			payWaterRequest := requests.GhanaWaterPaymentFuncRequest{
-				TransactionId:      txn.Result.TransactionRefNumber,
-				Amount:             req.Amount,
-				DestinationAccount: destinationAccount,
-				PackageType:        req.PackageType,
-				SourceSystem:       sourceSystem,
-				PhoneNumber:        phoneNumber,
-				Name:               req.CustomerName,
-				Email:              req.CustomerEmail,
-			}
+			} else {
+				logs.Info("Transaction logged successfully")
 
-			if accountNumber != "" {
-				accountResp := apifunctions.GetCustomerAccount(&c.Controller, accountNumber)
+				// transactionString := fmt.Sprintf("%d", txn.Result.TransactionId)
+				payWaterRequest := requests.GhanaWaterPaymentFuncRequest{
+					TransactionId:      txn.Result.TransactionRefNumber,
+					Amount:             req.Amount,
+					DestinationAccount: destinationAccount,
+					PackageType:        req.PackageType,
+					SourceSystem:       sourceSystem,
+					PhoneNumber:        phoneNumber,
+					Name:               req.CustomerName,
+					Email:              req.CustomerEmail,
+				}
 
-				proceed := false
-				if accountResp.StatusCode == "200" {
-					logs.Info("Client ID::: ", req.ClientId)
-					accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay Water", req.Amount, req.ClientId, "debit")
+				if accountNumber != "" {
+					accountResp := apifunctions.GetCustomerAccount(&c.Controller, accountNumber)
 
-					if !accountCheckResp.StatusCode {
-						logs.Error("Error logging account activity for account number: ", accountNumber)
-						responseStatus = false
-						responseMessage = accountCheckResp.StatusMessage
+					proceed := false
+					if accountResp.StatusCode == "200" {
+						logs.Info("Client ID::: ", req.ClientId)
+						accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay Water", req.Amount, req.ClientId, "debit")
+
+						if !accountCheckResp.StatusCode {
+							logs.Error("Error logging account activity for account number: ", accountNumber)
+							responseStatus = false
+							responseMessage = accountCheckResp.StatusMessage
+						} else {
+							logs.Info("Account activity logged successfully for account number: ", accountNumber)
+
+							// Log payment request
+							makePaymentRequest := requests.PaymentRequestApiRequestDTO{
+								ClientId:        req.ClientId,
+								Amount:          req.Amount,
+								PaymentMethod:   "ACCOUNT",
+								Service:         "BILL PAYMENT",
+								SenderAccount:   accountNumber,
+								ReceiverAccount: req.DestinationAccount,
+								Network:         network,
+								ServiceNetwork:  "GH_WATER",
+								ServicePackage:  req.PackageType,
+								MobileNumber:    phoneNumber,
+								TransactionId:   txn.Result.TransactionRefNumber,
+							}
+
+							helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
+
+							proceed = true
+						}
 					} else {
-						logs.Info("Account activity logged successfully for account number: ", accountNumber)
+						logs.Error("Error fetching account details for account number: ", accountNumber)
+						logs.Info("Register Customer")
 
-						// Log payment request
-						makePaymentRequest := requests.PaymentRequestApiRequestDTO{
+						req := requests.PaymentRequestApiRequestDTO{
 							ClientId:        req.ClientId,
 							Amount:          req.Amount,
-							PaymentMethod:   "ACCOUNT",
+							PaymentMethod:   "MOBILEMONEY",
 							Service:         "BILL PAYMENT",
 							SenderAccount:   accountNumber,
 							ReceiverAccount: req.DestinationAccount,
 							Network:         network,
 							ServiceNetwork:  "GH_WATER",
 							ServicePackage:  req.PackageType,
-							MobileNumber:    phoneNumber,
+							MobileNumber:    accountNumber,
 							TransactionId:   txn.Result.TransactionRefNumber,
 						}
+						//
 
-						helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
-
-						proceed = true
+						resp, err := helpers.RequestPaymentMain(&c.Controller, req)
+						if err != nil {
+							logs.Error("Error requesting payment: ", err)
+							responseStatus = false
+							responseMessage = "Error requesting payment: " + err.Error()
+						} else {
+							logs.Info("Payment requested successfully: ", resp)
+							if !resp.Success {
+								responseStatus = false
+								responseMessage = resp.StatusMessage
+							} else {
+								responseStatus = true
+								responseMessage = "Water bill purchase is being processed"
+							}
+						}
 					}
-				} else {
-					logs.Error("Error fetching account details for account number: ", accountNumber)
-					logs.Info("Register Customer")
 
-					req := requests.PaymentRequestApiRequestDTO{
-						ClientId:        req.ClientId,
-						Amount:          req.Amount,
-						PaymentMethod:   "MOBILEMONEY",
-						Service:         "BILL PAYMENT",
-						SenderAccount:   accountNumber,
-						ReceiverAccount: req.DestinationAccount,
-						Network:         network,
-						ServiceNetwork:  "GH_WATER",
-						ServicePackage:  req.PackageType,
-						MobileNumber:    accountNumber,
-						TransactionId:   txn.Result.TransactionRefNumber,
-					}
-					//
+					if proceed {
+						logs.Info("Formatted request to pay water: ", payWaterRequest)
+						resp := services.PayWater(&c.Controller, payWaterRequest)
+						logs.Info("Response from pay water: ", resp)
 
-					resp, err := helpers.RequestPaymentMain(&c.Controller, req)
-					if err != nil {
-						logs.Error("Error requesting payment: ", err)
-						responseStatus = false
-						responseMessage = "Error requesting payment: " + err.Error()
-					} else {
-						logs.Info("Payment requested successfully: ", resp)
-						if !resp.Success {
+						if !resp.StatusCode {
 							responseStatus = false
 							responseMessage = resp.StatusMessage
+							result_ = *resp.Result
 						} else {
+							responseText, err := json.Marshal(response.Result)
+							if err != nil {
+								logs.Error("Error marshalling response result: ", err)
+								responseText = []byte("[]")
+							}
+							v.RequestResponse = string(responseText)
+							v.DateModified = time.Now()
+							v.ResponseDate = time.Now()
+							if err := models.UpdateApi_requestsById(&v); err != nil {
+								logs.Error("Error updating API request with response: ", err)
+							} else {
+								logs.Info("API request updated with response successfully: ", v)
+							}
 							responseStatus = true
-							responseMessage = "Water bill purchase is being processed"
+							responseMessage = resp.StatusMessage
+							result_ = *resp.Result
 						}
 					}
+				} else {
+					responseStatus = false
+					responseMessage = "Account number is required to process this request"
 				}
-
-				if proceed {
-					logs.Info("Formatted request to pay water: ", payWaterRequest)
-					resp := services.PayWater(&c.Controller, payWaterRequest)
-					logs.Info("Response from pay water: ", resp)
-
-					if !resp.StatusCode {
-						responseStatus = false
-						responseMessage = resp.StatusMessage
-						result_ = *resp.Result
-					} else {
-						responseText, err := json.Marshal(response.Result)
-						if err != nil {
-							logs.Error("Error marshalling response result: ", err)
-							responseText = []byte("[]")
-						}
-						v.RequestResponse = string(responseText)
-						v.DateModified = time.Now()
-						v.ResponseDate = time.Now()
-						if err := models.UpdateApi_requestsById(&v); err != nil {
-							logs.Error("Error updating API request with response: ", err)
-						} else {
-							logs.Info("API request updated with response successfully: ", v)
-						}
-						responseStatus = true
-						responseMessage = resp.StatusMessage
-						result_ = *resp.Result
-					}
-				}
-			} else {
-				responseStatus = false
-				responseMessage = "Account number is required to process this request"
 			}
 		}
 
@@ -3863,131 +3911,139 @@ func (c *Api_requestsController) PayStartimesTvBill() {
 			ExternalReferenceNumber:  "",
 		}
 
-		if txn, err := helpers.LogTransaction(&c.Controller, transactionLog); err != nil {
-			logs.Error("Error logging transaction: ", err)
+		_, err := helpers.TempRegisterCustomer(&c.Controller, phoneNumber, network, true)
+
+		if err != nil {
+			logs.Error("Error registering customer temporarily: ", err)
 			responseStatus = false
-			responseMessage = "Error logging transaction: " + err.Error()
-
+			responseMessage = "Error registering customer: " + err.Error()
 		} else {
-			// transactionString := fmt.Sprintf("%d", txn.Result.TransactionId)
-			payStartimesRequest := requests.StartimesPaymentApiRequest{
-				TransactionId:      txn.Result.TransactionRefNumber,
-				Amount:             req.Amount,
-				DestinationAccount: destinationAccount,
-				PackageType:        req.PackageType,
-				SourceSystem:       sourceSystem,
-				PhoneNumber:        phoneNumber,
-			}
+			if txn, err := helpers.LogTransaction(&c.Controller, transactionLog); err != nil {
+				logs.Error("Error logging transaction: ", err)
+				responseStatus = false
+				responseMessage = "Error logging transaction: " + err.Error()
 
-			accountResp := apifunctions.GetCustomerAccount(&c.Controller, accountNumber)
+			} else {
+				// transactionString := fmt.Sprintf("%d", txn.Result.TransactionId)
+				payStartimesRequest := requests.StartimesPaymentApiRequest{
+					TransactionId:      txn.Result.TransactionRefNumber,
+					Amount:             req.Amount,
+					DestinationAccount: destinationAccount,
+					PackageType:        req.PackageType,
+					SourceSystem:       sourceSystem,
+					PhoneNumber:        phoneNumber,
+				}
 
-			if accountNumber != "" {
+				accountResp := apifunctions.GetCustomerAccount(&c.Controller, accountNumber)
 
-				proceed := false
-				if accountResp.StatusCode == "200" {
-					accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay Startimes", req.Amount, req.ClientId, "debit")
+				if accountNumber != "" {
 
-					if !accountCheckResp.StatusCode {
-						responseStatus = false
-						responseMessage = accountCheckResp.StatusMessage
+					proceed := false
+					if accountResp.StatusCode == "200" {
+						accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay Startimes", req.Amount, req.ClientId, "debit")
+
+						if !accountCheckResp.StatusCode {
+							responseStatus = false
+							responseMessage = accountCheckResp.StatusMessage
+						} else {
+							logs.Info("Account activity logged successfully for account number: ", accountNumber)
+
+							// Log payment request
+							makePaymentRequest := requests.PaymentRequestApiRequestDTO{
+								ClientId:        req.ClientId,
+								Amount:          req.Amount,
+								PaymentMethod:   "ACCOUNT",
+								Service:         "BILL PAYMENT",
+								SenderAccount:   accountNumber,
+								ReceiverAccount: req.DestinationAccount,
+								Network:         network,
+								ServiceNetwork:  "STARTIMES",
+								ServicePackage:  req.PackageType,
+								MobileNumber:    phoneNumber,
+								TransactionId:   txn.Result.TransactionRefNumber,
+							}
+
+							helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
+
+							proceed = true
+						}
 					} else {
-						logs.Info("Account activity logged successfully for account number: ", accountNumber)
+						logs.Error("Error fetching account details for account number: ", accountNumber)
+						logs.Info("Register Customer")
 
-						// Log payment request
-						makePaymentRequest := requests.PaymentRequestApiRequestDTO{
+						req := requests.PaymentRequestApiRequestDTO{
 							ClientId:        req.ClientId,
 							Amount:          req.Amount,
-							PaymentMethod:   "ACCOUNT",
+							PaymentMethod:   "MOBILEMONEY",
 							Service:         "BILL PAYMENT",
 							SenderAccount:   accountNumber,
 							ReceiverAccount: req.DestinationAccount,
 							Network:         network,
 							ServiceNetwork:  "STARTIMES",
 							ServicePackage:  req.PackageType,
-							MobileNumber:    phoneNumber,
+							MobileNumber:    accountNumber,
 							TransactionId:   txn.Result.TransactionRefNumber,
 						}
+						//
 
-						helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
-
-						proceed = true
+						resp, err := helpers.RequestPaymentMain(&c.Controller, req)
+						if err != nil {
+							logs.Error("Error requesting payment: ", err)
+							responseStatus = false
+							responseMessage = "Error requesting payment: " + err.Error()
+						} else {
+							logs.Info("Payment requested successfully: ", resp)
+							if !resp.Success {
+								responseStatus = false
+								responseMessage = resp.StatusMessage
+							} else {
+								responseStatus = true
+								responseMessage = "Startimes payment is being processed"
+							}
+						}
 					}
-				} else {
-					logs.Error("Error fetching account details for account number: ", accountNumber)
-					logs.Info("Register Customer")
 
-					req := requests.PaymentRequestApiRequestDTO{
-						ClientId:        req.ClientId,
-						Amount:          req.Amount,
-						PaymentMethod:   "MOBILEMONEY",
-						Service:         "BILL PAYMENT",
-						SenderAccount:   accountNumber,
-						ReceiverAccount: req.DestinationAccount,
-						Network:         network,
-						ServiceNetwork:  "STARTIMES",
-						ServicePackage:  req.PackageType,
-						MobileNumber:    accountNumber,
-						TransactionId:   txn.Result.TransactionRefNumber,
-					}
-					//
+					if proceed {
+						logs.Info("Formatted request for pay startimes: ", payStartimesRequest)
+						resp := apifunctions.PayStartimesBill(&c.Controller, payStartimesRequest)
+						logs.Info("Response from pay startimes API: ", resp)
 
-					resp, err := helpers.RequestPaymentMain(&c.Controller, req)
-					if err != nil {
-						logs.Error("Error requesting payment: ", err)
-						responseStatus = false
-						responseMessage = "Error requesting payment: " + err.Error()
-					} else {
-						logs.Info("Payment requested successfully: ", resp)
-						if !resp.Success {
+						if !resp.StatusCode {
 							responseStatus = false
 							responseMessage = resp.StatusMessage
+							if resp.Result != nil {
+								result = *resp.Result
+							}
 						} else {
+							responseText, err := json.Marshal(resp.Result)
+							if err != nil {
+								logs.Error("Error marshalling response result: ", err)
+								responseText = []byte("[]")
+							}
+							v.RequestResponse = string(responseText)
+							v.DateModified = time.Now()
+							v.ResponseDate = time.Now()
+							if err := models.UpdateApi_requestsById(&v); err != nil {
+								logs.Error("Error updating API request with response: ", err)
+							} else {
+								logs.Info("API request updated with response successfully: ", v)
+							}
+
+							if accountNumber != "" {
+								helpers.LogAccountActivity(&c.Controller, accountNumber, "Startimes Purchase", req.Amount, req.ClientId, "debit")
+							}
+
 							responseStatus = true
-							responseMessage = "Startimes payment is being processed"
+							responseMessage = "Payment is being processed"
+							if resp.Result != nil {
+								result = *resp.Result
+							}
 						}
 					}
+				} else {
+					responseStatus = false
+					responseMessage = "Account number is required to process this request"
 				}
-
-				if proceed {
-					logs.Info("Formatted request for pay startimes: ", payStartimesRequest)
-					resp := apifunctions.PayStartimesBill(&c.Controller, payStartimesRequest)
-					logs.Info("Response from pay startimes API: ", resp)
-
-					if !resp.StatusCode {
-						responseStatus = false
-						responseMessage = resp.StatusMessage
-						if resp.Result != nil {
-							result = *resp.Result
-						}
-					} else {
-						responseText, err := json.Marshal(resp.Result)
-						if err != nil {
-							logs.Error("Error marshalling response result: ", err)
-							responseText = []byte("[]")
-						}
-						v.RequestResponse = string(responseText)
-						v.DateModified = time.Now()
-						v.ResponseDate = time.Now()
-						if err := models.UpdateApi_requestsById(&v); err != nil {
-							logs.Error("Error updating API request with response: ", err)
-						} else {
-							logs.Info("API request updated with response successfully: ", v)
-						}
-
-						if accountNumber != "" {
-							helpers.LogAccountActivity(&c.Controller, accountNumber, "Startimes Purchase", req.Amount, req.ClientId, "debit")
-						}
-
-						responseStatus = true
-						responseMessage = "Payment is being processed"
-						if resp.Result != nil {
-							result = *resp.Result
-						}
-					}
-				}
-			} else {
-				responseStatus = false
-				responseMessage = "Account number is required to process this request"
 			}
 		}
 
