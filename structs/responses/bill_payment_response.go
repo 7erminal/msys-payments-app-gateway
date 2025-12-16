@@ -79,15 +79,15 @@ type DSTVBillPaymentDataResponse struct {
 }
 
 type DSTVBillPaymentResponse struct {
-	StatusCode    bool
-	StatusMessage string
-	Result        *DSTVBillPaymentDataResponse
+	StatusCode    bool                         `json:"status_code"`
+	StatusMessage string                       `json:"status_message"`
+	Result        *DSTVBillPaymentDataResponse `json:"result"`
 }
 
 type DSTVBillPaymentApiResponse struct {
-	StatusCode    string                       `json:"status_code"`
-	StatusMessage string                       `json:"status_message"`
-	Result        *DSTVBillPaymentDataResponse `json:"result"`
+	StatusCode    string
+	StatusMessage string
+	Result        *DSTVBillPaymentDataResponse
 }
 
 type GoTvBillPaymentDataResponse struct {
@@ -139,9 +139,9 @@ type StartimesBillPaymentResponse struct {
 }
 
 type StartimesBillPaymentApiResponse struct {
-	StatusCode    bool
-	StatusMessage string
-	Result        *StartimesBillPaymentDataResponse
+	StatusCode    bool                              `json:"status_code"`
+	StatusMessage string                            `json:"status_message"`
+	Result        *StartimesBillPaymentDataResponse `json:"result"`
 }
 
 type ECGBillPaymentDataResponse struct {
