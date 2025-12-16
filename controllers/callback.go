@@ -406,7 +406,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 							dstvresp := services.PayDstv(&c.Controller, dstvReq)
 							logs.Info("Response from DSTV payment API: ", dstvresp)
 
-							if !dstvresp.StatusCode {
+							if dstvresp.StatusCode != "200" {
 								responseStatus = false
 								responseMessage = resp.StatusMessage
 							} else {
@@ -428,7 +428,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 							gotvresp := services.PayGotv(&c.Controller, gotvReq)
 							logs.Info("Response from GOTV payment API: ", gotvresp)
 
-							if !gotvresp.StatusCode {
+							if gotvresp.StatusCode != "200" {
 								responseStatus = false
 								responseMessage = resp.StatusMessage
 							} else {
@@ -450,7 +450,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 							dstvresp := services.PayDstv(&c.Controller, dstvReq)
 							logs.Info("Response from STARTIMES payment API: ", dstvresp)
 
-							if !dstvresp.StatusCode {
+							if dstvresp.StatusCode != "200" {
 								responseStatus = false
 								responseMessage = resp.StatusMessage
 							} else {

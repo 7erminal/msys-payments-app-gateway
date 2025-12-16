@@ -3101,7 +3101,7 @@ func (c *Api_requestsController) PayDSTV() {
 						resp := services.PayDstv(&c.Controller, payDSTVRequest)
 						logs.Info("Response from DSTV payment: ", resp)
 
-						if !resp.StatusCode {
+						if resp.StatusCode != "200" {
 							response = responses.DSTVBillPaymentResponse{
 								StatusCode:    false,
 								StatusMessage: resp.StatusMessage,
@@ -3336,7 +3336,7 @@ func (c *Api_requestsController) PayGOTV() {
 								Result:        resp.Result,
 							}
 
-							if !resp.StatusCode {
+							if resp.StatusCode != "200" {
 								responseStatus = false
 								responseMessage = resp.StatusMessage
 							} else {

@@ -12,18 +12,18 @@ import (
 // Pay DStv
 func PayDstv(c *beego.Controller, payDstvRequest requests.DSTVPaymentRequest) (response responses.DSTVBillPaymentApiResponse) {
 	logs.Info("Formatted request for Pay DStv: ", payDstvRequest)
-	status := false
+	status := "500"
 	message := ""
 	result := responses.DSTVBillPaymentDataResponse{}
 
 	resp := apifunctions.PayDSTVBill(c, payDstvRequest)
 	logs.Info("Response from Pay DStv API: ", resp)
 
-	if !resp.StatusCode {
-		status = false
+	if resp.StatusCode != "200" {
+		status = "501"
 		message = resp.StatusMessage
 	} else {
-		status = true
+		status = "200"
 		logs.Info("DStv payment successful: ", resp)
 		message = "DStv payment is being processed"
 		result = *resp.Result

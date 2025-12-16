@@ -85,7 +85,7 @@ type DSTVBillPaymentResponse struct {
 }
 
 type DSTVBillPaymentApiResponse struct {
-	StatusCode    bool
+	StatusCode    string
 	StatusMessage string
 	Result        *DSTVBillPaymentDataResponse
 }
@@ -103,7 +103,7 @@ type GoTvBillPaymentResponse struct {
 }
 
 type GoTvBillPaymentApiResponse struct {
-	StatusCode    bool
+	StatusCode    string
 	StatusMessage string
 	Result        *GoTvBillPaymentDataResponse
 }
