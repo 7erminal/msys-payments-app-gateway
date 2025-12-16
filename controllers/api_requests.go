@@ -3168,7 +3168,7 @@ func (c *Api_requestsController) PayGOTV() {
 	sourceSystem := c.Ctx.Input.Header("SourceSystem")
 	network := c.Ctx.Input.Header("Network")
 
-	var req requests.GoTvPaymentRequest1
+	var req requests.GoTvPaymentRequest
 	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
 
 	destinationAccount := req.DestinationAccount

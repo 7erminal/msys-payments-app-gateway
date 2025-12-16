@@ -39,17 +39,17 @@ type DSTVPaymentRequest struct {
 }
 
 type DSTVPaymentApiRequest struct {
-	DestinationAccount string  `json:"destination_account" valid:"required~Destination account is required"`
-	Amount             float64 `json:"amount" valid:"required~Amount is required"`
-	PackageType        string  `json:"package_type" valid:"required~Package type is required"`
-	ClientId           string  `json:"client_id"`
+	DestinationAccount string
+	Amount             float64
+	PackageType        string
+	ClientId           string
 }
 
 type ECGPaymentRequest struct {
-	DestinationAccount string  `json:"destination_account" valid:"required~Destination account is required"`
-	Amount             float64 `json:"amount" valid:"required~Amount is required"`
-	PackageType        string  `json:"package_type" valid:"required~Package type is required"`
-	ClientId           string  `json:"client_id"`
+	DestinationAccount string
+	Amount             float64
+	PackageType        string
+	ClientId           string
 }
 
 type ECGPaymentApiRequest struct {
@@ -101,8 +101,7 @@ type GoTvPaymentRequest struct {
 	DestinationAccount string
 	Amount             float64
 	PackageType        string
-	PhoneNumber        string
-	SourceSystem       string
+	ClientId           string
 }
 
 type GoTvPaymentRequest1 struct {
