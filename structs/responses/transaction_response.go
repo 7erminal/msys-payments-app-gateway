@@ -42,3 +42,38 @@ type LogTransactionResponse struct {
 	Result     *Bil_transactions
 	StatusDesc string
 }
+
+type TransferApiResponseData struct {
+	ClientRefernce string  `json:"clientReference"`
+	Amount         float64 `json:"amount"`
+	Charges        float64 `json:"charges"`
+	Description    string  `json:"description"`
+	RecipientName  string  `json:"recipientName"`
+	Meta           string  `json:"meta"`
+}
+
+type Trx_transactions struct {
+	TransactionId          string
+	Amount                 float64
+	TotalDebitAmount       float64
+	Charge                 float64
+	Commission             float64
+	SenderAccountNumber    string
+	RecipientAccountNumber string
+	TransferCode           string
+	Status                 *Status
+	ResponseCode           string
+	ResponseMessage        string
+	Description            string
+	DateCreated            time.Time
+	DateModified           time.Time
+	CreatedBy              int
+	ModifiedBy             int
+	Active                 int
+}
+
+type TransferApiResponseDTO struct {
+	StatusCode int               `json:"success"`
+	StatusDesc string            `json:"statusDesc"`
+	Result     *Trx_transactions `json:"result"`
+}

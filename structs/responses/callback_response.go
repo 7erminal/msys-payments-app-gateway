@@ -12,6 +12,12 @@ type CallbackAPIResponse struct {
 	Result        *PaymentResponse
 }
 
+type TransferCallbackResponse struct {
+	StatusCode    bool
+	StatusMessage string
+	Result        *Trx_transactions
+}
+
 type TransactionStatusApiResponse struct {
 	StatusCode    bool
 	StatusMessage string

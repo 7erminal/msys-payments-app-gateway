@@ -3238,123 +3238,128 @@ func (c *Api_requestsController) PayGOTV() {
 			} else {
 				logs.Info("Transaction logged successfully: ", txn)
 				// txnString := fmt.Sprintf("%d", txn.Result.TransactionId)
-				payGOTVRequest := requests.GoTvPaymentApiRequest{
-					TransactionId:      txn.Result.TransactionRefNumber,
-					Amount:             req.Amount,
-					DestinationAccount: destinationAccount,
-					PackageType:        req.PackageType,
-					SourceSystem:       sourceSystem,
-					PhoneNumber:        phoneNumber,
-				}
+				if txn.StatusCode != 200 {
+					responseStatus = false
+					responseMessage = "Error logging transaction: " + txn.StatusDesc
+				} else {
+					payGOTVRequest := requests.GoTvPaymentApiRequest{
+						TransactionId:      txn.Result.TransactionRefNumber,
+						Amount:             req.Amount,
+						DestinationAccount: destinationAccount,
+						PackageType:        req.PackageType,
+						SourceSystem:       sourceSystem,
+						PhoneNumber:        phoneNumber,
+					}
 
-				if accountNumber != "" {
-					accountResp := apifunctions.GetCustomerAccount(&c.Controller, accountNumber)
+					if accountNumber != "" {
+						accountResp := apifunctions.GetCustomerAccount(&c.Controller, accountNumber)
 
-					proceed := false
-					if accountResp.StatusCode == "200" {
-						accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay GOTV", req.Amount, req.ClientId, "debit")
+						proceed := false
+						if accountResp.StatusCode == "200" {
+							accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay GOTV", req.Amount, req.ClientId, "debit")
 
-						if !accountCheckResp.StatusCode {
-							responseStatus = false
-							responseMessage = accountCheckResp.StatusMessage
+							if !accountCheckResp.StatusCode {
+								responseStatus = false
+								responseMessage = accountCheckResp.StatusMessage
+							} else {
+								logs.Info("Account activity logged successfully for account number: ", accountNumber)
+
+								// Log payment request
+								makePaymentRequest := requests.PaymentRequestApiRequestDTO{
+									ClientId:        req.ClientId,
+									Amount:          req.Amount,
+									PaymentMethod:   "ACCOUNT",
+									Service:         "BILL PAYMENT",
+									SenderAccount:   accountNumber,
+									ReceiverAccount: req.DestinationAccount,
+									Network:         network,
+									ServiceNetwork:  "GOTV",
+									ServicePackage:  req.PackageType,
+									MobileNumber:    phoneNumber,
+									TransactionId:   txn.Result.TransactionRefNumber,
+								}
+
+								helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
+
+								proceed = true
+							}
 						} else {
-							logs.Info("Account activity logged successfully for account number: ", accountNumber)
+							logs.Error("Error fetching account details for account number: ", accountNumber)
+							logs.Info("Register Customer")
 
-							// Log payment request
-							makePaymentRequest := requests.PaymentRequestApiRequestDTO{
+							req := requests.PaymentRequestApiRequestDTO{
 								ClientId:        req.ClientId,
 								Amount:          req.Amount,
-								PaymentMethod:   "ACCOUNT",
+								PaymentMethod:   "MOBILEMONEY",
 								Service:         "BILL PAYMENT",
 								SenderAccount:   accountNumber,
 								ReceiverAccount: req.DestinationAccount,
 								Network:         network,
 								ServiceNetwork:  "GOTV",
 								ServicePackage:  req.PackageType,
-								MobileNumber:    phoneNumber,
+								MobileNumber:    accountNumber,
 								TransactionId:   txn.Result.TransactionRefNumber,
 							}
+							//
 
-							helpers.MakePaymentMain(&c.Controller, makePaymentRequest)
+							resp, err := helpers.RequestPaymentMain(&c.Controller, req)
+							if err != nil {
+								logs.Error("Error requesting payment: ", err)
+								responseStatus = false
+								responseMessage = "Error requesting payment: " + err.Error()
+							} else {
+								logs.Info("Payment requested successfully: ", resp)
+								if !resp.Success {
+									responseStatus = false
+									responseMessage = resp.StatusMessage
+								} else {
 
-							proceed = true
+									responseStatus = true
+									responseMessage = "GOTV payment is being processed"
+
+								}
+							}
 						}
-					} else {
-						logs.Error("Error fetching account details for account number: ", accountNumber)
-						logs.Info("Register Customer")
 
-						req := requests.PaymentRequestApiRequestDTO{
-							ClientId:        req.ClientId,
-							Amount:          req.Amount,
-							PaymentMethod:   "MOBILEMONEY",
-							Service:         "BILL PAYMENT",
-							SenderAccount:   accountNumber,
-							ReceiverAccount: req.DestinationAccount,
-							Network:         network,
-							ServiceNetwork:  "GOTV",
-							ServicePackage:  req.PackageType,
-							MobileNumber:    accountNumber,
-							TransactionId:   txn.Result.TransactionRefNumber,
-						}
-						//
+						if proceed {
+							logs.Info("Formatted request to pay GOTV: ", payGOTVRequest)
+							resp := services.PayGotv(&c.Controller, payGOTVRequest)
+							logs.Info("Response from GOTV API: ", resp)
 
-						resp, err := helpers.RequestPaymentMain(&c.Controller, req)
-						if err != nil {
-							logs.Error("Error requesting payment: ", err)
-							responseStatus = false
-							responseMessage = "Error requesting payment: " + err.Error()
-						} else {
-							logs.Info("Payment requested successfully: ", resp)
-							if !resp.Success {
+							var response responses.GoTvBillPaymentResponse = responses.GoTvBillPaymentResponse{
+								StatusCode:    false,
+								StatusMessage: "Something went wrong",
+								Result:        resp.Result,
+							}
+
+							if !resp.StatusCode {
 								responseStatus = false
 								responseMessage = resp.StatusMessage
 							} else {
+								responseText, err := json.Marshal(response.Result)
+								if err != nil {
+									logs.Error("Error marshalling response result: ", err)
+									responseText = []byte("[]")
+								}
+								v.RequestResponse = string(responseText)
+								v.DateModified = time.Now()
+								v.ResponseDate = time.Now()
+								if err := models.UpdateApi_requestsById(&v); err != nil {
+									logs.Error("Error updating API request with response: ", err)
+								} else {
+									logs.Info("API request updated with response successfully: ", v)
+								}
 
 								responseStatus = true
-								responseMessage = "GOTV payment is being processed"
-
+								responseMessage = resp.StatusMessage
+								result = *resp.Result
 							}
 						}
+					} else {
+						responseStatus = false
+						responseMessage = "Account number is required to process this request"
+						logs.Error("Account number is required to process GOTV payment")
 					}
-
-					if proceed {
-						logs.Info("Formatted request to pay GOTV: ", payGOTVRequest)
-						resp := services.PayGotv(&c.Controller, payGOTVRequest)
-						logs.Info("Response from GOTV API: ", resp)
-
-						var response responses.GoTvBillPaymentResponse = responses.GoTvBillPaymentResponse{
-							StatusCode:    false,
-							StatusMessage: "Something went wrong",
-							Result:        resp.Result,
-						}
-
-						if !resp.StatusCode {
-							responseStatus = false
-							responseMessage = resp.StatusMessage
-						} else {
-							responseText, err := json.Marshal(response.Result)
-							if err != nil {
-								logs.Error("Error marshalling response result: ", err)
-								responseText = []byte("[]")
-							}
-							v.RequestResponse = string(responseText)
-							v.DateModified = time.Now()
-							v.ResponseDate = time.Now()
-							if err := models.UpdateApi_requestsById(&v); err != nil {
-								logs.Error("Error updating API request with response: ", err)
-							} else {
-								logs.Info("API request updated with response successfully: ", v)
-							}
-
-							responseStatus = true
-							responseMessage = resp.StatusMessage
-							result = *resp.Result
-						}
-					}
-				} else {
-					responseStatus = false
-					responseMessage = "Account number is required to process this request"
-					logs.Error("Account number is required to process GOTV payment")
 				}
 			}
 		}

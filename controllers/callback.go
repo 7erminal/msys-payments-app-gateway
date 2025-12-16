@@ -2,12 +2,14 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 	apifunctions "msys_payment_app_gateway/controllers/api_functions"
 	"msys_payment_app_gateway/controllers/helpers"
 	"msys_payment_app_gateway/controllers/services"
 	"msys_payment_app_gateway/models"
 	"msys_payment_app_gateway/structs/requests"
 	"msys_payment_app_gateway/structs/responses"
+	"strconv"
 	"strings"
 	"time"
 
@@ -26,6 +28,7 @@ func (c *CallbackController) URLMapping() {
 	c.Mapping("Callback", c.Callback)
 	c.Mapping("CheckTransactionStatus", c.CheckTransactionStatus)
 	c.Mapping("RequestMoneyCallback", c.RequestMoneyCallback)
+	c.Mapping("TransferCallback", c.TransferCallback)
 }
 
 // Callback ...
@@ -69,15 +72,6 @@ func (c *CallbackController) Callback() {
 		DateModified: time.Now(),
 	}
 	if _, err := models.AddApi_requests(&j); err == nil {
-
-		// AmountCharged         float64
-		// TransactionId         string
-		// ClientReference       string
-		// Description           string
-		// ExternalTransactionId string
-		// Amount                float64
-		// Charges               float64
-		// Status                string
 
 		status := "FAILED"
 
@@ -133,6 +127,39 @@ func (c *CallbackController) Callback() {
 				logs.Error("Error updating API request with response: ", err)
 			} else {
 				logs.Info("API request updated with response successfully: ", v)
+			}
+
+			// Send commission
+			commissionFloat, err := strconv.ParseFloat(v.Data.Meta.Commission, 64)
+			if err == nil && commissionFloat > 0 {
+				requestIdStr := fmt.Sprintf("%d", j.Id)
+				commissionFloat, err := strconv.ParseFloat(v.Data.Meta.Commission, 64)
+				if err != nil {
+					logs.Error("Error parsing commission: ", err)
+					commissionFloat = 0
+				}
+
+				commReq := requests.TransferApiRequest{
+					RequestId:              requestIdStr,
+					Amount:                 v.Data.Amount,
+					Charge:                 v.Data.Charges,
+					Commission:             commissionFloat,
+					TotalDebitAmount:       v.Data.AmountDebited,
+					SenderAccountNumber:    "SYSTEM",
+					RecipientAccountNumber: "2037071",
+					TransferCode:           "COMMISSION",
+					Description:            "Commission for transaction " + v.Data.ClientReference,
+					RecipientName:          "Commission Wallet",
+					Status:                 "PENDING",
+				}
+
+				commResp, err := helpers.LogTransferTransaction(&c.Controller, commReq, true)
+
+				if err != nil {
+					logs.Error("Error transferring commission to commission wallet: %v", err)
+				} else {
+					logs.Info("Commission transfer response: ", commResp)
+				}
 			}
 
 			response = responses.CallbackAPIResponse{
@@ -262,6 +289,39 @@ func (c *CallbackController) RequestMoneyCallback() {
 						logs.Error("Error updating API request with response: ", err)
 					} else {
 						logs.Info("API request updated with response successfully: ", v)
+					}
+
+					// Send commission
+					commissionFloat, err := strconv.ParseFloat(v.Data.Commission, 64)
+					if err == nil && commissionFloat > 0 {
+						requestIdStr := fmt.Sprintf("%d", j.Id)
+						commissionFloat, err := strconv.ParseFloat(v.Data.Commission, 64)
+						if err != nil {
+							logs.Error("Error parsing commission: ", err)
+							commissionFloat = 0
+						}
+
+						commReq := requests.TransferApiRequest{
+							RequestId:              requestIdStr,
+							Amount:                 v.Data.Amount,
+							Charge:                 v.Data.Charges,
+							Commission:             commissionFloat,
+							TotalDebitAmount:       v.Data.AmountCharged,
+							SenderAccountNumber:    "SYSTEM",
+							RecipientAccountNumber: "2037071",
+							TransferCode:           "COMMISSION",
+							Description:            "Commission for transaction " + v.Data.ClientReference,
+							RecipientName:          "Commission Wallet",
+							Status:                 "PENDING",
+						}
+
+						commResp, err := helpers.LogTransferTransaction(&c.Controller, commReq, true)
+
+						if err != nil {
+							logs.Error("Error transferring commission to commission wallet: %v", err)
+						} else {
+							logs.Info("Commission transfer response: ", commResp)
+						}
 					}
 
 					logs.Info("Callback received. Service is ", resp.Result.Service)
@@ -545,6 +605,115 @@ func (c *CallbackController) RequestMoneyCallback() {
 		}
 
 	}
+
+	c.ServeJSON()
+}
+
+// TransferCallback ...
+// @Title Transfer Callback
+// @Description create Transfer Callback
+// @Param	body		body 	requests.TransferCallbackAPIRequest	true		"body for Callback content"
+// @Success 201 {object} models.Callback
+// @Failure 403 body is empty
+// @router /transfer-callback [post]
+func (c *CallbackController) TransferCallback() {
+	var v requests.TransferCallbackAPIRequest
+
+	logs.Info("Received callback request: ", string(c.Ctx.Input.RequestBody))
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err != nil {
+		c.Data["json"] = map[string]string{"error": "Invalid request body"}
+		c.Ctx.Output.SetStatus(400)
+		c.ServeJSON()
+		return
+	}
+
+	reqBody := c.Ctx.Input.RequestBody
+	reqHeaders := c.Ctx.Request.Header
+
+	requestMap := map[string]interface{}{
+		"headers": reqHeaders,
+		"body":    string(reqBody),
+	}
+
+	reqText, err := json.Marshal(requestMap)
+	if err != nil {
+		logs.Error("Error marshalling request input: ", err)
+		c.Data["json"] = err.Error()
+		c.ServeJSON()
+		return
+	}
+
+	responseStatus := false
+	responseMessage := "Invalid request"
+	result := responses.Trx_transactions{}
+
+	var j models.Api_requests = models.Api_requests{
+		Request:      string(reqText),
+		RequestType:  "Callback",
+		RequestDate:  time.Now(),
+		DateCreated:  time.Now(),
+		DateModified: time.Now(),
+	}
+	if _, err := models.AddApi_requests(&j); err == nil {
+		status := "PENDING"
+		if v.ResponseCode == "0000" {
+			logs.Info("Successful payment callback received for transaction: ", v.Data.ClientReference)
+			status = "SUCCESS"
+
+		} else if v.ResponseCode == "0001" {
+			status = "PENDING"
+		} else {
+			status = "FAILED"
+		}
+
+		chargesStr := fmt.Sprintf("%.2f", v.Data.Charges)
+		callbackReq := requests.TransferCallbackRequest{
+			TransactionId:   v.Data.ClientReference,
+			ResponseCode:    v.ResponseCode,
+			ResponseMessage: v.Data.Description,
+			Status:          status,
+			Charge:          chargesStr,
+			RecipientName:   v.Data.RecipientName,
+		}
+
+		logs.Info("Sending transfer callback request: ", callbackReq)
+		resp := apifunctions.SendCommissionResp(&c.Controller, callbackReq)
+		logs.Info("Transfer Callback response: ", resp)
+
+		if resp.StatusCode != 200 {
+			logs.Error("Transfer Callback failed with response: ", resp)
+			responseStatus = false
+			responseMessage = resp.StatusDesc
+		} else {
+			responseText, err := json.Marshal(resp.Result)
+			if err != nil {
+				logs.Error("Error marshalling response result: ", err)
+				responseText = []byte("[]")
+			}
+			j.RequestResponse = string(responseText)
+			j.DateModified = time.Now()
+			j.ResponseDate = time.Now()
+			if err := models.UpdateApi_requestsById(&j); err != nil {
+				logs.Error("Error updating API request with response: ", err)
+			} else {
+				logs.Info("API request updated with response successfully: ", v)
+			}
+
+			responseStatus = true
+			responseMessage = resp.StatusDesc
+
+			result = *resp.Result
+		}
+
+	}
+
+	response := responses.TransferCallbackResponse{
+		StatusCode:    responseStatus,
+		StatusMessage: responseMessage,
+		Result:        &result,
+	}
+
+	c.Data["json"] = response
 
 	c.ServeJSON()
 }

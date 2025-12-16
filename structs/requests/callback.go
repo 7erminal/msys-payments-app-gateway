@@ -75,3 +75,18 @@ type ReceiveMoneyCallbackAPIRequest struct {
 	Data         CallbackData
 	Message      string
 }
+
+type TransferCallbackAPIRequest struct {
+	ResponseCode string
+	Data         CallbackData
+	Message      string
+}
+
+type TransferCallbackRequest struct {
+	TransactionId   string
+	ResponseCode    string
+	ResponseMessage string
+	Status          string
+	Charge          string
+	RecipientName   string
+}

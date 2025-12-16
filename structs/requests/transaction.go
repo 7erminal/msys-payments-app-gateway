@@ -39,3 +39,31 @@ type LogTransactionRequest struct {
 	TransactionPackage       string
 	ExternalReferenceNumber  string
 }
+
+type TransferApiRequest struct {
+	RequestId              string
+	Amount                 float64
+	Charge                 float64
+	Commission             float64
+	TotalDebitAmount       float64
+	SenderAccountNumber    string
+	RecipientAccountNumber string
+	TransferCode           string
+	Description            string
+	RecipientName          string
+	Status                 string
+}
+
+type TransferCommissionApiRequest struct {
+	TransactionId          string
+	Amount                 float64
+	Charge                 float64
+	Commission             float64
+	TotalDebitAmount       float64
+	SenderAccountNumber    string
+	RecipientAccountNumber string
+	TransferCode           string
+	Description            string
+	RecipientName          string
+	Status                 string
+}

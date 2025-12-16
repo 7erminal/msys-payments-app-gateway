@@ -2661,3 +2661,159 @@ func GetCustomerByUsername(c *beego.Controller, req requests.UsernameRequest) (r
 
 	return data
 }
+
+func LogTransferTransaction(c *beego.Controller, req requests.TransferApiRequest) (resp responses.TransferApiResponseDTO) {
+	host, _ := beego.AppConfig.String("transferBaseUrl")
+
+	logs.Info("Sending commission for ", req.Amount, " for ", req.Description)
+
+	request := api.NewRequest(
+		host,
+		"/v1/transfer",
+		api.POST)
+
+	request.InterfaceParams["RequestId"] = req.RequestId
+	request.InterfaceParams["Amount"] = req.Amount
+	request.InterfaceParams["Charge"] = req.Charge
+	request.InterfaceParams["Commission"] = req.Commission
+	request.InterfaceParams["TotalDebitAmount"] = req.TotalDebitAmount
+	request.InterfaceParams["SenderAccountNumber"] = req.SenderAccountNumber
+	request.InterfaceParams["RecipientAccountNumber"] = req.RecipientAccountNumber
+	request.InterfaceParams["TransferCode"] = req.TransferCode
+	request.InterfaceParams["Description"] = req.Description
+	request.InterfaceParams["RecipientName"] = req.RecipientName
+	request.InterfaceParams["Status"] = req.Status
+	client := api.Client{
+		Request: request,
+		Type_:   "body",
+	}
+	res, err := client.SendRequest()
+	if err != nil {
+		logs.Error("client.Error: %v", err)
+		c.Data["json"] = err.Error()
+	}
+	defer res.Body.Close()
+	read, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	}
+
+	// logs.Info("Raw response received is ", res)
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, read, "", "  "); err != nil {
+		logs.Info("Raw response received is ", string(read))
+	} else {
+		logs.Info("Raw response received is \n", prettyJSON.String())
+	}
+	// data := map[string]interface{}{}
+	var data responses.TransferApiResponseDTO
+	json.Unmarshal(read, &data)
+	c.Data["json"] = data
+
+	logs.Info("Resp is ", data)
+	// logs.Info("Resp is ", data.User)
+
+	return data
+}
+
+func SendCommission(c *beego.Controller, req requests.TransferCommissionApiRequest) (resp responses.TransferApiResponseDTO) {
+	host, _ := beego.AppConfig.String("transferBaseUrl")
+
+	logs.Info("Sending commission for ", req.Amount, " for ", req.Description)
+
+	request := api.NewRequest(
+		host,
+		"/v1/transfer/transfer-commission",
+		api.POST)
+
+	request.InterfaceParams["TransactionId"] = req.TransactionId
+	request.InterfaceParams["Amount"] = req.Amount
+	request.InterfaceParams["Charge"] = req.Charge
+	request.InterfaceParams["Commission"] = req.Commission
+	request.InterfaceParams["TotalDebitAmount"] = req.TotalDebitAmount
+	request.InterfaceParams["SenderAccountNumber"] = req.SenderAccountNumber
+	request.InterfaceParams["RecipientAccountNumber"] = req.RecipientAccountNumber
+	request.InterfaceParams["TransferCode"] = req.TransferCode
+	request.InterfaceParams["Description"] = req.Description
+	request.InterfaceParams["RecipientName"] = req.RecipientName
+	request.InterfaceParams["Status"] = req.Status
+	client := api.Client{
+		Request: request,
+		Type_:   "body",
+	}
+	res, err := client.SendRequest()
+	if err != nil {
+		logs.Error("client.Error: %v", err)
+		c.Data["json"] = err.Error()
+	}
+	defer res.Body.Close()
+	read, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	}
+
+	// logs.Info("Raw response received is ", res)
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, read, "", "  "); err != nil {
+		logs.Info("Raw response received is ", string(read))
+	} else {
+		logs.Info("Raw response received is \n", prettyJSON.String())
+	}
+	// data := map[string]interface{}{}
+	var data responses.TransferApiResponseDTO
+	json.Unmarshal(read, &data)
+	c.Data["json"] = data
+
+	logs.Info("Resp is ", data)
+	// logs.Info("Resp is ", data.User)
+
+	return data
+}
+
+func SendCommissionResp(c *beego.Controller, req requests.TransferCallbackRequest) (resp responses.TransferApiResponseDTO) {
+	host, _ := beego.AppConfig.String("transferBaseUrl")
+
+	request := api.NewRequest(
+		host,
+		"/v1/callback",
+		api.POST)
+
+	request.InterfaceParams["TransactionId"] = req.TransactionId
+	request.InterfaceParams["ResponseCode"] = req.ResponseCode
+	request.InterfaceParams["ResponseMessage"] = req.ResponseMessage
+	request.InterfaceParams["Status"] = req.Status
+	request.InterfaceParams["Charge"] = req.Charge
+	request.InterfaceParams["RecipientName"] = req.RecipientName
+
+	client := api.Client{
+		Request: request,
+		Type_:   "body",
+	}
+	res, err := client.SendRequest()
+	if err != nil {
+		logs.Error("client.Error: %v", err)
+		c.Data["json"] = err.Error()
+	}
+	defer res.Body.Close()
+	read, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	}
+
+	// logs.Info("Raw response received is ", res)
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, read, "", "  "); err != nil {
+		logs.Info("Raw response received is ", string(read))
+	} else {
+		logs.Info("Raw response received is \n", prettyJSON.String())
+	}
+	// data := map[string]interface{}{}
+	var data responses.TransferApiResponseDTO
+	json.Unmarshal(read, &data)
+	c.Data["json"] = data
+
+	logs.Info("Resp is ", data)
+	// logs.Info("Resp is ", data.User)
+
+	return data
+}

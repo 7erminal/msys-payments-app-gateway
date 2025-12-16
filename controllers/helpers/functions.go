@@ -384,6 +384,63 @@ func LogTransaction(c *beego.Controller, transactionRequest requests.LogTransact
 
 }
 
+func LogTransferTransaction(c *beego.Controller, transferRequest requests.TransferApiRequest, sendCommission bool) (transferResponse responses.TransferApiResponseDTO, err error) {
+	logs.Info("Logging transfer transaction with request: ", transferRequest)
+
+	responseCode := 400
+	responseMessage := "Error logging transfer transaction"
+	transferTransaction := responses.Trx_transactions{}
+
+	transaction := apifunctions.LogTransferTransaction(c, transferRequest)
+
+	if transaction.StatusCode != 200 && transaction.StatusCode != 201 {
+		logs.Error("Error logging transfer transaction: ", transaction.StatusDesc)
+		responseCode = 501
+		responseMessage = "Error logging transfer transaction: " + transaction.StatusDesc
+	} else {
+		responseCode = transaction.StatusCode
+		responseMessage = "Transfer transaction logged successfully"
+		transferTransaction = *transaction.Result
+
+		if sendCommission {
+			req := requests.TransferCommissionApiRequest{
+				TransactionId:          transaction.Result.TransactionId,
+				Amount:                 transferRequest.Amount,
+				Description:            transferRequest.Description,
+				Charge:                 transferRequest.Charge,
+				Commission:             transferRequest.Commission,
+				TotalDebitAmount:       transferRequest.TotalDebitAmount,
+				SenderAccountNumber:    transferRequest.SenderAccountNumber,
+				RecipientAccountNumber: transferRequest.RecipientAccountNumber,
+				TransferCode:           transferRequest.TransferCode,
+				RecipientName:          transferRequest.RecipientName,
+				Status:                 transferRequest.Status,
+			}
+
+			commissionResp := apifunctions.SendCommission(c, req)
+
+			if commissionResp.StatusCode != 200 && commissionResp.StatusCode != 201 {
+				logs.Error("Error sending commission: ", commissionResp.StatusDesc)
+				responseCode = 502
+				responseMessage = "Error sending commission: " + commissionResp.StatusDesc
+			} else {
+				logs.Info("Commission sent successfully: ", commissionResp.Result)
+				responseCode = 200
+				responseMessage = "Transfer transaction and commission logged successfully"
+				transferTransaction = *commissionResp.Result
+			}
+		}
+	}
+
+	resp := responses.TransferApiResponseDTO{
+		StatusCode: responseCode,
+		Result:     &transferTransaction,
+		StatusDesc: responseMessage,
+	}
+
+	return resp, nil
+}
+
 func LogAccountActivity(c *beego.Controller, accountNumber string, reference string, amount float64, clientid string, activityType string) (activityResponse responses.AccountActivityResponse) {
 	// type DebitAccountRequestV2 struct {
 	// 	AccountNumber string
