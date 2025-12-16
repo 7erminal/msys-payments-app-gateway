@@ -3239,6 +3239,7 @@ func (c *Api_requestsController) PayGOTV() {
 				logs.Info("Transaction logged successfully: ", txn)
 				// txnString := fmt.Sprintf("%d", txn.Result.TransactionId)
 				if txn.StatusCode != 200 {
+					logs.Error("Error logging transaction: ", txn.StatusDesc)
 					responseStatus = false
 					responseMessage = "Error logging transaction: " + txn.StatusDesc
 				} else {
@@ -3252,10 +3253,12 @@ func (c *Api_requestsController) PayGOTV() {
 					}
 
 					if accountNumber != "" {
+						logs.Info("Account number provided: ", accountNumber)
 						accountResp := apifunctions.GetCustomerAccount(&c.Controller, accountNumber)
 
 						proceed := false
 						if accountResp.StatusCode == "200" {
+							logs.Info("Account number fetched")
 							accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay GOTV", req.Amount, req.ClientId, "debit")
 
 							if !accountCheckResp.StatusCode {
