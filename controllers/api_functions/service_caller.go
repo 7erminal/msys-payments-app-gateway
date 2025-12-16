@@ -2726,6 +2726,7 @@ func SendCommission(c *beego.Controller, req requests.TransferCommissionApiReque
 		"/v1/transfer/transfer-commission",
 		api.POST)
 
+	request.InterfaceParams["RequestId"] = req.RequestId
 	request.InterfaceParams["TransactionId"] = req.TransactionId
 	request.InterfaceParams["Amount"] = req.Amount
 	request.InterfaceParams["Charge"] = req.Charge

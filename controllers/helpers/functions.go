@@ -406,6 +406,7 @@ func LogTransferTransaction(c *beego.Controller, transferRequest requests.Transf
 
 		if sendCommission {
 			req := requests.TransferCommissionApiRequest{
+				RequestId:              transferRequest.RequestId,
 				TransactionId:          transaction.Result.TransactionId,
 				Amount:                 transferRequest.Amount,
 				Description:            transferRequest.Description,

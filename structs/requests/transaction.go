@@ -55,6 +55,7 @@ type TransferApiRequest struct {
 }
 
 type TransferCommissionApiRequest struct {
+	RequestId              string
 	TransactionId          string
 	Amount                 float64
 	Charge                 float64
