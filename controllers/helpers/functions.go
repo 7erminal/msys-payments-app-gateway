@@ -374,6 +374,8 @@ func LogTransaction(c *beego.Controller, transactionRequest requests.LogTransact
 		responseMessage = "Error logging transaction: " + err.Error()
 	} else {
 		transaction = *resp.Result
+		responseCode = 200
+		responseMessage = "Successfully logged transaction"
 	}
 
 	return responses.LogTransactionResponse{
