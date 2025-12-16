@@ -3174,6 +3174,7 @@ func (c *Api_requestsController) PayGOTV() {
 	destinationAccount := req.DestinationAccount
 
 	logs.Info("PayGOTV called with PhoneNumber: %s, SourceSystem: %s, DestinationAccount: %s", phoneNumber, sourceSystem, destinationAccount)
+	logs.Info("Client ID: ", req.ClientId)
 	reqBody := c.Ctx.Input.RequestBody
 	reqHeaders := c.Ctx.Request.Header
 
