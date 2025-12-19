@@ -285,6 +285,7 @@ func (c *Auth_requestsController) Register() {
 			}
 			logs.Info("Customer credentials saved successfully: ", credentialResp)
 			// Add customer corporative
+			logs.Info("Getting client by ID ", req.ClientId)
 			if client, err := models.GetClientsById(req.ClientId); err != nil {
 				logs.Error("Error getting client by ID: ", err)
 				response = responses.RegisterResponse{
