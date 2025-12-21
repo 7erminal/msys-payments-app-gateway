@@ -697,6 +697,8 @@ func (c *Api_requestsController) RegisterAccount() {
 
 		logs.Info("Customer exists: ", customerData.CustomerNumber)
 
+		accountOpeningFee := 1.00 // This can be fetched from config or database as needed
+
 		if client, err := models.GetClientsById(req.ClientId); err != nil {
 			logs.Error("Error getting client by ID: ", err)
 			response = responses.RegisterAccountResponse{
@@ -720,49 +722,81 @@ func (c *Api_requestsController) RegisterAccount() {
 			// resp := apifunctions.OpenAccount(&c.Controller, registerAccountRequest)
 			// logs.Info("Response from Register account API: ", resp)
 
-			accountOpeningFee := 1.0
-
-			req := requests.PaymentRequestApiRequestDTO{
-				ClientId:        client.ClientCode,
-				Amount:          accountOpeningFee,
-				PaymentMethod:   "MOBILEMONEY",
-				Service:         "ACCOUNT OPENING",
-				SenderAccount:   phoneNumber,
-				ReceiverAccount: customerData.PhoneNumber,
-				Network:         network,
-				ServiceNetwork:  client.ClientCode,
-				ServicePackage:  strconv.FormatFloat(accountOpeningFee, 'f', -1, 64),
-				MobileNumber:    phoneNumber,
+			requestIdStr := fmt.Sprintf("%d", v.Id)
+			amountString := strconv.FormatFloat(accountOpeningFee, 'f', -1, 64)
+			transactionLog := requests.LogTransactionRequest{
+				RequestId:                requestIdStr,
+				SourceAccountNumber:      phoneNumber,
+				DestinationAccountNumber: phoneNumber,
+				Amount:                   accountOpeningFee,
+				Charge:                   0.0,
+				TransactionType:          "ACCOUNT OPENING",
+				ServiceCode:              "ACCOUNT OPENING",
+				TransactionReference:     "SYSTEM",
+				StatusCode:               "PENDING",
+				ExtraDetails1:            amountString,
+				ExtraDetails2:            amountString,
+				ExtraDetails3:            network,
+				Reference:                amountString,
+				ClientID:                 client.ClientCode,
+				PhoneNumber:              phoneNumber,
+				TransactionPackage:       amountString,
+				ExternalReferenceNumber:  "",
 			}
-			//
 
-			resp, err := helpers.RequestPaymentMain(&c.Controller, req)
-			if err != nil {
-				logs.Error("Error processing account opening fee payment: ", err)
+			if txn, err := helpers.LogTransaction(&c.Controller, transactionLog); err != nil {
+				logs.Error("Error logging account opening fee transaction: ", err)
 				response = responses.RegisterAccountResponse{
 					StatusCode:    false,
-					StatusMessage: "Error processing account opening fee payment: " + err.Error(),
+					StatusMessage: "Error processing request. Please try again later.",
 					Result:        nil,
 				}
+
 			} else {
-				logs.Info("Account opening fee payment response: ", resp)
-				if !resp.Success {
+
+				req := requests.PaymentRequestApiRequestDTO{
+					ClientId:        client.ClientCode,
+					Amount:          accountOpeningFee,
+					PaymentMethod:   "MOBILEMONEY",
+					Service:         "ACCOUNT OPENING",
+					SenderAccount:   phoneNumber,
+					ReceiverAccount: customerData.PhoneNumber,
+					Network:         network,
+					ServiceNetwork:  client.ClientCode,
+					ServicePackage:  strconv.FormatFloat(accountOpeningFee, 'f', -1, 64),
+					MobileNumber:    phoneNumber,
+					TransactionId:   txn.Result.TransactionRefNumber,
+				}
+				//
+
+				resp, err := helpers.RequestPaymentMain(&c.Controller, req)
+				if err != nil {
+					logs.Error("Error processing account opening fee payment: ", err)
 					response = responses.RegisterAccountResponse{
 						StatusCode:    false,
-						StatusMessage: "Account opening fee payment failed: " + resp.StatusMessage,
+						StatusMessage: "Error processing account opening fee payment: " + err.Error(),
 						Result:        nil,
 					}
 				} else {
-					// Payment successful, proceed with account registration
-					result_ := true
-					response = responses.RegisterAccountResponse{
-						StatusCode:    true,
-						StatusMessage: "Account opening is being processed",
-						Result:        &result_,
+					logs.Info("Account opening fee payment response: ", resp)
+					if !resp.Success {
+						response = responses.RegisterAccountResponse{
+							StatusCode:    false,
+							StatusMessage: "Account opening fee payment failed: " + resp.StatusMessage,
+							Result:        nil,
+						}
+					} else {
+						// Payment successful, proceed with account registration
+						result_ := true
+						response = responses.RegisterAccountResponse{
+							StatusCode:    true,
+							StatusMessage: "Account opening is being processed",
+							Result:        &result_,
+						}
 					}
 				}
-			}
 
+			}
 		}
 
 		c.Ctx.Output.SetStatus(200)
