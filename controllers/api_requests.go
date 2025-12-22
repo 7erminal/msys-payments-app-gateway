@@ -794,7 +794,7 @@ func (c *Api_requestsController) RegisterAccount() {
 						result_ := true
 						response = responses.RegisterAccountResponse{
 							StatusCode:    true,
-							StatusMessage: "Account opening is being processed",
+							StatusMessage: "Account opening is being processed. You will receive a request to make a payment an amount. Please proceed to make the payment to continue creation of your account. Note that this amount will be deposited in your account after account creation.",
 							Result:        &result_,
 						}
 					}
