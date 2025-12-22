@@ -1001,13 +1001,13 @@ func RequestPaymentMain(c *beego.Controller, req requests.PaymentRequestApiReque
 		destinationPhoneNumber = req.ReceiverAccount
 
 		if req.PaymentMethod == "MOBILEMONEY" {
-			logs.Info("Determined network for mobile money payment: ", network)
+			logs.Info("Determined network for mobile money payment: ", network, " and service network is ", req.ServiceNetwork)
 
 			if req.ServiceNetwork == req.Network {
 				logs.Info("Service network matches payment network, do name inquiry to confirm destination name")
 				logs.Info("Mobile Number: ", req.MobileNumber)
 
-				if req.PaymentMethod == "MOBILEMONEY" && (strings.HasPrefix(req.MobileNumber, "024") || strings.HasPrefix(req.MobileNumber, "054") || strings.HasPrefix(req.MobileNumber, "055") || strings.HasPrefix(req.MobileNumber, "059")) {
+				if req.PaymentMethod == "MOBILEMONEY" && (strings.HasPrefix(req.MobileNumber, "024") || strings.HasPrefix(req.MobileNumber, "054") || strings.HasPrefix(req.MobileNumber, "055") || strings.HasPrefix(req.MobileNumber, "059") || strings.HasPrefix(req.MobileNumber, "053")) {
 					network = "MTN" + "_" + req.PaymentMethod
 				} else if req.PaymentMethod == "MOBILEMONEY" && (strings.HasPrefix(req.MobileNumber, "020") || strings.HasPrefix(req.MobileNumber, "050")) {
 					network = "TELECEL" + "_" + req.PaymentMethod
