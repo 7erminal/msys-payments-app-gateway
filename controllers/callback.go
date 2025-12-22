@@ -526,10 +526,10 @@ func (c *CallbackController) RequestMoneyCallback() {
 					}
 
 					if resp.Result.Service == "ACCOUNT_OPENING" {
-						uReq := requests.UsernameRequest{
-							Username: resp.Result.ReceiverAccount,
+						uReq := requests.MobileNumberRequest{
+							MobileNumber: resp.Result.SenderAccount,
 						}
-						customerData := apifunctions.GetCustomerByUsername(&c.Controller, uReq)
+						customerData := apifunctions.GetCustomer(&c.Controller, uReq)
 
 						gender := "M"
 						switch genderStr := strings.ToLower(customerData.Customer.Gender); genderStr {
