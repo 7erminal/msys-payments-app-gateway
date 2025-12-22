@@ -525,7 +525,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 						responseMessage = resp.StatusMessage
 					}
 
-					if resp.Result.Service == "ACCOUNT OPENING" {
+					if resp.Result.Service == "ACCOUNT_OPENING" {
 						uReq := requests.UsernameRequest{
 							Username: resp.Result.ReceiverAccount,
 						}
