@@ -754,6 +754,10 @@ func (c *Api_requestsController) RegisterAccount() {
 
 			} else {
 
+				if network == "" {
+					network = "GET NETWORK FROM PHONE NUMBER"
+				}
+
 				req := requests.PaymentRequestApiRequestDTO{
 					ClientId:        client.ClientCode,
 					Amount:          accountOpeningFee,

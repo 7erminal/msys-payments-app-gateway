@@ -1003,7 +1003,7 @@ func RequestPaymentMain(c *beego.Controller, req requests.PaymentRequestApiReque
 		if req.PaymentMethod == "MOBILEMONEY" {
 			logs.Info("Determined network for mobile money payment: ", network, " and service network is ", req.ServiceNetwork)
 
-			if req.ServiceNetwork == req.Network {
+			if req.ServiceNetwork == req.Network || req.Network == "GET NETWORK FROM PHONE NUMBER" {
 				logs.Info("Service network matches payment network, do name inquiry to confirm destination name")
 				logs.Info("Mobile Number: ", req.MobileNumber)
 
