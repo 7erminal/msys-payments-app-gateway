@@ -559,7 +559,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 						logs.Info("Last Name: ", lastName)
 						logs.Info("Gender: ", customerData.Customer.Gender)
 
-						if client, err := models.GetClientsByCode(resp.Result.ServiceNetwork); err != nil {
+						if client, err := models.GetClientsByCode(resp.Result.ServiceNetwork); err == nil {
 
 							registerAccountRequest := requests.OpenAccountApiRequest{
 								FirstName:    firstName,
@@ -581,6 +581,10 @@ func (c *CallbackController) RequestMoneyCallback() {
 								responseStatus = true
 								responseMessage = "Account opening successful"
 							}
+						} else {
+							logs.Error("Error retrieving client for account opening: ", err)
+							responseStatus = false
+							responseMessage = "Error processing account opening: " + err.Error()
 						}
 					}
 				}
