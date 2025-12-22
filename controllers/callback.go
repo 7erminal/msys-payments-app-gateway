@@ -562,12 +562,13 @@ func (c *CallbackController) RequestMoneyCallback() {
 						if client, err := models.GetClientsByCode(resp.Result.ServiceNetwork); err == nil {
 
 							registerAccountRequest := requests.OpenAccountApiRequest{
-								FirstName:    firstName,
-								LastName:     lastName,
-								Gender:       gender,
-								MobileNumber: customerData.Customer.PhoneNumber,
-								ClientId:     resp.Result.ServiceNetwork,
-								Source:       "GHCOOPS",
+								FirstName:            firstName,
+								LastName:             lastName,
+								Gender:               gender,
+								MobileNumber:         customerData.Customer.PhoneNumber,
+								ClientId:             resp.Result.ServiceNetwork,
+								Source:               "GHCOOPS",
+								TransactionReference: resp.Result.TransactionId,
 							}
 
 							resp_ := services.OpenAccount(&c.Controller, registerAccountRequest, *client, *customerData.Customer)

@@ -54,13 +54,14 @@ type ChangePasswordRequest struct {
 }
 
 type OpenAccountApiRequest struct {
-	FirstName    string
-	LastName     string
-	Gender       string
-	MobileNumber string
-	ChargeAmount string
-	ClientId     string
-	Source       string
+	FirstName            string
+	LastName             string
+	Gender               string
+	MobileNumber         string
+	ChargeAmount         string
+	ClientId             string
+	Source               string
+	TransactionReference string
 }
 
 type AddCustomerAccountApiRequest struct {

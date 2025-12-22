@@ -198,6 +198,7 @@ func OpenAccount(c *beego.Controller, req requests.OpenAccountApiRequest) (resp 
 	request.InterfaceParams["MobileNumber"] = req.MobileNumber
 	request.InterfaceParams["ChargeAmount"] = req.ChargeAmount
 	request.InterfaceParams["Source"] = req.Source
+	request.InterfaceParams["TransactionRef"] = req.TransactionReference
 
 	client := api.Client{
 		Request: request,
