@@ -708,15 +708,15 @@ func LogTransaction(c *beego.Controller, req requests.LogTransactionApiRequest) 
 	request.HeaderField["sourceSystem"] = "MSYS_PAYMENT_APP_GATEWAY"
 
 	type ExtraData struct {
-		ExtraDetails1 string
-		ExtraDetails2 string
-		ExtraDetails3 string
+		ExtraData1 string
+		ExtraData2 string
+		ExtraData3 string
 	}
 
 	extraData := ExtraData{
-		ExtraDetails1: req.ExtraDetails1,
-		ExtraDetails2: req.ExtraDetails2,
-		ExtraDetails3: req.ExtraDetails3,
+		ExtraData1: req.ExtraDetails1,
+		ExtraData2: req.ExtraDetails2,
+		ExtraData3: req.ExtraDetails3,
 	}
 
 	logs.Info("Sending extra data ", req.ExtraDetails1, req.ExtraDetails2, req.ExtraDetails3)
