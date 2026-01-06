@@ -3718,6 +3718,9 @@ func (c *Api_requestsController) PayWaterBill() {
 			if ok {
 				logs.Info("Customer email from context is ", customerData.Email)
 				customerEmail = customerData.Email
+			} else {
+				logs.Info("No customer data in context")
+				customerEmail = "customer@gmail.com"
 			}
 		}
 
