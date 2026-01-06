@@ -460,33 +460,27 @@ func (c *CallbackController) RequestMoneyCallback() {
 						}
 
 						if resp.Result.ServiceNetwork == "GH_WATER" {
-							if bilTxn := apifunctions.GetBilTransactionWithTransactionRef(&c.Controller, resp.Result.TransactionId); bilTxn.StatusCode == 200 {
-								// transactionString := fmt.Sprintf("%d", bilTxn.Result.TransactionId)
-								waterbillReq := requests.GhanaWaterPaymentFuncRequest{
-									Amount:             resp.Result.PaymentAmount,
-									PhoneNumber:        resp.Result.SenderAccount,
-									DestinationAccount: resp.Result.ReceiverAccount,
-									PackageType:        bilTxn.Result.ExtraDetails3,
-									SourceSystem:       "MSYS_PAYMENT_APP_GATEWAY",
-									TransactionId:      resp.Result.TransactionId,
-									Name:               bilTxn.Result.ExtraDetails1,
-									Email:              bilTxn.Result.ExtraDetails2,
-								}
+							// transactionString := fmt.Sprintf("%d", bilTxn.Result.TransactionId)
+							waterbillReq := requests.GhanaWaterPaymentFuncRequest{
+								Amount:             transaction.Result.Amount,
+								PhoneNumber:        transaction.Result.Source,
+								DestinationAccount: transaction.Result.Source,
+								PackageType:        transaction.Result.ExtraDetails3,
+								SourceSystem:       "MSYS_PAYMENT_APP_GATEWAY",
+								TransactionId:      transaction.Result.TransactionRefNumber,
+								Name:               transaction.Result.ExtraDetails1,
+								Email:              transaction.Result.ExtraDetails2,
+							}
 
-								waterbillresp := services.PayWater(&c.Controller, waterbillReq)
-								logs.Info("Response from WATER payment API: ", waterbillresp)
+							waterbillresp := services.PayWater(&c.Controller, waterbillReq)
+							logs.Info("Response from WATER payment API: ", waterbillresp)
 
-								if !waterbillresp.StatusCode {
-									responseStatus = false
-									responseMessage = resp.StatusMessage
-								} else {
-									responseStatus = true
-									responseMessage = "Water bill purchase successful"
-								}
-							} else {
-								logs.Error("Error retrieving BIL transaction for ID: ", bilTxn.StatusDesc)
+							if !waterbillresp.StatusCode {
 								responseStatus = false
-								responseMessage = "Error processing water bill payment: " + bilTxn.StatusDesc
+								responseMessage = resp.StatusMessage
+							} else {
+								responseStatus = true
+								responseMessage = "Water bill purchase successful"
 							}
 						}
 
