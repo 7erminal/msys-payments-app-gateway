@@ -3664,6 +3664,8 @@ func (c *Api_requestsController) PayWaterBill() {
 	sourceSystem := c.Ctx.Input.Header("SourceSystem")
 	network := c.Ctx.Input.Header("Network")
 
+	cust := c.Ctx.Input.GetData("customer")
+
 	var req requests.GhanaWaterPaymentRequest
 	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
 
@@ -3708,6 +3710,14 @@ func (c *Api_requestsController) PayWaterBill() {
 		logs.Info("API request logged successfully: ", v)
 		logs.Info("Log transaction")
 
+		customerEmail := req.CustomerEmail
+		customerData, ok := cust.(*responses.Customer)
+		if customerEmail == "" {
+			if ok {
+				customerEmail = customerData.Email
+			}
+		}
+
 		requestIdStr := fmt.Sprintf("%d", v.Id)
 		transactionLog := requests.LogTransactionRequest{
 			RequestId:                requestIdStr,
@@ -3745,6 +3755,7 @@ func (c *Api_requestsController) PayWaterBill() {
 				logs.Info("Transaction logged successfully")
 
 				// transactionString := fmt.Sprintf("%d", txn.Result.TransactionId)
+
 				payWaterRequest := requests.GhanaWaterPaymentFuncRequest{
 					TransactionId:      txn.Result.TransactionRefNumber,
 					Amount:             req.Amount,
