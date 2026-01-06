@@ -465,7 +465,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 								Amount:             transaction.Result.Amount,
 								PhoneNumber:        transaction.Result.Source,
 								DestinationAccount: transaction.Result.Source,
-								PackageType:        transaction.Result.ExtraDetails3,
+								PackageType:        transaction.Result.Package,
 								SourceSystem:       "MSYS_PAYMENT_APP_GATEWAY",
 								TransactionId:      transaction.Result.TransactionRefNumber,
 								Name:               transaction.Result.ExtraDetails1,

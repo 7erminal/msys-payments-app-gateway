@@ -719,6 +719,8 @@ func LogTransaction(c *beego.Controller, req requests.LogTransactionApiRequest) 
 		ExtraDetails3: req.ExtraDetails3,
 	}
 
+	logs.Info("Sending extra data ", req.ExtraDetails1, req.ExtraDetails2, req.ExtraDetails3)
+
 	request.InterfaceParams["RequestId"] = req.RequestId
 	request.InterfaceParams["Amount"] = req.Amount
 	request.InterfaceParams["ServiceCode"] = req.ServiceCode
