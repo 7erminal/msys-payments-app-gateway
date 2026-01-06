@@ -3725,7 +3725,7 @@ func (c *Api_requestsController) PayWaterBill() {
 		transactionLog := requests.LogTransactionRequest{
 			RequestId:                requestIdStr,
 			SourceAccountNumber:      accountNumber,
-			DestinationAccountNumber: req.DestinationAccount,
+			DestinationAccountNumber: destinationAccount,
 			Amount:                   req.Amount,
 			Charge:                   0.0,
 			TransactionType:          "GH_WATER",

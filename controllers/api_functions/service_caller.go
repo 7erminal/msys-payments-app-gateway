@@ -2387,13 +2387,13 @@ func PayGhanaWaterBill(c *beego.Controller, req requests.GhanaWaterPaymentApiReq
 	request.HeaderField["PhoneNumber"] = req.PhoneNumber
 	request.HeaderField["SourceSystem"] = req.SourceSystem
 
-	request.InterfaceParams["DestinationAccount"] = req.DestinationAccount
+	request.InterfaceParams["DestinationAccount"] = req.PhoneNumber
 	request.InterfaceParams["Amount"] = req.Amount
-	request.InterfaceParams["Bundle"] = req.PhoneNumber
+	request.InterfaceParams["Bundle"] = req.DestinationAccount
 	request.InterfaceParams["TransactionId"] = req.TransactionId
 	request.InterfaceParams["SessionId"] = req.ExtraData.SessionId
 	request.InterfaceParams["Email"] = req.ExtraData.Email
-	request.InterfaceParams["PhoneNumber"] = req.ExtraData.Bundle
+	request.InterfaceParams["PhoneNumber"] = req.PhoneNumber
 	client := api.Client{
 		Request: request,
 		Type_:   "body",
