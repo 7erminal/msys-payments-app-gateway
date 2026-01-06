@@ -464,7 +464,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 							waterbillReq := requests.GhanaWaterPaymentFuncRequest{
 								Amount:             transaction.Result.Amount,
 								PhoneNumber:        transaction.Result.Source,
-								DestinationAccount: transaction.Result.Source,
+								DestinationAccount: transaction.Result.Destination,
 								PackageType:        transaction.Result.Package,
 								SourceSystem:       "MSYS_PAYMENT_APP_GATEWAY",
 								TransactionId:      transaction.Result.TransactionRefNumber,
