@@ -3712,8 +3712,11 @@ func (c *Api_requestsController) PayWaterBill() {
 
 		customerEmail := req.CustomerEmail
 		customerData, ok := cust.(*responses.Customer)
+		logs.Info("Customer email is ", customerEmail)
 		if customerEmail == "" {
+			logs.Info("Fetching customer email from context")
 			if ok {
+				logs.Info("Customer email from context is ", customerData.Email)
 				customerEmail = customerData.Email
 			}
 		}
@@ -3730,7 +3733,7 @@ func (c *Api_requestsController) PayWaterBill() {
 			TransactionReference:     "GH_WATER",
 			StatusCode:               "PENDING",
 			ExtraDetails1:            req.CustomerName,
-			ExtraDetails2:            req.CustomerEmail,
+			ExtraDetails2:            customerEmail,
 			ExtraDetails3:            req.PackageType,
 			Reference:                req.PackageType,
 			ClientID:                 req.ClientId,
@@ -3764,7 +3767,7 @@ func (c *Api_requestsController) PayWaterBill() {
 					SourceSystem:       sourceSystem,
 					PhoneNumber:        phoneNumber,
 					Name:               req.CustomerName,
-					Email:              req.CustomerEmail,
+					Email:              customerEmail,
 				}
 
 				if accountNumber != "" {
