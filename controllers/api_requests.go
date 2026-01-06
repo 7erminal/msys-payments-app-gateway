@@ -45,6 +45,7 @@ func (c *Api_requestsController) URLMapping() {
 	c.Mapping("GetCustomerAccountStatement", c.GetCustomerAccountStatement)
 	c.Mapping("Deposit", c.Deposit)
 	c.Mapping("Withdrawal", c.Withdrawal)
+	c.Mapping("PayWaterBill", c.PayWaterBill)
 	// c.Mapping("TransferFunds", c.TransferFunds)
 }
 
@@ -3827,6 +3828,7 @@ func (c *Api_requestsController) PayWaterBill() {
 
 					if proceed {
 						logs.Info("Formatted request to pay water: ", payWaterRequest)
+						logs.Info("Email sent to pay water: ", payWaterRequest.Email)
 						resp := services.PayWater(&c.Controller, payWaterRequest)
 						logs.Info("Response from pay water: ", resp)
 

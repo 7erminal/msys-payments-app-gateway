@@ -67,6 +67,7 @@ func OpenAccount(c *beego.Controller, openAccountRequest requests.OpenAccountApi
 				message = "An error occurred adding customer corporative. " + err.Error()
 				result = false
 			} else {
+				// helpers.FetchCustomerAccounts(c, customerData, corpDTO, acc.MobileNumber)
 				logs.Info("Customer corporative added successfully.")
 				status = true
 				message = resp.Data.StatusDesc
