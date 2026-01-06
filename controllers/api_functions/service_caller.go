@@ -697,7 +697,7 @@ func GetCustomerAccountHistory(c *beego.Controller, accountNumber string) (resp 
 func LogTransaction(c *beego.Controller, req requests.LogTransactionApiRequest) (resp responses.TransactionApiResponse) {
 	host, _ := beego.AppConfig.String("transactionBaseUrl")
 
-	logs.Info("Logging transaction for account number ", req.SourceAccountNumber)
+	logs.Info("Logging transaction for account number ", req.SourceAccountNumber, " and destination ", req.DestinationAccountNumber)
 
 	request := api.NewRequest(
 		host,
