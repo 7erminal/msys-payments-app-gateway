@@ -3849,7 +3849,7 @@ func (c *Api_requestsController) PayWaterBill() {
 						resp := services.PayWater(&c.Controller, payWaterRequest)
 						logs.Info("Response from pay water: ", resp)
 
-						if !resp.StatusCode {
+						if resp.StatusCode != "200" {
 							responseStatus = false
 							responseMessage = resp.StatusMessage
 							result_ = *resp.Result
@@ -3883,7 +3883,7 @@ func (c *Api_requestsController) PayWaterBill() {
 		c.Data["json"] = response
 
 	} else {
-		var response responses.GhanaWaterBillPaymentApiResponse = responses.GhanaWaterBillPaymentApiResponse{
+		var response responses.GhanaWaterBillPaymentResponse = responses.GhanaWaterBillPaymentResponse{
 			StatusCode:    false,
 			StatusMessage: "Something went wrong:: " + err.Error(),
 			Result:        nil,

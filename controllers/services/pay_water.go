@@ -12,7 +12,7 @@ import (
 // Pay Water
 func PayWater(c *beego.Controller, payWaterRequest requests.GhanaWaterPaymentFuncRequest) (response responses.GhanaWaterBillPaymentApiResponse) {
 	logs.Info("Formatted request for Pay Water: ", payWaterRequest)
-	status := false
+	status := "500"
 	message := ""
 	result := responses.GhanaWaterBillPaymentDataResponse{}
 	req := requests.GhanaWaterPaymentApiRequest{
@@ -32,11 +32,11 @@ func PayWater(c *beego.Controller, payWaterRequest requests.GhanaWaterPaymentFun
 	resp := apifunctions.PayGhanaWaterBill(c, req)
 	logs.Info("Response from Pay Water API: ", resp)
 
-	if !resp.StatusCode {
-		status = false
+	if resp.StatusCode != "200" {
+		status = resp.StatusCode
 		message = resp.StatusMessage
 	} else {
-		status = true
+		status = resp.StatusCode
 		logs.Info("Water payment successful: ", resp)
 		message = "Water payment is being processed"
 		result = *resp.Result

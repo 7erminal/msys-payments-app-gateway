@@ -475,7 +475,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 							waterbillresp := services.PayWater(&c.Controller, waterbillReq)
 							logs.Info("Response from WATER payment API: ", waterbillresp)
 
-							if !waterbillresp.StatusCode {
+							if waterbillresp.StatusCode != "200" {
 								responseStatus = false
 								responseMessage = resp.StatusMessage
 							} else {

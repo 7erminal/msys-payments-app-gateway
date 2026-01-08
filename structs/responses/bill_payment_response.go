@@ -121,7 +121,7 @@ type GhanaWaterBillPaymentResponse struct {
 }
 
 type GhanaWaterBillPaymentApiResponse struct {
-	StatusCode    bool
+	StatusCode    string
 	StatusMessage string
 	Result        *GhanaWaterBillPaymentDataResponse
 }
