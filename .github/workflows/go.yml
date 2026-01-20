@@ -36,7 +36,7 @@ jobs:
           set -e
           cd /usr/app/mobile-application/msys-payments-app-gateway
           git stash
-          git pull origin msys-payments-app-gateway
+          git pull origin main
           go build -o msys-payments-app-gateway
           pm2 restart msys-payments-app-gateway || \
           pm2 start msys-payments-app-gateway --name msys-payments-app-gateway
