@@ -356,6 +356,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 							Destination:   resp.Result.ReceiverAccount,
 							SourceSystem:  "MSYS_PAYMENT_APP_GATEWAY",
 							TransactionId: resp.Result.TransactionId,
+							ClientId:      clientId,
 						}
 
 						airtimeresp := services.BuyAirtime(&c.Controller, airtimeReq)
@@ -389,6 +390,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 							BundleId:      resp.Result.ServicePackage,
 							SourceSystem:  "MSYS_PAYMENT_APP_GATEWAY",
 							TransactionId: resp.Result.TransactionId,
+							ClientId:      clientId,
 						}
 
 						dataresp := services.BuyDataBundle(&c.Controller, dataBundleReq)
@@ -413,6 +415,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 								PackageType:        resp.Result.ServicePackage,
 								SourceSystem:       "MSYS_PAYMENT_APP_GATEWAY",
 								TransactionId:      resp.Result.TransactionId,
+								ClientId:           clientId,
 							}
 
 							dstvresp := services.PayDstv(&c.Controller, dstvReq)
@@ -435,6 +438,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 								PackageType:        resp.Result.ServicePackage,
 								SourceSystem:       "MSYS_PAYMENT_APP_GATEWAY",
 								TransactionId:      resp.Result.TransactionId,
+								ClientId:           clientId,
 							}
 
 							gotvresp := services.PayGotv(&c.Controller, gotvReq)
@@ -457,6 +461,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 								PackageType:        resp.Result.ServicePackage,
 								SourceSystem:       "MSYS_PAYMENT_APP_GATEWAY",
 								TransactionId:      resp.Result.TransactionId,
+								ClientId:           clientId,
 							}
 
 							dstvresp := services.PayDstv(&c.Controller, dstvReq)
@@ -482,6 +487,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 								TransactionId:      transaction.Result.TransactionRefNumber,
 								Name:               transaction.Result.ExtraDetails1,
 								Email:              transaction.Result.ExtraDetails2,
+								ClientId:           clientId,
 							}
 
 							waterbillresp := services.PayWater(&c.Controller, waterbillReq)
@@ -504,6 +510,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 								PackageType:        resp.Result.ServicePackage,
 								SourceSystem:       "MSYS_PAYMENT_APP_GATEWAY",
 								TransactionId:      resp.Result.TransactionId,
+								ClientId:           clientId,
 							}
 
 							ecgbillresp := services.PayEcg(&c.Controller, ecgbillReq)
