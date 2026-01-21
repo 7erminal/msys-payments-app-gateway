@@ -2334,6 +2334,7 @@ func (c *Api_requestsController) BuyDataBundle() {
 				ServiceCode:              "BILL_PAYMENT",
 				TransactionReference:     "DATA_BUNDLE",
 				StatusCode:               "PENDING",
+				CorpId:                   client.ClientCorpId,
 				ExtraDetails1:            req.BundleId,
 				ExtraDetails2:            strconv.FormatFloat(req.Amount, 'f', -1, 64),
 				ExtraDetails3:            req.Network,

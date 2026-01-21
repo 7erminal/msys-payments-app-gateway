@@ -10,6 +10,7 @@ type LogTransactionApiRequest struct {
 	TransactionReference     string
 	TransactionType          string
 	StatusCode               string
+	CorpId                   string
 	ExtraDetails1            string
 	ExtraDetails2            string
 	ExtraDetails3            string
@@ -30,6 +31,7 @@ type LogTransactionRequest struct {
 	TransactionReference     string
 	TransactionType          string
 	StatusCode               string
+	CorpId                   string
 	ExtraDetails1            string
 	ExtraDetails2            string
 	ExtraDetails3            string

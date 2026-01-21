@@ -369,6 +369,7 @@ func LogTransaction(c *beego.Controller, transactionRequest requests.LogTransact
 		ExtraDetails1:            transactionRequest.ExtraDetails1,
 		ExtraDetails2:            transactionRequest.ExtraDetails2,
 		ExtraDetails3:            transactionRequest.ExtraDetails3,
+		CorpId:                   transactionRequest.CorpId,
 	}
 
 	resp := apifunctions.LogTransaction(c, logTransactionRequest)

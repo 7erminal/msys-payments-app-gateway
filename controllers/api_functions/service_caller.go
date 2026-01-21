@@ -731,6 +731,7 @@ func LogTransaction(c *beego.Controller, req requests.LogTransactionApiRequest) 
 	request.InterfaceParams["BillerCode"] = req.TransactionReference
 	request.InterfaceParams["ClientReference"] = req.ExternalReferenceNumber
 	request.InterfaceParams["Package"] = req.TransactionPackage
+	request.InterfaceParams["CorpId"] = req.CorpId
 	client := api.Client{
 		Request: request,
 		Type_:   "body",
