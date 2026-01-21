@@ -2155,6 +2155,10 @@ func (c *Api_requestsController) GetBundles() {
 	var req requests.GetBundlesAPIRequest
 	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
 
+	if clientId == "" {
+		clientId, _ = beego.AppConfig.String("msysconsultCode")
+	}
+
 	destinationPhoneNumber := req.Destination
 
 	logs.Info("GetBundles called with PhoneNumber: %s, SourceSystem: %s, Network: %s, DestinationPhoneNumber: %s", phoneNumber, sourceSystem, network, destinationPhoneNumber)
@@ -2267,6 +2271,11 @@ func (c *Api_requestsController) BuyDataBundle() {
 	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
 
 	destinationPhoneNumber := req.Destination
+	clientId := req.ClientId
+
+	if clientId == "" {
+		clientId, _ = beego.AppConfig.String("msysconsultCode")
+	}
 
 	logs.Info("GetBundles called with PhoneNumber: %s, SourceSystem: %s, Network: %s, DestinationPhoneNumber: %s", phoneNumber, sourceSystem, network, destinationPhoneNumber)
 
@@ -2308,7 +2317,7 @@ func (c *Api_requestsController) BuyDataBundle() {
 	if _, err := models.AddApi_requests(&v); err == nil {
 		logs.Info("API request logged successfully: ", v)
 
-		if client, err := models.GetClientsByCode(req.ClientId); err != nil {
+		if client, err := models.GetClientsByCode(clientId); err != nil {
 			logs.Error("Error getting client by Code: ", err)
 
 			message = "Error getting client: " + err.Error()
@@ -2537,6 +2546,11 @@ func (c *Api_requestsController) BuyAirtime() {
 	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
 
 	destinationPhoneNumber := req.Destination
+	clientId := req.ClientId
+
+	if clientId == "" {
+		clientId, _ = beego.AppConfig.String("msysconsultCode")
+	}
 
 	logs.Info("GetAirtime called with PhoneNumber: %s, SourceSystem: %s, Network: %s, DestinationPhoneNumber: %s", phoneNumber, sourceSystem, network, destinationPhoneNumber)
 
@@ -2575,7 +2589,7 @@ func (c *Api_requestsController) BuyAirtime() {
 		DateModified: time.Now(),
 	}
 	if _, err := models.AddApi_requests(&v); err == nil {
-		if client, err := models.GetClientsByCode(req.ClientId); err != nil {
+		if client, err := models.GetClientsByCode(clientId); err != nil {
 			logs.Error("Error getting client by Code: ", err)
 
 			message = "Error getting client: " + err.Error()
@@ -3000,6 +3014,11 @@ func (c *Api_requestsController) PayDSTV() {
 	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
 
 	destinationAccount := req.DestinationAccount
+	clientId := req.ClientId
+
+	if clientId == "" {
+		clientId, _ = beego.AppConfig.String("msysconsultCode")
+	}
 
 	logs.Info("PayDSTV called with PhoneNumber: %s, SourceSystem: %s, DestinationAccount: %s", phoneNumber, sourceSystem, destinationAccount)
 	reqBody := c.Ctx.Input.RequestBody
@@ -3031,7 +3050,7 @@ func (c *Api_requestsController) PayDSTV() {
 	if _, err := models.AddApi_requests(&v); err == nil {
 		logs.Info("API request logged successfully: ", v)
 
-		if client, err := models.GetClientsByCode(req.ClientId); err != nil {
+		if client, err := models.GetClientsByCode(clientId); err != nil {
 			logs.Error("Error getting client by Code: ", err)
 
 			responseMessage = "Error getting client: " + err.Error()
@@ -3236,6 +3255,11 @@ func (c *Api_requestsController) PayGOTV() {
 	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
 
 	destinationAccount := req.DestinationAccount
+	clientId := req.ClientId
+
+	if clientId == "" {
+		clientId, _ = beego.AppConfig.String("msysconsultCode")
+	}
 
 	logs.Info("PayGOTV called with PhoneNumber: %s, SourceSystem: %s, DestinationAccount: %s", phoneNumber, sourceSystem, destinationAccount)
 	logs.Info("Client ID: ", req.ClientId)
@@ -3274,7 +3298,7 @@ func (c *Api_requestsController) PayGOTV() {
 	if _, err := models.AddApi_requests(&v); err == nil {
 		logs.Info("API request logged successfully: ", v)
 
-		if client, err := models.GetClientsByCode(req.ClientId); err != nil {
+		if client, err := models.GetClientsByCode(clientId); err != nil {
 			logs.Error("Error getting client by Code: ", err)
 
 			responseMessage = "Error getting client: " + err.Error()
@@ -3478,6 +3502,11 @@ func (c *Api_requestsController) PayECG() {
 	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
 
 	destinationAccount := req.DestinationAccount
+	clientId := req.ClientId
+
+	if clientId == "" {
+		clientId, _ = beego.AppConfig.String("msysconsultCode")
+	}
 
 	logs.Info("Pay ECG called with PhoneNumber: %s, SourceSystem: %s, DestinationAccount: %s", phoneNumber, sourceSystem, destinationAccount)
 	reqBody := c.Ctx.Input.RequestBody
@@ -3515,7 +3544,7 @@ func (c *Api_requestsController) PayECG() {
 	if _, err := models.AddApi_requests(&v); err == nil {
 		logs.Info("API request logged successfully: ", v)
 
-		if client, err := models.GetClientsByCode(req.ClientId); err != nil {
+		if client, err := models.GetClientsByCode(clientId); err != nil {
 			logs.Error("Error getting client by Code: ", err)
 
 			responseMessage = "Error getting client: " + err.Error()
@@ -3710,6 +3739,11 @@ func (c *Api_requestsController) PayWaterBill() {
 	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
 
 	destinationAccount := req.DestinationAccount
+	clientId := req.ClientId
+
+	if clientId == "" {
+		clientId, _ = beego.AppConfig.String("msysconsultCode")
+	}
 
 	logs.Info("Pay water called with PhoneNumber: %s, SourceSystem: %s, DestinationAccount: %s", phoneNumber, sourceSystem, destinationAccount)
 	reqBody := c.Ctx.Input.RequestBody
@@ -3750,7 +3784,7 @@ func (c *Api_requestsController) PayWaterBill() {
 		logs.Info("API request logged successfully: ", v)
 		logs.Info("Log transaction")
 
-		if client, err := models.GetClientsByCode(req.ClientId); err != nil {
+		if client, err := models.GetClientsByCode(clientId); err != nil {
 			logs.Error("Error getting client by Code: ", err)
 
 			responseMessage = "Error getting client: " + err.Error()
@@ -3968,6 +4002,11 @@ func (c *Api_requestsController) PayStartimesTvBill() {
 	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
 
 	destinationAccount := req.DestinationAccount
+	clientId := req.ClientId
+
+	if clientId == "" {
+		clientId, _ = beego.AppConfig.String("msysconsultCode")
+	}
 
 	logs.Info("Pay startimes called with PhoneNumber: %s, SourceSystem: %s, DestinationAccount: %s", phoneNumber, sourceSystem, destinationAccount)
 	reqBody := c.Ctx.Input.RequestBody
@@ -4001,7 +4040,7 @@ func (c *Api_requestsController) PayStartimesTvBill() {
 		logs.Info("API request logged successfully: ", v)
 		logs.Info("Log transaction")
 
-		if client, err := models.GetClientsByCode(req.ClientId); err != nil {
+		if client, err := models.GetClientsByCode(clientId); err != nil {
 			logs.Error("Error getting client by Code: ", err)
 
 			responseMessage = "Error getting client: " + err.Error()
