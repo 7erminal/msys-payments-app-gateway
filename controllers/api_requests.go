@@ -2150,6 +2150,7 @@ func (c *Api_requestsController) GetBundles() {
 	phoneNumber := c.Ctx.Input.Header("PhoneNumber")
 	sourceSystem := c.Ctx.Input.Header("SourceSystem")
 	network := c.Ctx.Input.Header("Network")
+	clientId := c.Ctx.Input.Header("ClientId")
 
 	var req requests.GetBundlesAPIRequest
 	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
@@ -2188,6 +2189,7 @@ func (c *Api_requestsController) GetBundles() {
 			DestinationAccount: destinationPhoneNumber,
 			PhoneNumber:        phoneNumber,
 			SourceSystem:       sourceSystem,
+			ClientId:           clientId,
 		}
 
 		logs.Info("Formatted request for GetBundles: ", getBundlesRequest)
