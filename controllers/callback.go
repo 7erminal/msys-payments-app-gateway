@@ -263,6 +263,18 @@ func (c *CallbackController) RequestMoneyCallback() {
 		transaction := apifunctions.GetBilTransactionWithTransactionRef(&c.Controller, v.Data.ClientReference)
 
 		if transaction.StatusCode == 200 {
+			clientId := transaction.Result.CorpId
+			if clientId == "" {
+				clientId, _ = beego.AppConfig.String("msysconsultCode")
+
+				if client, err := models.GetClientsByCode(clientId); err != nil {
+					logs.Error("Error getting client by Code: ", err)
+					proceed = false
+				} else {
+					logs.Info("Successfully fetched client")
+					clientId = client.ClientCorpId
+				}
+			}
 			if proceed {
 				logs.Info("Sending callback request: ", callbackReq)
 				callbackReqJSON, _ := json.Marshal(callbackReq)

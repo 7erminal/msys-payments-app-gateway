@@ -27,6 +27,7 @@ type Bil_transactions struct {
 	Commission              float64
 	ExternalReferenceNumber string               `orm:"size(255)"`
 	Status                  *models.Status_codes `orm:"rel(fk)"`
+	CorpId                  string               `orm:"size(255)"`
 	ExtraDetails1           string               `orm:"size(255)"`
 	ExtraDetails2           string               `orm:"size(255)"`
 	ExtraDetails3           string               `orm:"size(255)"`
