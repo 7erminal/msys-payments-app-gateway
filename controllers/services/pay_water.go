@@ -27,6 +27,7 @@ func PayWater(c *beego.Controller, payWaterRequest requests.GhanaWaterPaymentFun
 			Email:     payWaterRequest.Email,
 			SessionId: payWaterRequest.PackageType,
 		},
+		ClientId: payWaterRequest.ClientId,
 	}
 
 	resp := apifunctions.PayGhanaWaterBill(c, req)

@@ -7,6 +7,7 @@ type BuyAirtimeFormulatedRequest struct {
 	Destination   string  `json:"destination"`
 	SourceSystem  string  `json:"source_system"`
 	PhoneNumber   string  `json:"phone_number"`
+	ClientId      string  `json:"client_id"`
 }
 
 type BuyAirtimeRequest struct {

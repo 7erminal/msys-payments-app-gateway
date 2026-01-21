@@ -1768,6 +1768,7 @@ func GetBundles(c *beego.Controller, req requests.DataBundlesListFormulatedReque
 	// request.Params = {"UserId": strconv.Itoa(int(userid))}
 	request.HeaderField["PhoneNumber"] = req.PhoneNumber
 	request.HeaderField["SourceSystem"] = req.SourceSystem
+	request.HeaderField["ClientId"] = req.ClientId
 	client := api.Client{
 		Request: request,
 		Type_:   "params",
@@ -1922,6 +1923,7 @@ func BuyAirtime(c *beego.Controller, req requests.BuyAirtimeFormulatedRequest) (
 	request.InterfaceParams["amount"] = req.Amount
 	request.InterfaceParams["network"] = req.Network
 	request.InterfaceParams["transaction_id"] = req.TransactionId
+	request.InterfaceParams["client_id"] = req.ClientId
 	client := api.Client{
 		Request: request,
 		Type_:   "body",
@@ -1973,6 +1975,7 @@ func BuyDataBundle(c *beego.Controller, req requests.BuyDataBundleFormulatedRequ
 	request.InterfaceParams["network"] = req.Network
 	request.InterfaceParams["bundle_id"] = req.BundleId
 	request.InterfaceParams["transaction_id"] = req.TransactionId
+	request.InterfaceParams["client_id"] = req.ClientId
 	client := api.Client{
 		Request: request,
 		Type_:   "body",
@@ -2143,6 +2146,7 @@ func PayDSTVBill(c *beego.Controller, req requests.DSTVPaymentRequest) (resp res
 	request.InterfaceParams["Amount"] = req.Amount
 	request.InterfaceParams["PackageType"] = req.PackageType
 	request.InterfaceParams["TransactionId"] = req.TransactionId
+	request.InterfaceParams["ClientId"] = req.ClientId
 	client := api.Client{
 		Request: request,
 		Type_:   "body",
@@ -2343,6 +2347,7 @@ func PayECGBill(c *beego.Controller, req requests.ECGPaymentApiRequest) (resp re
 	request.InterfaceParams["Amount"] = req.Amount
 	request.InterfaceParams["PackageType"] = req.PackageType
 	request.InterfaceParams["TransactionId"] = req.TransactionId
+	request.InterfaceParams["ClientId"] = req.ClientId
 	client := api.Client{
 		Request: request,
 		Type_:   "body",
@@ -2397,6 +2402,7 @@ func PayGhanaWaterBill(c *beego.Controller, req requests.GhanaWaterPaymentApiReq
 	request.InterfaceParams["SessionId"] = req.ExtraData.SessionId
 	request.InterfaceParams["Email"] = req.ExtraData.Email
 	request.InterfaceParams["PhoneNumber"] = req.PhoneNumber
+	request.InterfaceParams["ClientId"] = req.ClientId
 	client := api.Client{
 		Request: request,
 		Type_:   "body",
@@ -2448,6 +2454,7 @@ func PayGoTvBill(c *beego.Controller, req requests.GoTvPaymentApiRequest) (resp 
 	request.InterfaceParams["Amount"] = req.Amount
 	request.InterfaceParams["PackageType"] = req.PackageType
 	request.InterfaceParams["TransactionId"] = req.TransactionId
+	request.InterfaceParams["ClientId"] = req.ClientId
 	client := api.Client{
 		Request: request,
 		Type_:   "body",
@@ -2499,6 +2506,7 @@ func PayStartimesBill(c *beego.Controller, req requests.StartimesPaymentApiReque
 	request.InterfaceParams["Amount"] = req.Amount
 	request.InterfaceParams["PackageType"] = req.PackageType
 	request.InterfaceParams["TransactionId"] = req.TransactionId
+	request.InterfaceParams["ClientId"] = req.ClientId
 	client := api.Client{
 		Request: request,
 		Type_:   "body",

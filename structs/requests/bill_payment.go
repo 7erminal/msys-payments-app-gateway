@@ -36,6 +36,7 @@ type DSTVPaymentRequest struct {
 	PackageType        string
 	PhoneNumber        string
 	SourceSystem       string
+	ClientId           string
 }
 
 type DSTVPaymentApiRequest struct {
@@ -59,6 +60,7 @@ type ECGPaymentApiRequest struct {
 	PackageType        string
 	PhoneNumber        string
 	SourceSystem       string
+	ClientId           string
 }
 
 type GhanaWaterPaymentRequest struct {
@@ -79,6 +81,7 @@ type GhanaWaterPaymentFuncRequest struct {
 	SourceSystem       string
 	Name               string
 	Email              string
+	ClientId           string
 }
 
 type GhanaWaterExtraData struct {
@@ -95,6 +98,7 @@ type GhanaWaterPaymentApiRequest struct {
 	PhoneNumber        string
 	SourceSystem       string
 	ExtraData          GhanaWaterExtraData
+	ClientId           string
 }
 
 type GoTvPaymentRequest struct {
@@ -121,6 +125,7 @@ type GoTvPaymentApiRequest struct {
 	PackageType        string
 	PhoneNumber        string
 	SourceSystem       string
+	ClientId           string
 }
 
 type StartimesPaymentRequest struct {
@@ -139,4 +144,5 @@ type StartimesPaymentApiRequest struct {
 	PackageType        string
 	PhoneNumber        string
 	SourceSystem       string
+	ClientId           string
 }

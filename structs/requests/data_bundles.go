@@ -11,6 +11,7 @@ type DataBundlesListFormulatedRequest struct {
 	DestinationAccount string
 	PhoneNumber        string
 	SourceSystem       string
+	ClientId           string
 }
 
 type BuyDataBundleFormulatedRequest struct {
@@ -21,6 +22,7 @@ type BuyDataBundleFormulatedRequest struct {
 	BundleId      string  `json:"bundle_id"`
 	SourceSystem  string  `json:"source_system"`
 	PhoneNumber   string  `json:"phone_number"`
+	ClientId      string  `json:"client_id"`
 }
 
 type GetBundlesAPIRequest struct {
