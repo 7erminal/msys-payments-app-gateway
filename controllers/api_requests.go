@@ -1831,6 +1831,11 @@ func (c *Api_requestsController) Deposit() {
 	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
 
 	destinationPhoneNumber := req.Destination
+	clientId := req.ClientId
+
+	if clientId == "" {
+		clientId, _ = beego.AppConfig.String("msysconsultCode")
+	}
 
 	logs.Info("Deposit called with PhoneNumber: %s, SourceSystem: %s, Network: %s, DestinationPhoneNumber: %s", phoneNumber, sourceSystem, network, destinationPhoneNumber)
 

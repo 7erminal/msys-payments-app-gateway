@@ -937,45 +937,53 @@ func MakePaymentMain(c *beego.Controller, req requests.PaymentRequestApiRequestD
 		network = req.Network
 		destinationPhoneNumber = req.ReceiverAccount
 
-		requestMoney := requests.RequestMoneyApiRequestDTO{
-			InitiatedBy:     regCustResp.Customer.CustomerId,
-			Amount:          req.Amount,
-			Service:         req.Service,
-			Sender:          regCustResp.Customer.CustomerId,
-			Reciever:        1,
-			PhoneNumber:     destinationPhoneNumber,
-			CustomerName:    regCustResp.Customer.FullName,
-			CustomerMsisdn:  regCustResp.Customer.PhoneNumber,
-			CustomerEmail:   regCustResp.Customer.Email,
-			Currency:        "GHS",
-			SenderAccount:   req.SenderAccount,
-			ReceiverAccount: destinationPhoneNumber,
-			PaymentMethod:   req.PaymentMethod,
-			TransactionId:   req.TransactionId,
-			PaymentProofUrl: "",
-			ReferenceNumber: "",
-			CallThirdParty:  true,
-			Operator:        "HUBTEL",
-			Network:         network,
-			ServiceNetwork:  req.ServiceNetwork,
-		}
-		logs.Info("Sending money for ", req.Service, " purchase: ", requestMoney)
+		if client, err := models.GetClientsByCode(req.ClientId); err != nil {
+			logs.Error("Error getting client by Code: ", err)
 
-		reqMoneyResp, err := PaymentSendMoney(c, requestMoney)
-
-		if err != nil {
-			logs.Error("Error sending money to customer: ", err)
-			isSuccess = false
-			statusMessage = "Error sending money to customer: " + err.Error()
+			statusMessage = "Error getting client: " + err.Error()
 		} else {
-			if reqMoneyResp.StatusCode == 200 {
-				logs.Info("Payment request successful: ", reqMoneyResp)
-				isSuccess = true
-				statusMessage = "Payment request successful"
-			} else {
-				logs.Error("We could not process your payment request: ", reqMoneyResp.StatusDesc)
+
+			requestMoney := requests.RequestMoneyApiRequestDTO{
+				InitiatedBy:     regCustResp.Customer.CustomerId,
+				Amount:          req.Amount,
+				Service:         req.Service,
+				Sender:          regCustResp.Customer.CustomerId,
+				Reciever:        1,
+				PhoneNumber:     destinationPhoneNumber,
+				CustomerName:    regCustResp.Customer.FullName,
+				CustomerMsisdn:  regCustResp.Customer.PhoneNumber,
+				CustomerEmail:   regCustResp.Customer.Email,
+				Currency:        "GHS",
+				SenderAccount:   req.SenderAccount,
+				ReceiverAccount: destinationPhoneNumber,
+				PaymentMethod:   req.PaymentMethod,
+				TransactionId:   req.TransactionId,
+				PaymentProofUrl: "",
+				ReferenceNumber: "",
+				CallThirdParty:  true,
+				Operator:        "HUBTEL",
+				Network:         network,
+				ServiceNetwork:  req.ServiceNetwork,
+				ClientId:        client.ClientCorpId,
+			}
+			logs.Info("Sending money for ", req.Service, " purchase: ", requestMoney)
+
+			reqMoneyResp, err := PaymentSendMoney(c, requestMoney)
+
+			if err != nil {
+				logs.Error("Error sending money to customer: ", err)
 				isSuccess = false
-				statusMessage = "We could not process your payment request: " + reqMoneyResp.StatusDesc
+				statusMessage = "Error sending money to customer: " + err.Error()
+			} else {
+				if reqMoneyResp.StatusCode == 200 {
+					logs.Info("Payment request successful: ", reqMoneyResp)
+					isSuccess = true
+					statusMessage = "Payment request successful"
+				} else {
+					logs.Error("We could not process your payment request: ", reqMoneyResp.StatusDesc)
+					isSuccess = false
+					statusMessage = "We could not process your payment request: " + reqMoneyResp.StatusDesc
+				}
 			}
 		}
 	}
@@ -1041,46 +1049,54 @@ func RequestPaymentMain(c *beego.Controller, req requests.PaymentRequestApiReque
 			}
 		}
 
-		requestMoney := requests.RequestMoneyApiRequestDTO{
-			InitiatedBy:     regCustResp.Customer.CustomerId,
-			Amount:          req.Amount,
-			Service:         req.Service,
-			Sender:          regCustResp.Customer.CustomerId,
-			Reciever:        1,
-			PhoneNumber:     destinationPhoneNumber,
-			CustomerName:    regCustResp.Customer.FullName,
-			CustomerMsisdn:  regCustResp.Customer.PhoneNumber,
-			CustomerEmail:   regCustResp.Customer.Email,
-			Currency:        "GHS",
-			SenderAccount:   req.SenderAccount,
-			ReceiverAccount: destinationPhoneNumber,
-			PaymentMethod:   req.PaymentMethod,
-			TransactionId:   req.TransactionId,
-			PaymentProofUrl: "",
-			ReferenceNumber: "",
-			CallThirdParty:  true,
-			Operator:        "HUBTEL",
-			Network:         network,
-			ServiceNetwork:  req.ServiceNetwork,
-			ServicePackage:  req.ServicePackage,
-		}
-		logs.Info("Requesting money from customer for : ", requestMoney)
+		if client, err := models.GetClientsByCode(req.ClientId); err != nil {
+			logs.Error("Error getting client by Code: ", err)
 
-		reqMoneyResp, err := PaymentRequestMoney(c, requestMoney)
-
-		if err != nil {
-			logs.Error("Error requesting money from customer: ", err)
-			isSuccess = false
-			statusMessage = "Error requesting money from customer: " + err.Error()
+			statusMessage = "Error getting client: " + err.Error()
 		} else {
-			if reqMoneyResp.StatusCode == 200 {
-				logs.Info("Payment request successful: ", reqMoneyResp)
-				isSuccess = true
-				statusMessage = "Payment request successful"
-			} else {
-				logs.Error("Error in payment request response: ", reqMoneyResp.StatusDesc)
+
+			requestMoney := requests.RequestMoneyApiRequestDTO{
+				InitiatedBy:     regCustResp.Customer.CustomerId,
+				Amount:          req.Amount,
+				Service:         req.Service,
+				Sender:          regCustResp.Customer.CustomerId,
+				Reciever:        1,
+				PhoneNumber:     destinationPhoneNumber,
+				CustomerName:    regCustResp.Customer.FullName,
+				CustomerMsisdn:  regCustResp.Customer.PhoneNumber,
+				CustomerEmail:   regCustResp.Customer.Email,
+				Currency:        "GHS",
+				SenderAccount:   req.SenderAccount,
+				ReceiverAccount: destinationPhoneNumber,
+				PaymentMethod:   req.PaymentMethod,
+				TransactionId:   req.TransactionId,
+				PaymentProofUrl: "",
+				ReferenceNumber: "",
+				CallThirdParty:  true,
+				Operator:        "HUBTEL",
+				Network:         network,
+				ServiceNetwork:  req.ServiceNetwork,
+				ServicePackage:  req.ServicePackage,
+				ClientId:        client.ClientCorpId,
+			}
+			logs.Info("Requesting money from customer for : ", requestMoney)
+
+			reqMoneyResp, err := PaymentRequestMoney(c, requestMoney)
+
+			if err != nil {
+				logs.Error("Error requesting money from customer: ", err)
 				isSuccess = false
-				statusMessage = "Error requesting money from customer: " + reqMoneyResp.StatusDesc
+				statusMessage = "Error requesting money from customer: " + err.Error()
+			} else {
+				if reqMoneyResp.StatusCode == 200 {
+					logs.Info("Payment request successful: ", reqMoneyResp)
+					isSuccess = true
+					statusMessage = "Payment request successful"
+				} else {
+					logs.Error("Error in payment request response: ", reqMoneyResp.StatusDesc)
+					isSuccess = false
+					statusMessage = "Error requesting money from customer: " + reqMoneyResp.StatusDesc
+				}
 			}
 		}
 	}
@@ -1113,6 +1129,7 @@ func PaymentRequestMoney(c *beego.Controller, req requests.RequestMoneyApiReques
 		Network:         req.Network,
 		ServiceNetwork:  req.ServiceNetwork,
 		ServicePackage:  req.ServicePackage,
+		ClientId:        req.ClientId,
 	}
 
 	resp = apifunctions.MakePayment(c, requestPayment)
@@ -1135,6 +1152,7 @@ func PaymentRequestMoney(c *beego.Controller, req requests.RequestMoneyApiReques
 			Description:        "Payment Request for " + strconv.FormatFloat(resp.Payment.Amount, 'f', 2, 64),
 			ClientReference:    req.TransactionId,
 			Channel:            req.Network,
+			ClientId:           req.ClientId,
 		}
 
 		momoResp := apifunctions.RequestMoneyViaMobileMoney(c, momoRequest)
@@ -1171,6 +1189,7 @@ func PaymentSendMoney(c *beego.Controller, req requests.RequestMoneyApiRequestDT
 		Network:         req.Network,
 		ServiceNetwork:  req.ServiceNetwork,
 		ServicePackage:  req.ServicePackage,
+		ClientId:        req.ClientId,
 	}
 
 	resp = apifunctions.MakePayment(c, requestPayment)
@@ -1194,6 +1213,7 @@ func PaymentSendMoney(c *beego.Controller, req requests.RequestMoneyApiRequestDT
 				Description:        "Payment Request for " + strconv.FormatFloat(resp.Payment.Amount, 'f', 2, 64),
 				ClientReference:    req.TransactionId,
 				Channel:            req.Network,
+				ClientId:           req.ClientId,
 			}
 
 			momoResp := apifunctions.SendMoneyViaMobileMoney(c, momoRequest)

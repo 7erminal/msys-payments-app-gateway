@@ -35,6 +35,7 @@ type RequestMoneyApiRequestDTO struct {
 	Network         string
 	ServiceNetwork  string
 	ServicePackage  string
+	ClientId        string
 }
 
 type MakePaymentApiRequestDTO struct {
@@ -55,6 +56,7 @@ type MakePaymentApiRequestDTO struct {
 	Network         string
 	ServiceNetwork  string
 	ServicePackage  string
+	ClientId        string
 }
 
 type PaymentRequestApiRequestDTO struct {
@@ -94,6 +96,7 @@ type MomoPaymentApiRequestDTO struct {
 	Description        string
 	ClientReference    string
 	Channel            string
+	ClientId           string
 }
 
 type DepositAPIRequest struct {
