@@ -501,9 +501,10 @@ func LogAccountActivity(c *beego.Controller, accountNumber string, reference str
 		}
 
 		// Debit/Credit the account
-		logs.Info("Logging account activity of type ", activityType, " for account number: ", accountNumber)
+		logs.Info("Logging account activity of type ", activityType, " for account number: ", accountNumber, " with amount: ", amount)
 
 		if strings.EqualFold(activityType, "debit") {
+			logs.Info("Debit activity")
 			debitAccReq := requests.DebitAccountRequest{
 				Amount:     amount,
 				ModifiedBy: 1, // System user
@@ -570,6 +571,7 @@ func LogAccountActivity(c *beego.Controller, accountNumber string, reference str
 				}
 			}
 		} else if strings.EqualFold(activityType, "credit") {
+			logs.Info("Credit activity")
 			creditReq := requests.CreditAccountRequestV2{
 				AccountNumber: accountNumber,
 				Amount:        strconv.FormatFloat(amount, 'f', 2, 64),
@@ -588,7 +590,9 @@ func LogAccountActivity(c *beego.Controller, accountNumber string, reference str
 					Result:        "",
 				}
 			} else {
-				logs.Info("Account credited successfully: ", creditResp.Result)
+				logs.Info("Account credit logged successfully: ", creditResp.Result)
+				logs.Info("Credit amount:: ", amount)
+				logs.Info("Proceeding to credit account internally")
 				creditAccReq := requests.CreditAccountRequest{
 					Amount:     amount,
 					ModifiedBy: 1, // System user
