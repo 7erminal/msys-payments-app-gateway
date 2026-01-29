@@ -2166,6 +2166,12 @@ func (c *Api_requestsController) GetBundles() {
 
 	destinationPhoneNumber := req.Destination
 
+	var response responses.DataBundlesListAPIResponse = responses.DataBundlesListAPIResponse{
+		StatusCode:    false,
+		StatusMessage: "Something went wrong",
+		Result:        nil,
+	}
+
 	logs.Info("GetBundles called with PhoneNumber: %s, SourceSystem: %s, Network: %s, DestinationPhoneNumber: %s", phoneNumber, sourceSystem, network, destinationPhoneNumber)
 
 	reqBody := c.Ctx.Input.RequestBody
@@ -2193,48 +2199,53 @@ func (c *Api_requestsController) GetBundles() {
 	}
 	if _, err := models.AddApi_requests(&v); err == nil {
 		logs.Info("API request logged successfully: ", v)
-		getBundlesRequest := requests.DataBundlesListFormulatedRequest{
-			NetworkId:          network,
-			DestinationAccount: destinationPhoneNumber,
-			PhoneNumber:        phoneNumber,
-			SourceSystem:       sourceSystem,
-			ClientId:           clientId,
-		}
 
-		logs.Info("Formatted request for GetBundles: ", getBundlesRequest)
-		resp := apifunctions.GetBundles(&c.Controller, getBundlesRequest)
-		logs.Info("Response from GetBundles API: ", resp)
+		if client, err := models.GetClientsByCode(clientId); err != nil {
+			logs.Error("Error getting client by Code: ", err)
 
-		var response responses.DataBundlesListAPIResponse = responses.DataBundlesListAPIResponse{
-			StatusCode:    false,
-			StatusMessage: "Something went wrong",
-			Result:        resp.Result,
-		}
-
-		if !resp.StatusCode {
 			response = responses.DataBundlesListAPIResponse{
 				StatusCode:    false,
-				StatusMessage: resp.StatusMessage,
-				Result:        resp.Result,
+				StatusMessage: "Error getting client by Code",
+				Result:        nil,
 			}
 		} else {
-			responseText, err := json.Marshal(response.Result)
-			if err != nil {
-				logs.Error("Error marshalling response result: ", err)
-				responseText = []byte("[]")
+			getBundlesRequest := requests.DataBundlesListFormulatedRequest{
+				NetworkId:          network,
+				DestinationAccount: destinationPhoneNumber,
+				PhoneNumber:        phoneNumber,
+				SourceSystem:       sourceSystem,
+				ClientId:           client.ClientCorpId,
 			}
-			v.RequestResponse = string(responseText)
-			v.DateModified = time.Now()
-			v.ResponseDate = time.Now()
-			if err := models.UpdateApi_requestsById(&v); err != nil {
-				logs.Error("Error updating API request with response: ", err)
+
+			logs.Info("Formatted request for GetBundles: ", getBundlesRequest)
+			resp := apifunctions.GetBundles(&c.Controller, getBundlesRequest)
+			logs.Info("Response from GetBundles API: ", resp)
+
+			if !resp.StatusCode {
+				response = responses.DataBundlesListAPIResponse{
+					StatusCode:    false,
+					StatusMessage: resp.StatusMessage,
+					Result:        resp.Result,
+				}
 			} else {
-				logs.Info("API request updated with response successfully: ", v)
-			}
-			response = responses.DataBundlesListAPIResponse{
-				StatusCode:    true,
-				StatusMessage: "Bundles retrieved successfully",
-				Result:        resp.Result,
+				responseText, err := json.Marshal(response.Result)
+				if err != nil {
+					logs.Error("Error marshalling response result: ", err)
+					responseText = []byte("[]")
+				}
+				v.RequestResponse = string(responseText)
+				v.DateModified = time.Now()
+				v.ResponseDate = time.Now()
+				if err := models.UpdateApi_requestsById(&v); err != nil {
+					logs.Error("Error updating API request with response: ", err)
+				} else {
+					logs.Info("API request updated with response successfully: ", v)
+				}
+				response = responses.DataBundlesListAPIResponse{
+					StatusCode:    true,
+					StatusMessage: "Bundles retrieved successfully",
+					Result:        resp.Result,
+				}
 			}
 		}
 
