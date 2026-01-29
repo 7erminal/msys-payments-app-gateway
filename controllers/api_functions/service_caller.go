@@ -1247,7 +1247,7 @@ func CreditAccount(c *beego.Controller, req requests.CreditAccountRequest) (resp
 
 	client := api.Client{
 		Request: request,
-		Type_:   "body",
+		Type_:   "params",
 	}
 	res, err := client.SendRequest()
 	if err != nil {
