@@ -527,12 +527,14 @@ func (c *CallbackController) RequestMoneyCallback() {
 					}
 
 					if resp.Result.Service == "DEPOSIT" {
+						logs.Info("Amount to deposit is ", resp.Result.Amount)
 						helpers.LogAccountActivity(&c.Controller, resp.Result.ReceiverAccount, "Deposit", resp.Result.Amount, resp.Result.ServiceNetwork, "credit")
 						responseStatus = true
 						responseMessage = resp.StatusMessage
 					}
 
 					if resp.Result.Service == "WITHDRAWAL" {
+						logs.Info("Amount to withdraw is ", resp.Result.PaymentAmount)
 						helpers.LogAccountActivity(&c.Controller, resp.Result.SenderAccount, "Withdrawal", resp.Result.PaymentAmount, resp.Result.ServiceNetwork, "debit")
 						responseStatus = true
 						responseMessage = resp.StatusMessage

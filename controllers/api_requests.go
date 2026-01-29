@@ -1919,6 +1919,8 @@ func (c *Api_requestsController) Deposit() {
 			}
 			//
 
+			logs.Info("Amount to debit is ", req.Amount)
+
 			resp, err := helpers.RequestPaymentMain(&c.Controller, req)
 
 			logs.Info("Response from Deposit API: ", resp)

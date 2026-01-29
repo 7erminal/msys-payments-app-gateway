@@ -1140,6 +1140,7 @@ func PaymentRequestMoney(c *beego.Controller, req requests.RequestMoneyApiReques
 	} else {
 		logs.Info("Payment request made successfully: ", resp.Payment)
 		logs.Info("Initiating Momo Payment for Payment ID: ", resp.Payment.PaymentId)
+		logs.Info("Amount after sending for payment is ", resp.Payment.Amount)
 
 		momoRequest := requests.MomoPaymentApiRequestDTO{
 			PaymentId:          resp.Payment.PaymentId,
