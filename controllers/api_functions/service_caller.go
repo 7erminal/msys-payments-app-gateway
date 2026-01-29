@@ -1234,7 +1234,7 @@ func CreditAccountPro(c *beego.Controller, req requests.CreditAccountRequestV2) 
 func CreditAccount(c *beego.Controller, req requests.CreditAccountRequest) (resp responses.CreateCustomerAccountApiResponse) {
 	host, _ := beego.AppConfig.String("accountBaseUrl")
 
-	logs.Info("Creating customer account for account number ", req.AccountId)
+	logs.Info("Creating customer account for account number ", req.AccountId, " with amount ", req.Amount)
 	request := api.NewRequest(
 		host,
 		"/v1/customer-accounts/credit-account/"+fmt.Sprintf("%d", req.AccountId),
