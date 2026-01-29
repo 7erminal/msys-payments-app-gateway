@@ -1677,6 +1677,7 @@ func SendMoneyViaMobileMoney(c *beego.Controller, req requests.MomoPaymentApiReq
 	request.InterfaceParams["Operator"] = req.Operator
 	request.InterfaceParams["Channel"] = req.Channel
 	request.InterfaceParams["PaymentId"] = req.PaymentId
+	request.InterfaceParams["ClientId"] = req.ClientId
 
 	client := api.Client{
 		Request: request,
