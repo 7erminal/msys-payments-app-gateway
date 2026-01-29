@@ -1837,6 +1837,7 @@ func (c *Api_requestsController) Deposit() {
 		clientId, _ = beego.AppConfig.String("msysconsultCode")
 	}
 
+	logs.Info("Client ID for deposit is ", clientId)
 	logs.Info("Deposit called with PhoneNumber: %s, SourceSystem: %s, Network: %s, DestinationPhoneNumber: %s", phoneNumber, sourceSystem, network, destinationPhoneNumber)
 
 	reqBody := c.Ctx.Input.RequestBody
@@ -1904,7 +1905,7 @@ func (c *Api_requestsController) Deposit() {
 		} else {
 
 			req := requests.PaymentRequestApiRequestDTO{
-				ClientId:        req.ClientId,
+				ClientId:        clientId,
 				Amount:          req.Amount,
 				PaymentMethod:   "MOBILEMONEY",
 				Service:         "DEPOSIT",
@@ -1995,6 +1996,13 @@ func (c *Api_requestsController) Withdrawal() {
 	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
 
 	destinationPhoneNumber := req.Destination
+	clientId := req.ClientId
+
+	if clientId == "" {
+		clientId, _ = beego.AppConfig.String("msysconsultCode")
+	}
+
+	logs.Info("Client ID for withdrawal: %s", clientId)
 
 	logs.Info("Withdrawal called with PhoneNumber: %s, SourceSystem: %s, Network: %s, DestinationPhoneNumber: %s", phoneNumber, sourceSystem, network, destinationPhoneNumber)
 
@@ -2072,7 +2080,7 @@ func (c *Api_requestsController) Withdrawal() {
 			// 	c.Data["json"] = response
 			// } else {
 			req := requests.PaymentRequestApiRequestDTO{
-				ClientId:        req.ClientId,
+				ClientId:        clientId,
 				Amount:          req.Amount,
 				PaymentMethod:   "MOBILEMONEY",
 				Service:         "WITHDRAWAL",
