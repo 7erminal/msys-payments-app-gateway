@@ -1206,6 +1206,7 @@ func PaymentSendMoney(c *beego.Controller, req requests.RequestMoneyApiRequestDT
 		if strings.EqualFold(req.Service, "WITHDRAWAL") {
 			logs.Info("Payment request made successfully: ", resp.Payment)
 			logs.Info("Initiating Momo Payment for Payment ID: ", resp.Payment.PaymentId)
+			logs.Info("Client ID sent is ", req.ClientId)
 
 			momoRequest := requests.MomoPaymentApiRequestDTO{
 				PaymentId:          resp.Payment.PaymentId,
