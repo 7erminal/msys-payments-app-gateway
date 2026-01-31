@@ -2581,6 +2581,7 @@ func (c *Api_requestsController) BuyAirtime() {
 
 	logs.Info("GetAirtime called with PhoneNumber: %s, SourceSystem: %s, Network: %s, DestinationPhoneNumber: %s", phoneNumber, sourceSystem, network, destinationPhoneNumber)
 
+	logs.Info("Client ID for buy airtime is ", clientId)
 	reqBody := c.Ctx.Input.RequestBody
 	reqHeaders := c.Ctx.Request.Header
 
