@@ -2400,7 +2400,7 @@ func (c *Api_requestsController) BuyDataBundle() {
 
 								// Log payment request
 								makePaymentRequest := requests.PaymentRequestApiRequestDTO{
-									ClientId:        req.ClientId,
+									ClientId:        clientId,
 									Amount:          req.Amount,
 									PaymentMethod:   "ACCOUNT",
 									Service:         "DATA_BUNDLE",
@@ -2426,7 +2426,7 @@ func (c *Api_requestsController) BuyDataBundle() {
 							logs.Info("Register Customer")
 
 							req := requests.PaymentRequestApiRequestDTO{
-								ClientId:        req.ClientId,
+								ClientId:        clientId,
 								Amount:          req.Amount,
 								PaymentMethod:   "MOBILEMONEY",
 								Service:         "DATA_BUNDLE",
@@ -2690,7 +2690,7 @@ func (c *Api_requestsController) BuyAirtime() {
 								logs.Info("Account activity logged successfully for account number: ", accountNumber)
 								// Log payment request
 								makePaymentRequest := requests.PaymentRequestApiRequestDTO{
-									ClientId:        req.ClientId,
+									ClientId:        clientId,
 									Amount:          req.Amount,
 									PaymentMethod:   "ACCOUNT",
 									Service:         "AIRTIME",
@@ -2712,7 +2712,7 @@ func (c *Api_requestsController) BuyAirtime() {
 							logs.Info("Register Customer")
 
 							req := requests.PaymentRequestApiRequestDTO{
-								ClientId:        req.ClientId,
+								ClientId:        clientId,
 								Amount:          req.Amount,
 								PaymentMethod:   "MOBILEMONEY",
 								Service:         "AIRTIME",
@@ -3142,7 +3142,7 @@ func (c *Api_requestsController) PayDSTV() {
 								logs.Info("Account activity logged successfully for account number: ", accountNumber)
 								// Log payment request
 								makePaymentRequest := requests.PaymentRequestApiRequestDTO{
-									ClientId:        req.ClientId,
+									ClientId:        clientId,
 									Amount:          req.Amount,
 									PaymentMethod:   "ACCOUNT",
 									Service:         "BILL PAYMENT",
@@ -3164,7 +3164,7 @@ func (c *Api_requestsController) PayDSTV() {
 							logs.Info("Register Customer")
 
 							req := requests.PaymentRequestApiRequestDTO{
-								ClientId:        req.ClientId,
+								ClientId:        clientId,
 								Amount:          req.Amount,
 								PaymentMethod:   "MOBILEMONEY",
 								Service:         "BILL PAYMENT",
@@ -3400,7 +3400,7 @@ func (c *Api_requestsController) PayGOTV() {
 
 									// Log payment request
 									makePaymentRequest := requests.PaymentRequestApiRequestDTO{
-										ClientId:        req.ClientId,
+										ClientId:        clientId,
 										Amount:          req.Amount,
 										PaymentMethod:   "ACCOUNT",
 										Service:         "BILL PAYMENT",
@@ -3422,7 +3422,7 @@ func (c *Api_requestsController) PayGOTV() {
 								logs.Info("Register Customer")
 
 								req := requests.PaymentRequestApiRequestDTO{
-									ClientId:        req.ClientId,
+									ClientId:        clientId,
 									Amount:          req.Amount,
 									PaymentMethod:   "MOBILEMONEY",
 									Service:         "BILL PAYMENT",
@@ -3637,7 +3637,7 @@ func (c *Api_requestsController) PayECG() {
 								logs.Info("Account activity logged successfully for account number: ", accountNumber)
 								// Log payment request
 								makePaymentRequest := requests.PaymentRequestApiRequestDTO{
-									ClientId:        req.ClientId,
+									ClientId:        clientId,
 									Amount:          req.Amount,
 									PaymentMethod:   "ACCOUNT",
 									Service:         "BILL PAYMENT",
@@ -3659,7 +3659,7 @@ func (c *Api_requestsController) PayECG() {
 							logs.Info("Register Customer")
 
 							req := requests.PaymentRequestApiRequestDTO{
-								ClientId:        req.ClientId,
+								ClientId:        clientId,
 								Amount:          req.Amount,
 								PaymentMethod:   "MOBILEMONEY",
 								Service:         "BILL PAYMENT",
@@ -3899,7 +3899,7 @@ func (c *Api_requestsController) PayWaterBill() {
 
 								// Log payment request
 								makePaymentRequest := requests.PaymentRequestApiRequestDTO{
-									ClientId:        req.ClientId,
+									ClientId:        clientId,
 									Amount:          req.Amount,
 									PaymentMethod:   "ACCOUNT",
 									Service:         "BILL PAYMENT",
@@ -3921,7 +3921,7 @@ func (c *Api_requestsController) PayWaterBill() {
 							logs.Info("Register Customer")
 
 							req := requests.PaymentRequestApiRequestDTO{
-								ClientId:        req.ClientId,
+								ClientId:        clientId,
 								Amount:          req.Amount,
 								PaymentMethod:   "MOBILEMONEY",
 								Service:         "BILL PAYMENT",
@@ -4136,7 +4136,7 @@ func (c *Api_requestsController) PayStartimesTvBill() {
 
 								// Log payment request
 								makePaymentRequest := requests.PaymentRequestApiRequestDTO{
-									ClientId:        req.ClientId,
+									ClientId:        clientId,
 									Amount:          req.Amount,
 									PaymentMethod:   "ACCOUNT",
 									Service:         "BILL PAYMENT",
@@ -4158,7 +4158,7 @@ func (c *Api_requestsController) PayStartimesTvBill() {
 							logs.Info("Register Customer")
 
 							req := requests.PaymentRequestApiRequestDTO{
-								ClientId:        req.ClientId,
+								ClientId:        clientId,
 								Amount:          req.Amount,
 								PaymentMethod:   "MOBILEMONEY",
 								Service:         "BILL PAYMENT",
