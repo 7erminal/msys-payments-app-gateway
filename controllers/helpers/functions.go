@@ -457,6 +457,7 @@ func LogAccountActivity(c *beego.Controller, accountNumber string, reference str
 	// 	Channel       string
 	// }
 
+	logs.Info("Client ID received:: ", clientid)
 	activityResponse = responses.AccountActivityResponse{
 		StatusCode:    false,
 		StatusMessage: "Error processing account activity",
@@ -523,6 +524,7 @@ func LogAccountActivity(c *beego.Controller, accountNumber string, reference str
 			} else {
 				logs.Info("Account debited internally successfully: ", debitAccResp.Result)
 
+				logs.Info("Sending client ID to debit:: ", clientid)
 				debitReq := requests.DebitAccountRequestV2{
 					AccountNumber: accountNumber,
 					Amount:        strconv.FormatFloat(amount, 'f', 2, 64),

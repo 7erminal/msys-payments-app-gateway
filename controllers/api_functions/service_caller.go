@@ -1090,7 +1090,7 @@ func DebitAccountPro(c *beego.Controller, req requests.DebitAccountRequestV2) (r
 	host, _ := beego.AppConfig.String("clientBaseUrl")
 
 	logs.Info("Creating customer account for account number ", req.AccountNumber)
-	logs.Info("Clien ID ", req.ClientId)
+	logs.Info("Client ID for debit:: ", req.ClientId)
 	request := api.NewRequest(
 		host,
 		"/v2/api/v2/debit-account",
@@ -1186,6 +1186,7 @@ func CreditAccountPro(c *beego.Controller, req requests.CreditAccountRequestV2) 
 	host, _ := beego.AppConfig.String("clientBaseUrl")
 
 	logs.Info("Creating customer account for account number ", req.AccountNumber)
+	logs.Info("Client ID for credit:: ", req.ClientId)
 	request := api.NewRequest(
 		host,
 		"/v2/api/v2/credit-account",
