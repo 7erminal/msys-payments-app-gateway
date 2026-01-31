@@ -904,7 +904,7 @@ func GetCustomerBillPaymentHistory(c *beego.Controller, query string) (resp resp
 		"/v1/bill-payment/bil-transactions",
 		api.GET)
 	request.Params["query"] = query
-	request.Params["order"] = "order: desc"
+	request.Params["order"] = "desc"
 	// request.Params = {"UserId": strconv.Itoa(int(userid))}
 
 	client := api.Client{
