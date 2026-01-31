@@ -2617,13 +2617,13 @@ func (c *Api_requestsController) BuyAirtime() {
 		DateModified: time.Now(),
 	}
 	if _, err := models.AddApi_requests(&v); err == nil {
+		logs.Info("API request logged successfully: ", v)
 		if client, err := models.GetClientsByCode(clientId); err != nil {
 			logs.Error("Error getting client by Code: ", clientId, err)
 
 			message = "Error getting client: " + err.Error()
 		} else {
-			logs.Info("API request logged successfully: ", v)
-
+			logs.Info("Client details fetched successfully for client ID: ", clientId)
 			requestIdStr := fmt.Sprintf("%d", v.Id)
 			amountString := strconv.FormatFloat(req.Amount, 'f', -1, 64)
 			transactionLog := requests.LogTransactionRequest{
