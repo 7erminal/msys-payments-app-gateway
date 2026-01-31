@@ -2618,6 +2618,7 @@ func (c *Api_requestsController) BuyAirtime() {
 	}
 	if _, err := models.AddApi_requests(&v); err == nil {
 		logs.Info("API request logged successfully: ", v)
+		logs.Info("About to get client by code:: ", clientId)
 		if client, err := models.GetClientsByCode(clientId); err != nil {
 			logs.Error("Error getting client by Code: ", clientId, err)
 
