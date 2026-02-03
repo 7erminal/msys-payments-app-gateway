@@ -1041,7 +1041,7 @@ func (c *Api_requestsController) GetBilTransactions() {
 			for _, ah := range resp.Result {
 				// Map each account history to the response object
 				logs.Info("Biller transaction record: ", ah)
-				logs.Info("Biller transaction amount type: ", reflect.TypeOf(ah.Amount))
+				logs.Info("Biller transaction amount type: ", reflect.TypeOf(ah.Amount), " :: ", ah.Amount)
 				billPayment := &responses.BilTransactionsData{
 					TransactionId:           ah.TransactionId,
 					TransactionBy:           ah.TransactionBy,
