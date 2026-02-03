@@ -168,15 +168,15 @@ type BilTransactionsApiData struct {
 	Service                 string
 	Request                 int64
 	TransactionBy           string
-	Amount                  float64
+	Amount                  string
 	TransactingCurrency     string
 	SourceChannel           string
 	Source                  string
 	Destination             string
-	Charge                  float64
+	Charge                  string
 	BillerName              string
 	NetworkName             string
-	Commission              float64
+	Commission              string
 	ExternalReferenceNumber string
 	Status                  string
 	DateCreated             string
@@ -191,14 +191,14 @@ type BilTransactionsData struct {
 	TransactionRefNumber    string
 	Service                 string
 	TransactionBy           string
-	Amount                  float64
+	Amount                  string
 	TransactingCurrency     string
 	Source                  string
 	Destination             string
-	Charge                  float64
+	Charge                  string
 	BillerName              string
 	NetworkName             string
-	Commission              float64
+	Commission              string
 	ExternalReferenceNumber string
 	Status                  string
 	TransactionDate         string
