@@ -26,6 +26,8 @@ type Auth_requestsController struct {
 func (c *Auth_requestsController) URLMapping() {
 	c.Mapping("Login", c.Login)
 	c.Mapping("Register", c.Register)
+	c.Mapping("ResetPassword", c.ResetPassword)
+	c.Mapping("RefreshAccessToken", c.RefreshAccessToken)
 }
 
 // Login ...
