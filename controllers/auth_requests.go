@@ -136,6 +136,61 @@ func (c *Auth_requestsController) Login() {
 	c.ServeJSON()
 }
 
+// RefreshToken ...
+// @Title Refresh Access Token
+// @Description refresh access token
+// @Param	SourceSystem		header 	string true		"header for Source system"
+// @Param	body		body 	models.Auth_requests	true		"body for Auth_requests content"
+// @Success 201 {object} models.Auth_requests
+// @Failure 403 body is empty
+// @router /refresh-customer-access-token [post]
+func (c *Auth_requestsController) RefreshAccessToken() {
+	// Extract headers
+	// phoneNumber := c.Ctx.Input.Header("PhoneNumber")
+	sourceSystem := c.Ctx.Input.Header("SourceSystem")
+	phoneNumber := c.Ctx.Input.Header("PhoneNumber")
+	clientId := c.Ctx.Input.Header("ClientId")
+
+	var req requests.RefreshTokenRequest
+	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
+
+	logs.Info("RefreshAccessToken called with PhoneNumber: %s, SourceSystem: %s, ClientId: %s", phoneNumber, sourceSystem, clientId)
+	isSuccess := false
+	statusMessage := "Something went wrong"
+	result := responses.CustomerLoginDataResponseDTO{}
+
+	refreshToken := requests.RefreshTokenApiRequest{
+		RefreshToken: req.RefreshToken,
+	}
+
+	resp := apifunctions.RefreshCustomerToken(&c.Controller, refreshToken)
+	logs.Info("Response from refresh token API: ", resp)
+
+	if resp.StatusCode != 200 {
+		logs.Error("Error logging in: ", resp.StatusDesc)
+		statusMessage = resp.StatusDesc
+	} else {
+
+		isSuccess = true
+		statusMessage = "Refreshed Token successfully"
+		result = responses.CustomerLoginDataResponseDTO{
+			UserType: resp.Result.UserType,
+			Token:    resp.Result.Token,
+		}
+	}
+
+	var response responses.CustomerLoginResponse = responses.CustomerLoginResponse{
+		StatusCode:    isSuccess,
+		StatusMessage: statusMessage,
+		Result:        &result,
+	}
+
+	c.Ctx.Output.SetStatus(200)
+	c.Data["json"] = response
+
+	c.ServeJSON()
+}
+
 // Register ...
 // @Title Register
 // @Description Register customer
