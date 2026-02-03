@@ -1037,6 +1037,7 @@ func (c *Api_requestsController) GetBilTransactions() {
 
 			billPaymentHist := make([]*responses.BilTransactionsData, 0)
 
+			logs.Info("About to get payment history records... ", billPaymentHist)
 			for _, ah := range resp.Result {
 				// Map each account history to the response object
 				logs.Info("Biller transaction record: ", ah)
