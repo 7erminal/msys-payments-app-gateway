@@ -7,6 +7,14 @@ type LoginApiRequest struct {
 	ClientId     string
 }
 
+type RefreshTokenRequest struct {
+	RefreshToken string
+}
+
+type RefreshTokenApiRequest struct {
+	RefreshToken string
+}
+
 type LoginRequest struct {
 	PhoneNumber string
 	Password    string

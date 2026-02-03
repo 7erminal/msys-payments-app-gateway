@@ -104,6 +104,51 @@ func Login(c *beego.Controller, req requests.LoginApiRequest) (resp responses.Cu
 	return data
 }
 
+func RefreshCustomerToken(c *beego.Controller, req requests.RefreshTokenApiRequest) (resp responses.CustomerLoginApiResponseDTO) {
+	host, _ := beego.AppConfig.String("authenticationBaseUrl")
+
+	logs.Info("Refresh token ", req.RefreshToken)
+
+	request := api.NewRequest(
+		host,
+		"/v1/auth/refresh/customer/token",
+		api.POST)
+	// request.Params["username"] = username
+	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+	request.HeaderField["RefreshToken"] = req.RefreshToken
+
+	client := api.Client{
+		Request: request,
+		Type_:   "body",
+	}
+	res, err := client.SendRequest()
+	if err != nil {
+		logs.Error("client.Error: %v", err)
+		c.Data["json"] = err.Error()
+	}
+	defer res.Body.Close()
+	read, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	}
+
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, read, "", "  "); err != nil {
+		logs.Info("Raw response received is ", string(read))
+	} else {
+		logs.Info("Raw response received is \n", prettyJSON.String())
+	}
+	// data := map[string]interface{}{}
+	var data responses.CustomerLoginApiResponseDTO
+	json.Unmarshal(read, &data)
+	c.Data["json"] = data
+
+	logs.Info("Resp is ", data)
+	// logs.Info("Resp is ", data.User)
+
+	return data
+}
+
 func Register(c *beego.Controller, req requests.AddCustomer) (resp responses.CustomerResponseDTO) {
 	host, _ := beego.AppConfig.String("customerBaseUrl")
 

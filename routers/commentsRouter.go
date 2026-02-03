@@ -189,6 +189,15 @@ func init() {
 
     beego.GlobalControllerRouter["msys_payment_app_gateway/controllers:Api_requestsController"] = append(beego.GlobalControllerRouter["msys_payment_app_gateway/controllers:Api_requestsController"],
         beego.ControllerComments{
+            Method: "RefreshAccessToken",
+            Router: `/refresh-customer-access-token`,
+            AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["msys_payment_app_gateway/controllers:Api_requestsController"] = append(beego.GlobalControllerRouter["msys_payment_app_gateway/controllers:Api_requestsController"],
+        beego.ControllerComments{
             Method: "RegisterAccount",
             Router: `/register-account`,
             AllowHTTPMethods: []string{"post"},
@@ -317,6 +326,15 @@ func init() {
         beego.ControllerComments{
             Method: "RequestMoneyCallback",
             Router: `/payment-callback`,
+            AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["msys_payment_app_gateway/controllers:CallbackController"] = append(beego.GlobalControllerRouter["msys_payment_app_gateway/controllers:CallbackController"],
+        beego.ControllerComments{
+            Method: "TransferCallback",
+            Router: `/transfer-callback`,
             AllowHTTPMethods: []string{"post"},
             MethodParams: param.Make(),
             Filters: nil,
