@@ -10,6 +10,7 @@ import (
 	"msys_payment_app_gateway/models"
 	"msys_payment_app_gateway/structs/requests"
 	"msys_payment_app_gateway/structs/responses"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -1038,7 +1039,8 @@ func (c *Api_requestsController) GetBilTransactions() {
 
 			for _, ah := range resp.Result {
 				// Map each account history to the response object
-
+				logs.Info("Biller transaction record: ", ah)
+				logs.Info("Biller transaction amount type: ", reflect.TypeOf(ah.Amount))
 				billPayment := &responses.BilTransactionsData{
 					TransactionId:           ah.TransactionId,
 					TransactionBy:           ah.TransactionBy,
