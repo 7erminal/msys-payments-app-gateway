@@ -72,6 +72,10 @@ func (c *Auth_requestsController) Login() {
 	// }
 	// if _, err := models.AddApi_requests(&v); err == nil {
 	// 	logs.Info("API request logged successfully: ", v)
+	isSuccess := false
+	statusMessage := "Something went wrong"
+	result := responses.CustomerLoginDataResponseDTO{}
+
 	loginRequest := requests.LoginApiRequest{
 		PhoneNumber:  req.PhoneNumber,
 		SourceSystem: sourceSystem,
@@ -83,18 +87,9 @@ func (c *Auth_requestsController) Login() {
 	resp := apifunctions.Login(&c.Controller, loginRequest)
 	logs.Info("Response from Login API: ", resp)
 
-	var response responses.LoginResponse = responses.LoginResponse{
-		StatusCode:    false,
-		StatusMessage: "Something went wrong",
-		Result:        "",
-	}
-
 	if resp.StatusCode != 200 {
-		response = responses.LoginResponse{
-			StatusCode:    false,
-			StatusMessage: resp.StatusDesc,
-			Result:        "",
-		}
+		logs.Error("Error logging in: ", resp.StatusDesc)
+		statusMessage = resp.StatusDesc
 	} else {
 		// responseText, err := json.Marshal(response.Result)
 		// if err != nil {
@@ -112,11 +107,18 @@ func (c *Auth_requestsController) Login() {
 
 		// Check if account is verified
 
-		response = responses.LoginResponse{
-			StatusCode:    true,
-			StatusMessage: "Login successful",
-			Result:        resp.Value,
+		isSuccess = true
+		statusMessage = "Login successful"
+		result = responses.CustomerLoginDataResponseDTO{
+			UserType: resp.Result.UserType,
+			Token:    resp.Result.Token,
 		}
+	}
+
+	var response responses.CustomerLoginResponse = responses.CustomerLoginResponse{
+		StatusCode:    isSuccess,
+		StatusMessage: statusMessage,
+		Result:        &result,
 	}
 
 	c.Ctx.Output.SetStatus(200)

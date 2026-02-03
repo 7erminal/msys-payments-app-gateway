@@ -449,6 +449,41 @@ type StringOriResponseDTO struct {
 	StatusDesc string
 }
 
+type TokenResponseDTO struct {
+	AccessToken  string
+	RefreshToken string
+	TokenType    string
+	ExpiresIn    int64
+}
+
+type LoginDataResponseDTO struct {
+	UserType string
+	Token    *TokenResponseDTO
+}
+
+type LoginResponseDTO struct {
+	StatusCode int
+	Result     string
+	StatusDesc string
+}
+
+type CustomerLoginApiResponseDTO struct {
+	StatusCode int
+	Result     *LoginDataResponseDTO
+	StatusDesc string
+}
+
+type CustomerLoginDataResponseDTO struct {
+	UserType string
+	Token    *TokenResponseDTO
+}
+
+type CustomerLoginResponse struct {
+	StatusCode    bool
+	StatusMessage string
+	Result        *CustomerLoginDataResponseDTO
+}
+
 type UserOriResponseDTO struct {
 	StatusCode int
 	User       *UsersOri

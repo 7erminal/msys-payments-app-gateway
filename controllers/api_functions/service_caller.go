@@ -56,7 +56,7 @@ func GetCorporatives(c *beego.Controller) (resp responses.CorporativeApiResponse
 	return data
 }
 
-func Login(c *beego.Controller, req requests.LoginApiRequest) (resp responses.LoginApiResponse) {
+func Login(c *beego.Controller, req requests.LoginApiRequest) (resp responses.CustomerLoginApiResponseDTO) {
 	host, _ := beego.AppConfig.String("authenticationBaseUrl")
 
 	logs.Info("Verify pin ", req.PhoneNumber, " for ", req.Password)
@@ -94,7 +94,7 @@ func Login(c *beego.Controller, req requests.LoginApiRequest) (resp responses.Lo
 		logs.Info("Raw response received is \n", prettyJSON.String())
 	}
 	// data := map[string]interface{}{}
-	var data responses.LoginApiResponse
+	var data responses.CustomerLoginApiResponseDTO
 	json.Unmarshal(read, &data)
 	c.Data["json"] = data
 
