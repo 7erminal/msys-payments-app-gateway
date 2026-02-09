@@ -673,7 +673,7 @@ func GetAccountBalance(c *beego.Controller, req requests.AccountBalanceApiReques
 					Amount:         amountFloat,
 					Desc:           "Balance mismatch detected during transaction. System Balance: " + strconv.FormatFloat(accountsResp.Result.Balance, 'f', 2, 64) + ", Actual Balance: " + strconv.FormatFloat(*balance, 'f', 2, 64),
 					Balance:        accountsResp.Result.Balance,
-					CheckedBalance: *balance,
+					CheckedBalance: *ClearBalance,
 					CreatedBy:      1, // System user
 					ModifiedBy:     1, // System user
 					Active:         1,
