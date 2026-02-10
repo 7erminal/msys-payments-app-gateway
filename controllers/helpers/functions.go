@@ -648,20 +648,20 @@ func GetAccountBalance(c *beego.Controller, req requests.AccountBalanceApiReques
 		logs.Info("Account balance fetched successfully: ", resp.Result)
 
 		balance := resp.Result.AvailableBalance
-		ClearBalance := resp.Result.ClearBalance
+		clearBalance := resp.Result.ClearBalance
 
 		logs.Info("Available balance: ", balance)
-		logs.Info("Clear balance: ", ClearBalance)
+		logs.Info("Clear balance: ", clearBalance)
 
 		accountsResp := apifunctions.GetCustomerAccount(c, req.AccountNumber)
 
 		if accountsResp.StatusCode == "200" && accountsResp.Result != nil {
 			logs.Info("Account details fetched successfully: ", accountsResp.Result)
-			if accountsResp.Result.Balance != *balance {
+			if accountsResp.Result.Balance != *clearBalance {
 				// Log the anomaly
 				logs.Info("Balance mismatch detected. Logging account anomaly.")
 
-				amountDifference := *balance - accountsResp.Result.Balance
+				amountDifference := *clearBalance - accountsResp.Result.Balance
 				amountFloat, err := strconv.ParseFloat(strconv.FormatFloat(amountDifference, 'f', 2, 64), 64)
 				if err != nil {
 					logs.Error("Error parsing amount to float: ", err)
@@ -673,7 +673,7 @@ func GetAccountBalance(c *beego.Controller, req requests.AccountBalanceApiReques
 					Amount:         amountFloat,
 					Desc:           "Balance mismatch detected during transaction. System Balance: " + strconv.FormatFloat(accountsResp.Result.Balance, 'f', 2, 64) + ", Actual Balance: " + strconv.FormatFloat(*balance, 'f', 2, 64),
 					Balance:        accountsResp.Result.Balance,
-					CheckedBalance: *ClearBalance,
+					CheckedBalance: *clearBalance,
 					CreatedBy:      1, // System user
 					ModifiedBy:     1, // System user
 					Active:         1,
@@ -739,12 +739,12 @@ func UpdateAccountBalance(c *beego.Controller, request_ requests.UpdateAccountBa
 		logs.Info("Account balance fetched successfully: ", resp.Result)
 
 		balance := resp.Result.AvailableBalance
-		ClearBalance := resp.Result.ClearBalance
+		clearBalance := resp.Result.ClearBalance
 		sharesBalance := resp.Result.SharesBalance
 		loanBalance := resp.Result.LoanBalance
 
 		logs.Info("Available balance: ", balance)
-		logs.Info("Clear balance: ", ClearBalance)
+		logs.Info("Clear balance: ", clearBalance)
 		logs.Info("Shares balance: ", sharesBalance)
 		logs.Info("Loan balance: ", loanBalance)
 
@@ -752,12 +752,12 @@ func UpdateAccountBalance(c *beego.Controller, request_ requests.UpdateAccountBa
 
 		if accountsResp.StatusCode == "200" && accountsResp.Result != nil {
 			logs.Info("Account details fetched successfully: ", accountsResp.Result)
-			if accountsResp.Result.Balance != *balance {
+			if accountsResp.Result.Balance != *clearBalance {
 				// Log the anomaly
 				logs.Info("Balance mismatch detected. Logging account anomaly.")
-				logs.Info("Balance is different. System Balance: ", accountsResp.Result.Balance, ", Actual Balance: ", *balance)
+				logs.Info("Balance is different. System Balance: ", accountsResp.Result.Balance, ", Actual Balance: ", balance, " and clear balance is ", clearBalance)
 
-				amountDifference := *balance - accountsResp.Result.Balance
+				amountDifference := *clearBalance - accountsResp.Result.Balance
 				amountFloat, err := strconv.ParseFloat(strconv.FormatFloat(amountDifference, 'f', 2, 64), 64)
 				if err != nil {
 					logs.Error("Error parsing amount to float: ", err)
@@ -769,7 +769,7 @@ func UpdateAccountBalance(c *beego.Controller, request_ requests.UpdateAccountBa
 					Amount:         amountFloat,
 					Desc:           "Balance mismatch detected during transaction. System Balance: " + strconv.FormatFloat(accountsResp.Result.Balance, 'f', 2, 64) + ", Actual Balance: " + strconv.FormatFloat(*balance, 'f', 2, 64),
 					Balance:        accountsResp.Result.Balance,
-					CheckedBalance: *balance,
+					CheckedBalance: *clearBalance,
 					CreatedBy:      1, // System user
 					ModifiedBy:     1, // System user
 					Active:         1,
@@ -786,13 +786,13 @@ func UpdateAccountBalance(c *beego.Controller, request_ requests.UpdateAccountBa
 				newrequest_ := requests.UpdateAccountBalanceApiRequest{
 					AccountId:     request_.AccountId,
 					AccountNumber: request_.AccountNumber,
-					Balance:       *balance,
+					Balance:       *clearBalance,
 					Reason:        request_.Reason,
 					ModifiedBy:    request_.ModifiedBy,
 					ClientId:      request_.ClientId,
 				}
 
-				logs.Info("Updating account balance with new balance: ", *balance)
+				logs.Info("Updating account balance with new balance: ", *clearBalance)
 				updateAccountBalanceResp := apifunctions.UpdateAccountBalance(c, newrequest_)
 
 				if updateAccountBalanceResp.StatusCode == "200" {
