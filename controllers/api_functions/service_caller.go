@@ -2881,3 +2881,140 @@ func SendCommissionResp(c *beego.Controller, req requests.TransferCallbackReques
 
 	return data
 }
+
+func ListAccountLoans(c *beego.Controller, clientId string, accountNumber string) (resp responses.ListLoansApiResponse) {
+	host, _ := beego.AppConfig.String("clientBaseUrl")
+
+	request := api.NewRequest(
+		host,
+		"/v2/api/list-account-loans/",
+		api.POST)
+	// request.Params["username"] = username
+	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+	request.HeaderField["clientId"] = clientId
+	request.InterfaceParams["accountNumber"] = accountNumber
+
+	client := api.Client{
+		Request: request,
+		Type_:   "body",
+	}
+	res, err := client.SendRequest()
+	if err != nil {
+		logs.Error("client.Error: %v", err)
+		c.Data["json"] = err.Error()
+	}
+	defer res.Body.Close()
+	read, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	}
+
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, read, "", "  "); err != nil {
+		logs.Info("Raw response received is ", string(read))
+	} else {
+		logs.Info("Raw response received is \n", prettyJSON.String())
+	}
+	// data := map[string]interface{}{}
+	var data responses.ListLoansApiResponse
+	json.Unmarshal(read, &data)
+	c.Data["json"] = data
+
+	logs.Info("Resp is ", data)
+	// logs.Info("Resp is ", data.User)
+
+	return data
+}
+
+func LoanRepayment(c *beego.Controller, req requests.LoanRepaymentApiRequest) (resp responses.RepayLoanApiResponse) {
+	host, _ := beego.AppConfig.String("clientBaseUrl")
+
+	request := api.NewRequest(
+		host,
+		"/v2/api/loan-repayment",
+		api.POST)
+	// request.Params["username"] = username
+	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+
+	request.HeaderField["clientId"] = req.ClientId
+	request.InterfaceParams["mobileNumber"] = req.MobileNumber
+	request.InterfaceParams["loanId"] = req.LoanId
+	request.InterfaceParams["amount"] = req.Amount
+	request.InterfaceParams["accountNumber"] = req.AccountNumber
+
+	client := api.Client{
+		Request: request,
+		Type_:   "body",
+	}
+	res, err := client.SendRequest()
+	if err != nil {
+		logs.Error("client.Error: %v", err)
+		c.Data["json"] = err.Error()
+	}
+	defer res.Body.Close()
+	read, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	}
+
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, read, "", "  "); err != nil {
+		logs.Info("Raw response received is ", string(read))
+	} else {
+		logs.Info("Raw response received is \n", prettyJSON.String())
+	}
+	// data := map[string]interface{}{}
+	var data responses.RepayLoanApiResponse
+	json.Unmarshal(read, &data)
+	c.Data["json"] = data
+
+	logs.Info("Resp is ", data)
+	// logs.Info("Resp is ", data.User)
+
+	return data
+}
+
+func CloseAccount(c *beego.Controller, req requests.CloseAccountApiRequest) (resp responses.CloseAccountApiResponse) {
+	host, _ := beego.AppConfig.String("clientBaseUrl")
+
+	request := api.NewRequest(
+		host,
+		"/v2/api/close-account",
+		api.POST)
+	// request.Params["username"] = username
+	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+
+	request.HeaderField["clientId"] = req.ClientId
+	request.InterfaceParams["mobileNumber"] = req.AccountNumber
+
+	client := api.Client{
+		Request: request,
+		Type_:   "body",
+	}
+	res, err := client.SendRequest()
+	if err != nil {
+		logs.Error("client.Error: %v", err)
+		c.Data["json"] = err.Error()
+	}
+	defer res.Body.Close()
+	read, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	}
+
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, read, "", "  "); err != nil {
+		logs.Info("Raw response received is ", string(read))
+	} else {
+		logs.Info("Raw response received is \n", prettyJSON.String())
+	}
+	// data := map[string]interface{}{}
+	var data responses.CloseAccountApiResponse
+	json.Unmarshal(read, &data)
+	c.Data["json"] = data
+
+	logs.Info("Resp is ", data)
+	// logs.Info("Resp is ", data.User)
+
+	return data
+}

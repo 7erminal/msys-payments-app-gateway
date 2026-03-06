@@ -311,7 +311,7 @@ func VerifyResetToken(c *beego.Controller, token string, email string) (resp res
 	return data
 }
 
-func RegistrationRequest(c *beego.Controller, req requests.RegisterUser) (resp responses.UserResponseDTO) {
+func RegistrationRequest(c *beego.Controller, req requests.RegisterUserApiRequest) (resp responses.UserResponseDTO) {
 	host, _ := beego.AppConfig.String("customerBaseUrl")
 
 	logs.Info("Sending email ", req.Email)
@@ -324,8 +324,8 @@ func RegistrationRequest(c *beego.Controller, req requests.RegisterUser) (resp r
 	request.InterfaceParams["Password"] = req.Password
 	request.InterfaceParams["Name"] = req.Name
 	request.InterfaceParams["PhoneNumber"] = req.PhoneNumber
-	request.InterfaceParams["Role"] = req.RoleId
-	request.InterfaceParams["RoleRequired"] = true
+	request.InterfaceParams["Role"] = req.Role
+	request.InterfaceParams["RoleRequired"] = false
 	request.InterfaceParams["Dob"] = req.Dob
 	request.InterfaceParams["Branch"] = req.Branch
 
@@ -345,22 +345,18 @@ func RegistrationRequest(c *beego.Controller, req requests.RegisterUser) (resp r
 		c.Data["json"] = err.Error()
 	}
 
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, read, "", "  "); err != nil {
+		logs.Info("Raw response received is ", string(read))
+	} else {
+		logs.Info("Raw response received is \n", prettyJSON.String())
+	}
+
 	logs.Info("Raw response received is ", res)
 	// data := map[string]interface{}{}
 	var data responses.UserResponseDTO
 	json.Unmarshal(read, &data)
 	c.Data["json"] = data
-
-	// logs.Info("Response received ", c.Data["json"])
-	// logs.Info("Access token ", data["access_token"])
-	// logs.Info("Expires in ", data["expires_in"])
-	// logs.Info("Scope is ", data["scope"])
-	// logs.Info("Token Type is ", data["token_type"])
-	// logs.Info("Response received ", c.Data["json"])
-	// logs.Info("Access token ", data.Access_token)
-	// logs.Info("Expires in ", data.Expires_in)
-	// logs.Info("Scope is ", data.Scope)
-	// logs.Info("Token Type is ", data.Token_type)
 
 	return data
 }

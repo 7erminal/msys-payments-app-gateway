@@ -26,6 +26,7 @@ type BuyDataBundleFormulatedRequest struct {
 }
 
 type GetBundlesAPIRequest struct {
+	RequestId   string `json:"request_id"`
 	Destination string `json:"destination"`
 }
 

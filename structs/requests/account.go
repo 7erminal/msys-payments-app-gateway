@@ -29,3 +29,13 @@ type CreditAccountRequest struct {
 	Reason     string
 	AccountId  int64
 }
+
+type CloseAccountApiRequest struct {
+	AccountNumber string `json:"accountNumber"`
+	ClientId      string `json:"clientId"`
+}
+
+type CloseAccountRequest struct {
+	AccountNumber string `json:"accountNumber"`
+	ClientId      string `json:"clientId"`
+}

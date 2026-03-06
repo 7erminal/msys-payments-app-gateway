@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"msys_payment_app_gateway/structs/responses"
+	utilManager "msys_payment_app_gateway/utils"
 	"strings"
 
 	"encoding/json"
@@ -558,6 +559,103 @@ func (c *Auth_requestsController) ResetPassword() {
 		c.Data["json"] = response
 	}
 
+	c.ServeJSON()
+}
+
+// RegisterUser ...
+// @Title RegisterUser
+// @Description RegisterUser
+// @Param	SourceSystem		header 	string true		"header for Source system"
+// @Param	body		body 	models.Auth_requests	true		"body for Auth_requests content"
+// @Success 201 {object} models.Auth_requests
+// @Failure 403 body is empty
+// @router /register-user [post]
+func (c *Auth_requestsController) RegisterUser() {
+	sourceSystem := c.Ctx.Input.Header("SourceSystem")
+
+	var req requests.RegisterUserRequest
+
+	reqBody := c.Ctx.Input.RequestBody
+	reqHeaders := c.Ctx.Request.Header
+
+	requestMap := map[string]interface{}{
+		"headers": reqHeaders,
+		"body":    string(reqBody),
+	}
+
+	reqText, err := json.Marshal(requestMap)
+
+	if err != nil {
+		logs.Error("Error marshalling request input: ", err)
+		c.Data["json"] = err.Error()
+		c.ServeJSON()
+		return
+	}
+
+	utilManager.Logger(req.RequestId, "INFO", fmt.Sprintf("RegisterUser called with SourceSystem: %s", sourceSystem))
+
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &req); err != nil {
+		utilManager.Logger(req.RequestId, "ERROR", fmt.Sprintf("Error unmarshalling request body: %s", err.Error()))
+		c.Data["json"] = "Invalid request body"
+		c.ServeJSON()
+		return
+	}
+
+	utilManager.Logger(req.RequestId, "INFO", fmt.Sprintf("RegisterUser request body: %+v", req))
+
+	isSuccess := false
+	statusMessage := "Something went wrong"
+	user := responses.UserGateway{}
+
+	var v models.Api_requests = models.Api_requests{
+		Request:      string(reqText),
+		PhoneNumber:  req.MobileNumber,
+		RequestType:  "Register User",
+		RequestDate:  time.Now(),
+		DateCreated:  time.Now(),
+		DateModified: time.Now(),
+	}
+	if _, err := models.AddApi_requests(&v); err == nil {
+		logs.Info("API request logged successfully: ", v)
+		// Register User
+		registerUserRequest := requests.RegisterUserApiRequest{
+			Name:         req.Name,
+			Email:        req.Email,
+			Password:     req.Password,
+			Gender:       req.Gender,
+			Dob:          req.Dob,
+			PhoneNumber:  req.MobileNumber,
+			Role:         req.Role,
+			RoleRequired: false,
+		}
+
+		resp := apifunctions.RegistrationRequest(&c.Controller, registerUserRequest)
+
+		if resp.StatusCode != 200 {
+			logs.Error("Error registering user: ", resp.StatusDesc)
+			statusMessage = resp.StatusDesc
+		} else {
+			logs.Info("User registered successfully: ", resp)
+			isSuccess = true
+			statusMessage = "User registered successfully"
+			user = responses.UserGateway{
+				UserId:         resp.User.UserId,
+				FullName:       resp.User.FullName,
+				Email:          resp.User.Email,
+				PhoneNumber:    resp.User.PhoneNumber,
+				ImagePath:      resp.User.ImagePath,
+				DateRegistered: resp.User.DateCreated,
+			}
+		}
+	}
+
+	c.Ctx.Output.SetStatus(200)
+	response := responses.UserGatewayResponseDTO{
+		Success:    isSuccess,
+		StatusDesc: statusMessage,
+		Result:     &user,
+	}
+	c.Data["json"] = response
 	c.ServeJSON()
 }
 

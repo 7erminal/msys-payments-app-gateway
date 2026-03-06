@@ -13,3 +13,16 @@ type CreditAccountV2Response struct {
 	Result     string `json:"Result,omitempty"`
 	Client     string `json:"Client,omitempty"`
 }
+
+type CloseAccountResponse struct {
+	StatusCode bool   `json:"StatusCode"`
+	StatusDesc string `json:"StatusDesc"`
+	Result     string `json:"Result,omitempty"`
+}
+
+type CloseAccountApiResponse struct {
+	StatusCode int    `json:"StatusCode"`
+	StatusDesc string `json:"StatusDesc"`
+	Result     string `json:"Result,omitempty"`
+	Client     string `json:"Client,omitempty"`
+}

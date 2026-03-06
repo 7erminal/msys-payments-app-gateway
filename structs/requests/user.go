@@ -21,6 +21,31 @@ type LoginRequest struct {
 	ClientId    string `validate:"omitempty"`
 }
 
+type RegisterUserRequest struct {
+	RequestId    string
+	ClientId     int64  `validate:"required"`
+	Name         string `validate:"required"`
+	Email        string
+	Gender       string `validate:"required"`
+	MobileNumber string `validate:"required"`
+	Password     string `validate:"required"`
+	Dob          string `validate:"required"`
+	Username     string `validate:"required"`
+	Role         string `validate:"required"`
+}
+
+type RegisterUserApiRequest struct {
+	Name         string
+	Password     string `orm:"size(255)"`
+	Email        string `orm:"size(255)"`
+	Gender       string `orm:"size(255)"`
+	Dob          string `orm:"size(255)"`
+	PhoneNumber  string `orm:"size(255)"`
+	Role         string `orm:"size(255)"`
+	Branch       *string
+	RoleRequired bool
+}
+
 type RegisterRequest struct {
 	ClientId     int64  `validate:"required"`
 	FirstName    string `validate:"required"`
