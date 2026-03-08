@@ -7,6 +7,13 @@ type LoginApiRequest struct {
 	ClientId     string
 }
 
+type LoginUserApiRequest struct {
+	Username     string
+	Password     string
+	SourceSystem string
+	ClientId     string
+}
+
 type RefreshTokenRequest struct {
 	RefreshToken string
 }
@@ -19,6 +26,12 @@ type LoginRequest struct {
 	PhoneNumber string
 	Password    string
 	ClientId    string `validate:"omitempty"`
+}
+
+type UserLoginRequest struct {
+	Username string
+	Password string
+	ClientId string `validate:"omitempty"`
 }
 
 type RegisterUserRequest struct {
