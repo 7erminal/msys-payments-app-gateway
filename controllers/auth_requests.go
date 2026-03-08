@@ -596,14 +596,37 @@ func (c *Auth_requestsController) RegisterUser() {
 
 	_, file, line, ok := runtime.Caller(1)
 	if ok {
-		utilManager.Logger(filepath.Base(file), line, req.RequestId, "INFO", fmt.Sprintf("RegisterUser called with SourceSystem: %s", sourceSystem))
+		short := file
+		for i := len(file) - 1; i > 0; i-- {
+			if file[i] == '/' {
+				short = file[i+1:]
+				break
+			}
+		}
+		file = short
+	} else {
+		file = "unknown"
+		line = 0
 	}
+	utilManager.Logger(filepath.Base(file), line, req.RequestId, "INFO", fmt.Sprintf("RegisterUser called with SourceSystem: %s", sourceSystem))
 
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &req); err != nil {
 		_, file, line, ok = runtime.Caller(1)
 		if ok {
-			utilManager.Logger(filepath.Base(file), line, req.RequestId, "ERROR", fmt.Sprintf("Error unmarshalling request body: %s", err.Error()))
+			short := file
+			for i := len(file) - 1; i > 0; i-- {
+				if file[i] == '/' {
+					short = file[i+1:]
+					break
+				}
+			}
+			file = short
+		} else {
+			file = "unknown"
+			line = 0
 		}
+		utilManager.Logger(filepath.Base(file), line, req.RequestId, "ERROR", fmt.Sprintf("Error unmarshalling request body: %s", err.Error()))
+
 		c.Data["json"] = "Invalid request body"
 		c.ServeJSON()
 		return
@@ -611,8 +634,19 @@ func (c *Auth_requestsController) RegisterUser() {
 
 	_, file, line, ok = runtime.Caller(1)
 	if ok {
-		utilManager.Logger(filepath.Base(file), line, req.RequestId, "INFO", fmt.Sprintf("RegisterUser request body: %+v", req))
+		short := file
+		for i := len(file) - 1; i > 0; i-- {
+			if file[i] == '/' {
+				short = file[i+1:]
+				break
+			}
+		}
+		file = short
+	} else {
+		file = "unknown"
+		line = 0
 	}
+	utilManager.Logger(filepath.Base(file), line, req.RequestId, "INFO", fmt.Sprintf("RegisterUser request body: %+v", req))
 
 	isSuccess := false
 	statusMessage := "Something went wrong"

@@ -78,8 +78,19 @@ func (c *Api_requestsController) GetCorporatives() {
 
 	_, file, line, ok := runtime.Caller(1)
 	if ok {
-		utilManager.Logger(filepath.Base(file), line, req.RequestId, "INFO", fmt.Sprintf("GetCorporatives request: %s", func() string { b, _ := json.Marshal(req); return string(b) }()))
+		short := file
+		for i := len(file) - 1; i > 0; i-- {
+			if file[i] == '/' {
+				short = file[i+1:]
+				break
+			}
+		}
+		file = short
+	} else {
+		file = "unknown"
+		line = 0
 	}
+	utilManager.Logger(filepath.Base(file), line, req.RequestId, "INFO", fmt.Sprintf("GetCorporatives request: %s", func() string { b, _ := json.Marshal(req); return string(b) }()))
 
 	reqBody := c.Ctx.Input.RequestBody
 	reqHeaders := c.Ctx.Request.Header
