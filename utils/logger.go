@@ -17,3 +17,15 @@ func Logger(fileName string, lineNumber int, requestId string, logLevel string, 
 		logs.Info("%s:%s - REQ%s: %s", fileName, lineNumberStr, requestId, log)
 	}
 }
+
+func GetFileName(file string) string {
+	short := file
+	for i := len(file) - 1; i > 0; i-- {
+		if file[i] == '/' {
+			short = file[i+1:]
+			break
+		}
+	}
+
+	return short
+}

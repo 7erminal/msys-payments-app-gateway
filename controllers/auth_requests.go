@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"msys_payment_app_gateway/structs/responses"
+	"msys_payment_app_gateway/utils"
 	utilManager "msys_payment_app_gateway/utils"
 	"path/filepath"
 	"runtime"
@@ -596,14 +597,7 @@ func (c *Auth_requestsController) RegisterUser() {
 
 	_, file, line, ok := runtime.Caller(1)
 	if ok {
-		short := file
-		for i := len(file) - 1; i > 0; i-- {
-			if file[i] == '/' {
-				short = file[i+1:]
-				break
-			}
-		}
-		file = short
+		file = utils.GetFileName(file)
 	} else {
 		file = "unknown"
 		line = 0
@@ -613,14 +607,7 @@ func (c *Auth_requestsController) RegisterUser() {
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &req); err != nil {
 		_, file, line, ok = runtime.Caller(0)
 		if ok {
-			short := file
-			for i := len(file) - 1; i > 0; i-- {
-				if file[i] == '/' {
-					short = file[i+1:]
-					break
-				}
-			}
-			file = short
+			file = utils.GetFileName(file)
 		} else {
 			file = "unknown"
 			line = 0
@@ -634,14 +621,7 @@ func (c *Auth_requestsController) RegisterUser() {
 
 	_, file, line, ok = runtime.Caller(0)
 	if ok {
-		short := file
-		for i := len(file) - 1; i > 0; i-- {
-			if file[i] == '/' {
-				short = file[i+1:]
-				break
-			}
-		}
-		file = short
+		file = utils.GetFileName(file)
 	} else {
 		file = "unknown"
 		line = 0

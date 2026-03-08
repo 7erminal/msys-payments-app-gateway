@@ -10,6 +10,7 @@ import (
 	"msys_payment_app_gateway/models"
 	"msys_payment_app_gateway/structs/requests"
 	"msys_payment_app_gateway/structs/responses"
+	"msys_payment_app_gateway/utils"
 	"path/filepath"
 	"reflect"
 	"runtime"
@@ -78,14 +79,7 @@ func (c *Api_requestsController) GetCorporatives() {
 
 	_, file, line, ok := runtime.Caller(0)
 	if ok {
-		short := file
-		for i := len(file) - 1; i > 0; i-- {
-			if file[i] == '/' {
-				short = file[i+1:]
-				break
-			}
-		}
-		file = short
+		file = utils.GetFileName(file)
 	} else {
 		file = "unknown"
 		line = 0
@@ -120,7 +114,14 @@ func (c *Api_requestsController) GetCorporatives() {
 
 		logs.Info("Formatted request for Corporatives: ")
 		resp := apifunctions.GetCorporatives(&c.Controller)
-		logs.Info("Response from Get corporatives API: ", resp)
+		_, file, line, ok := runtime.Caller(0)
+		if ok {
+			file = utils.GetFileName(file)
+		} else {
+			file = "unknown"
+			line = 0
+		}
+		utilManager.Logger(filepath.Base(file), line, req.RequestId, "INFO", fmt.Sprintf("Response from Get corporatives API: %s", func() string { b, _ := json.Marshal(resp); return string(b) }()))
 
 		var response responses.CorporativeResponse = responses.CorporativeResponse{
 			StatusCode:    false,
