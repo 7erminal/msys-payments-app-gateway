@@ -988,7 +988,7 @@ func GetCustomerBillPaymentHistory(c *beego.Controller, query string) (resp resp
 func ReportAccountAnomaly(c *beego.Controller, req requests.CustomerAccountAnomaliesRequest) (resp responses.CreateCustomerAccountApiResponse) {
 	host, _ := beego.AppConfig.String("accountBaseUrl")
 
-	logs.Info("Creating customer account for account number ", req.AccountNumber)
+	logs.Info("Reporting account anomaly for account number ", req.AccountNumber)
 	request := api.NewRequest(
 		host,
 		"/v1/customer-account-anomalies/",
@@ -1003,6 +1003,7 @@ func ReportAccountAnomaly(c *beego.Controller, req requests.CustomerAccountAnoma
 	request.InterfaceParams["CreatedBy"] = 1
 	request.InterfaceParams["ModifiedBy"] = 1
 	request.InterfaceParams["Active"] = req.Active
+	request.InterfaceParams["AutoCorrect"] = req.AutoCorrect
 	//
 
 	client := api.Client{

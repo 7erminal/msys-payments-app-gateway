@@ -300,6 +300,7 @@ type CustomerAccountAnomaliesRequest struct {
 	CreatedBy      int
 	ModifiedBy     int
 	Active         int
+	AutoCorrect    bool
 }
 
 type AccountNumberRequest struct {

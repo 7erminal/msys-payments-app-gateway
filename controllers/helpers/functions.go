@@ -668,21 +668,46 @@ func GetAccountBalance(c *beego.Controller, req requests.AccountBalanceApiReques
 					amountFloat = 0.0
 				}
 
-				req := requests.CustomerAccountAnomaliesRequest{
+				reqa := requests.CustomerAccountAnomaliesRequest{
 					AccountNumber:  req.AccountNumber,
 					Amount:         amountFloat,
-					Desc:           "Balance mismatch detected during transaction. System Balance: " + strconv.FormatFloat(accountsResp.Result.Balance, 'f', 2, 64) + ", Actual Balance: " + strconv.FormatFloat(*balance, 'f', 2, 64),
+					Desc:           "Balance mismatch detected during transaction. System Balance: " + strconv.FormatFloat(accountsResp.Result.Balance, 'f', 2, 64) + ", Actual Balance: " + strconv.FormatFloat(*clearBalance, 'f', 2, 64),
 					Balance:        accountsResp.Result.Balance,
 					CheckedBalance: *clearBalance,
 					CreatedBy:      1, // System user
 					ModifiedBy:     1, // System user
 					Active:         1,
+					AutoCorrect:    true,
 				}
 
-				addAnomalyResp := apifunctions.ReportAccountAnomaly(c, req)
+				addAnomalyResp := apifunctions.ReportAccountAnomaly(c, reqa)
 
 				if addAnomalyResp.StatusCode == "200" {
 					logs.Info("Account anomaly logged successfully: ", addAnomalyResp.Result)
+					// 					UpdateAccountBalanceApiRequest struct {
+					//     AccountId     int64
+					//     AccountNumber string
+					//     Balance       float64
+					//     ModifiedBy    int
+					//     Reason        string
+					//     ClientId      string
+					// }
+					updateAccountBalReq := requests.UpdateAccountBalanceApiRequest{
+						AccountId:     accountsResp.Result.CustomerAccountId,
+						AccountNumber: req.AccountNumber,
+						Balance:       *clearBalance,
+						Reason:        "Auto-correction of balance due to mismatch detected during balance fetch",
+						ModifiedBy:    1, // System user
+						ClientId:      req.ClientId,
+					}
+
+					updateAccountBalanceResp := apifunctions.UpdateAccountBalance(c, updateAccountBalReq)
+
+					if updateAccountBalanceResp.StatusCode == "200" {
+						logs.Info("Account balance updated successfully after anomaly detection: ", updateAccountBalanceResp.Result)
+					} else {
+						logs.Error("Unable to update account balance after anomaly detection: ", updateAccountBalanceResp.StatusMessage)
+					}
 				} else {
 					logs.Error("Error logging account anomaly: ", addAnomalyResp.StatusMessage)
 				}
