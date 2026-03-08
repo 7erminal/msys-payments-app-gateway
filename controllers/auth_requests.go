@@ -611,7 +611,7 @@ func (c *Auth_requestsController) RegisterUser() {
 	utilManager.Logger(filepath.Base(file), line, req.RequestId, "INFO", fmt.Sprintf("RegisterUser called with SourceSystem: %s", sourceSystem))
 
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &req); err != nil {
-		_, file, line, ok = runtime.Caller(1)
+		_, file, line, ok = runtime.Caller(0)
 		if ok {
 			short := file
 			for i := len(file) - 1; i > 0; i-- {
@@ -632,7 +632,7 @@ func (c *Auth_requestsController) RegisterUser() {
 		return
 	}
 
-	_, file, line, ok = runtime.Caller(1)
+	_, file, line, ok = runtime.Caller(0)
 	if ok {
 		short := file
 		for i := len(file) - 1; i > 0; i-- {
