@@ -10,10 +10,10 @@ func Logger(fileName string, lineNumber int, requestId string, logLevel string, 
 	lineNumberStr := fmt.Sprintf("%d", lineNumber)
 	switch logLevel {
 	case "debug":
-		logs.Debug("File: %s:%s - %s: %s", fileName, lineNumberStr, requestId, log)
+		logs.Debug("%s:%s - REQ%s: %s", fileName, lineNumberStr, requestId, log)
 	case "error":
-		logs.Error("File: %s:%s - %s: %s", fileName, lineNumberStr, requestId, log)
+		logs.Error("%s:%s - REQ%s: %s", fileName, lineNumberStr, requestId, log)
 	default:
-		logs.Info("File: %s:%s - %s: %s", fileName, lineNumberStr, requestId, log)
+		logs.Info("%s:%s - REQ%s: %s", fileName, lineNumberStr, requestId, log)
 	}
 }
