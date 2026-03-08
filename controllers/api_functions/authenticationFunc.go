@@ -361,6 +361,48 @@ func RegistrationRequest(c *beego.Controller, req requests.RegisterUserApiReques
 	return data
 }
 
+func DeleteUser(c *beego.Controller, req requests.DeleteUserApiRequest) (resp responses.StringResponseCodeDTO) {
+	host, _ := beego.AppConfig.String("customerBaseUrl")
+
+	logs.Info("Sending email ", req.Username)
+
+	request := api.NewRequest(
+		host,
+		"/v1/users/"+req.Username,
+		api.DELETE)
+
+	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+	client := api.Client{
+		Request: request,
+		Type_:   "params",
+	}
+	res, err := client.SendRequest()
+	if err != nil {
+		logs.Error("client.Error: %v", err)
+		c.Data["json"] = err.Error()
+	}
+	defer res.Body.Close()
+	read, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	}
+
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, read, "", "  "); err != nil {
+		logs.Info("Raw response received is ", string(read))
+	} else {
+		logs.Info("Raw response received is \n", prettyJSON.String())
+	}
+
+	logs.Info("Raw response received is ", res)
+	// data := map[string]interface{}{}
+	var data responses.StringResponseCodeDTO
+	json.Unmarshal(read, &data)
+	c.Data["json"] = data
+
+	return data
+}
+
 func VerifyInviteToken(c *beego.Controller, token string) (resp responses.InviteDecodeResponseDTO) {
 	host, _ := beego.AppConfig.String("customerBaseUrl")
 

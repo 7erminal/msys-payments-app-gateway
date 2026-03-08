@@ -659,6 +659,52 @@ func (c *Auth_requestsController) RegisterUser() {
 	c.ServeJSON()
 }
 
+// Delete User ...
+// @Title DeleteUser
+// @Description delete the Auth_requests
+// @Param	id		path 	string	true		"The id you want to delete"
+// @Success 200 {string} delete success!
+// @Failure 403 id is empty
+// @router / [delete]
+func (c *Auth_requestsController) DeleteUser() {
+	clientId := c.Ctx.Input.Header("clientId")
+	logs.Debug("Client id is ", clientId)
+
+	var v requests.DeleteUserRequest
+	json.Unmarshal(c.Ctx.Input.RequestBody, &v)
+
+	status := false
+	statusMessage := "Error retrieving account loans"
+
+	if clientId == "" {
+		logs.Error("Client ID is missing in header")
+	} else {
+		deleteUserRequest := requests.DeleteUserApiRequest{
+			Username: v.Username,
+			ClientId: clientId,
+		}
+		resp := apifunctions.DeleteUser(&c.Controller, deleteUserRequest)
+		if resp.StatusCode != 200 {
+			logs.Error("Error deleting user: ", resp.StatusDesc)
+			statusMessage = resp.StatusDesc
+		} else {
+			logs.Info("User deleted successfully: ", resp)
+			status = true
+			statusMessage = "User deleted successfully"
+		}
+	}
+
+	c.Ctx.Output.SetStatus(200)
+	response := responses.StringResponseDTO{
+		Success:    status,
+		StatusDesc: statusMessage,
+		Result:     nil,
+	}
+	c.Data["json"] = response
+	c.ServeJSON()
+
+}
+
 // GetOne ...
 // @Title GetOne
 // @Description get Auth_requests by id

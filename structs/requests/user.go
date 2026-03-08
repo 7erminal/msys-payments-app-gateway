@@ -306,3 +306,13 @@ type AccountNumberRequest struct {
 	AccountNumber string
 	ClientId      string
 }
+
+type DeleteUserRequest struct {
+	Username string
+	ClientId string
+}
+
+type DeleteUserApiRequest struct {
+	Username string
+	ClientId string
+}
