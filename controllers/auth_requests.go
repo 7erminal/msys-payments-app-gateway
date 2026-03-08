@@ -687,15 +687,15 @@ func (c *Auth_requestsController) RegisterUser() {
 	c.ServeJSON()
 }
 
-// Login ...
-// @Title Login
-// @Description Login
+// LoginUser ...
+// @Title Login User
+// @Description Login User
 // @Param	PhoneNumber		header 	string true		"header for Customer's phone number"
 // @Param	SourceSystem		header 	string true		"header for Source system"
 // @Param	body		body 	requests.LoginRequest	true		"body for Request content"
 // @Success 200 {int} responses.LoginResponse
 // @Failure 403 body is empty
-// @router /login [post]
+// @router /user/login [post]
 func (c *Auth_requestsController) LoginUser() {
 	// Extract headers
 	// phoneNumber := c.Ctx.Input.Header("PhoneNumber")
