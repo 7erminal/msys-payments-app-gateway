@@ -4,13 +4,13 @@ import (
 	"github.com/beego/beego/v2/core/logs"
 )
 
-func Logger(requestId string, logLevel string, log string) {
+func Logger(fileName string, lineNumber int, requestId string, logLevel string, log string) {
 	switch logLevel {
 	case "debug":
-		logs.Debug("%s: %s", requestId, log)
+		logs.Debug("File: %s:%s - %s: %s", fileName, lineNumber, requestId, log)
 	case "error":
-		logs.Error("%s: %s", requestId, log)
+		logs.Error("File: %s:%s - %s: %s", fileName, lineNumber, requestId, log)
 	default:
-		logs.Info("%s: %s", requestId, log)
+		logs.Info("File: %s:%s - %s: %s", fileName, lineNumber, requestId, log)
 	}
 }

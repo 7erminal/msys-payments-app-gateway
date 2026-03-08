@@ -10,7 +10,9 @@ import (
 	"msys_payment_app_gateway/models"
 	"msys_payment_app_gateway/structs/requests"
 	"msys_payment_app_gateway/structs/responses"
+	"path/filepath"
 	"reflect"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -66,17 +68,18 @@ func (c *Api_requestsController) URLMapping() {
 func (c *Api_requestsController) GetCorporatives() {
 	// Extract headers
 	phoneNumber := c.Ctx.Input.Header("PhoneNumber")
-	sourceSystem := c.Ctx.Input.Header("SourceSystem")
-	network := c.Ctx.Input.Header("Network")
+	// sourceSystem := c.Ctx.Input.Header("SourceSystem")
+	// network := c.Ctx.Input.Header("Network")
 
 	var req requests.GetBundlesAPIRequest
 	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
 
-	destinationPhoneNumber := req.Destination
+	// destinationPhoneNumber := req.Destination
 
-	utilManager.Logger(req.RequestId, "INFO", fmt.Sprintf("GetCorporatives request: %s", func() string { b, _ := json.Marshal(req); return string(b) }()))
-
-	utilManager.Logger(req.RequestId, "INFO", fmt.Sprintf("GetCorporatives called with PhoneNumber: %s, SourceSystem: %s, Network: %s, DestinationPhoneNumber: %s", phoneNumber, sourceSystem, network, destinationPhoneNumber))
+	_, file, line, ok := runtime.Caller(1)
+	if ok {
+		utilManager.Logger(filepath.Base(file), line, req.RequestId, "INFO", fmt.Sprintf("GetCorporatives request: %s", func() string { b, _ := json.Marshal(req); return string(b) }()))
+	}
 
 	reqBody := c.Ctx.Input.RequestBody
 	reqHeaders := c.Ctx.Request.Header

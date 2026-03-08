@@ -3,6 +3,8 @@ package controllers
 import (
 	"msys_payment_app_gateway/structs/responses"
 	utilManager "msys_payment_app_gateway/utils"
+	"path/filepath"
+	"runtime"
 	"strings"
 
 	"encoding/json"
@@ -592,16 +594,25 @@ func (c *Auth_requestsController) RegisterUser() {
 		return
 	}
 
-	utilManager.Logger(req.RequestId, "INFO", fmt.Sprintf("RegisterUser called with SourceSystem: %s", sourceSystem))
+	_, file, line, ok := runtime.Caller(1)
+	if ok {
+		utilManager.Logger(filepath.Base(file), line, req.RequestId, "INFO", fmt.Sprintf("RegisterUser called with SourceSystem: %s", sourceSystem))
+	}
 
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &req); err != nil {
-		utilManager.Logger(req.RequestId, "ERROR", fmt.Sprintf("Error unmarshalling request body: %s", err.Error()))
+		_, file, line, ok = runtime.Caller(1)
+		if ok {
+			utilManager.Logger(filepath.Base(file), line, req.RequestId, "ERROR", fmt.Sprintf("Error unmarshalling request body: %s", err.Error()))
+		}
 		c.Data["json"] = "Invalid request body"
 		c.ServeJSON()
 		return
 	}
 
-	utilManager.Logger(req.RequestId, "INFO", fmt.Sprintf("RegisterUser request body: %+v", req))
+	_, file, line, ok = runtime.Caller(1)
+	if ok {
+		utilManager.Logger(filepath.Base(file), line, req.RequestId, "INFO", fmt.Sprintf("RegisterUser request body: %+v", req))
+	}
 
 	isSuccess := false
 	statusMessage := "Something went wrong"
