@@ -3,12 +3,18 @@ package helpers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	apifunctions "msys_payment_app_gateway/controllers/api_functions"
 	"msys_payment_app_gateway/models"
 	"msys_payment_app_gateway/structs/requests"
 	"msys_payment_app_gateway/structs/responses"
+	"msys_payment_app_gateway/utils"
+	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
+
+	utilManager "msys_payment_app_gateway/utils"
 
 	"github.com/beego/beego/v2/core/logs"
 	beego "github.com/beego/beego/v2/server/web"
@@ -471,8 +477,14 @@ func LogAccountActivity(c *beego.Controller, accountNumber string, reference str
 		ClientId:      clientid,
 	}
 
-	logs.Info("Fetching account balance for account number: ", accountNumber)
-	logs.Info("Amount is ", amount)
+	_, file, line, ok := runtime.Caller(0)
+	if ok {
+		file = utils.GetFileName(file)
+	} else {
+		file = "unknown"
+		line = 0
+	}
+	utilManager.Logger(filepath.Base(file), line, reference, "INFO", fmt.Sprintf("Fetching account balance for account number: %s with amount: %f", accountNumber, amount))
 	resp := GetAccountBalance(c, req)
 
 	response := responses.AccountBalanceResponse{}
@@ -536,7 +548,14 @@ func LogAccountActivity(c *beego.Controller, accountNumber string, reference str
 				logs.Info("Debit account response: ", debitResp)
 
 				if debitResp.StatusCode != 200 {
-					logs.Error("Error debiting account: ", debitResp.StatusDesc, ". Reverseing internal debit...")
+					_, file, line, ok := runtime.Caller(0)
+					if ok {
+						file = utils.GetFileName(file)
+					} else {
+						file = "unknown"
+						line = 0
+					}
+					utilManager.Logger(filepath.Base(file), line, reference, "ERROR", fmt.Sprintf("Error debiting account: %s. Reversing internal debit...", debitResp.StatusDesc))
 
 					creditAccReq := requests.CreditAccountRequest{
 						Amount:     amount,
