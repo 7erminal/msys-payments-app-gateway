@@ -645,13 +645,32 @@ func (c *Auth_requestsController) RegisterUser() {
 	}
 	if _, err := models.AddApi_requests(&v); err == nil {
 		logs.Info("API request logged successfully: ", v)
+
+		gender := "N"
+		switch genderStr := strings.ToLower(req.Gender); genderStr {
+		case "male":
+			gender = "M"
+		case "female":
+			gender = "F"
+		case "m":
+			gender = "M"
+		case "f":
+			gender = "F"
+		}
+
+		// Set date of birth to zero value if it's not provided
+		dob := req.Dob
+		if dob == "" {
+			dob = "0001-01-01"
+			logs.Info("Date of Birth not provided, setting to zero value: ", req.Dob)
+		}
 		// Register User
 		registerUserRequest := requests.RegisterUserApiRequest{
 			Name:         req.Name,
 			Email:        req.Email,
 			Password:     req.Password,
-			Gender:       req.Gender,
-			Dob:          req.Dob,
+			Gender:       gender,
+			Dob:          dob,
 			PhoneNumber:  req.MobileNumber,
 			Role:         req.Role,
 			RoleRequired: false,
