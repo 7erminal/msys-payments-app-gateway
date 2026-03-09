@@ -666,6 +666,7 @@ func (c *Auth_requestsController) RegisterUser() {
 		}
 		// Register User
 		registerUserRequest := requests.RegisterUserApiRequest{
+			Username:     req.Username,
 			Name:         req.Name,
 			Email:        req.Email,
 			Password:     req.Password,

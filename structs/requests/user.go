@@ -48,6 +48,7 @@ type RegisterUserRequest struct {
 }
 
 type RegisterUserApiRequest struct {
+	Username     string
 	Name         string
 	Password     string `orm:"size(255)"`
 	Email        string `orm:"size(255)"`
