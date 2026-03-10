@@ -404,24 +404,18 @@ func DeleteUser(c *beego.Controller, req requests.DeleteUserApiRequest) (resp re
 	return data
 }
 
-func CreateBranch(c *beego.Controller, req requests.RegisterUserApiRequest) (resp responses.UserResponseDTO) {
+func CreateBranch(c *beego.Controller, req requests.BranchApiRequestDTO) (resp responses.UserResponseDTO) {
 	host, _ := beego.AppConfig.String("customerBaseUrl")
-
-	logs.Info("Sending email ", req.Email)
 
 	request := api.NewRequest(
 		host,
-		"/v1/users/sign-up",
+		"/v1/branches",
 		api.POST)
-	request.InterfaceParams["Email"] = req.Email
-	request.InterfaceParams["Password"] = req.Password
-	request.InterfaceParams["Name"] = req.Name
+	request.InterfaceParams["Branch"] = req.BranchName
+	request.InterfaceParams["CountryCode"] = req.CountryCode
 	request.InterfaceParams["PhoneNumber"] = req.PhoneNumber
-	request.InterfaceParams["Role"] = req.Role
-	request.InterfaceParams["RoleRequired"] = false
-	request.InterfaceParams["Dob"] = req.Dob
-	request.InterfaceParams["Branch"] = req.Branch
-	request.InterfaceParams["Username"] = req.Username
+	request.InterfaceParams["Location"] = req.Location
+	request.InterfaceParams["AddedBy"] = req.AddedBy
 
 	// request.Params = {"UserId": strconv.Itoa(int(userid))}
 	client := api.Client{

@@ -1,7 +1,7 @@
 package requests
 
 type BranchApiRequestDTO struct {
-	Branch      string
+	BranchName  string
 	CountryCode string
 	PhoneNumber string
 	Location    string

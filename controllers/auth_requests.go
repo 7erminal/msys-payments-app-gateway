@@ -683,6 +683,20 @@ func (c *Auth_requestsController) RegisterUser() {
 			logs.Error("Error registering user: ", resp.StatusDesc)
 			statusMessage = resp.StatusDesc
 			// Add Branch
+			branchRequest := requests.BranchApiRequestDTO{
+				BranchName:  req.Username,
+				Location:    "",
+				PhoneNumber: req.MobileNumber,
+				CountryCode: "GH",
+				AddedBy:     "1",
+			}
+
+			branchResp := apifunctions.CreateBranch(&c.Controller, branchRequest)
+			if branchResp.StatusCode != 200 {
+				logs.Error("Error adding branch for user: ", branchResp.StatusDesc)
+			} else {
+				logs.Info("Branch added successfully for user: ", branchResp)
+			}
 		} else {
 			logs.Info("User registered successfully: ", resp)
 			isSuccess = true
