@@ -682,6 +682,7 @@ func (c *Auth_requestsController) RegisterUser() {
 		if resp.StatusCode != 200 {
 			logs.Error("Error registering user: ", resp.StatusDesc)
 			statusMessage = resp.StatusDesc
+			// Add Branch
 		} else {
 			logs.Info("User registered successfully: ", resp)
 			isSuccess = true

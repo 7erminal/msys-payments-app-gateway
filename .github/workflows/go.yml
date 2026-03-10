@@ -5,9 +5,9 @@ name: Go
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "msysmobilizer" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "msysmobilizer" ]
 
 jobs:
 
@@ -34,12 +34,12 @@ jobs:
 
         ssh -o StrictHostKeyChecking=no root@185.211.5.90 << 'EOF'
           set -e
-          cd /usr/app/mobile-application/msys-payments-app-gateway
+          cd /usr/app/mobile-application/System-service
           git stash
           git pull origin main
-          go build -o msys-payments-app-gateway
-          pm2 restart msys-payments-app-gateway || \
-          pm2 start msys-payments-app-gateway --name msys-payments-app-gateway
+          go build -o system-service
+          pm2 restart system-service || \
+          pm2 start system-service --name system-service
         EOF
 
     # - name: Test

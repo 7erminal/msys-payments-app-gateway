@@ -52,6 +52,9 @@ func (c *Api_requestsController) URLMapping() {
 	c.Mapping("Deposit", c.Deposit)
 	c.Mapping("Withdrawal", c.Withdrawal)
 	c.Mapping("PayWaterBill", c.PayWaterBill)
+	c.Mapping("ListAccountLoans", c.ListAccountLoans)
+	c.Mapping("LoanRepayment", c.LoanRepayment)
+	c.Mapping("CloseAccount", c.CloseAccount)
 	// c.Mapping("TransferFunds", c.TransferFunds)
 }
 
