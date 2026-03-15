@@ -23,7 +23,7 @@ func init() {
 			),
 		),
 		beego.NSNamespace("/agent/api",
-			beego.NSBefore(middlewares.AuthMiddleware),
+			beego.NSBefore(middlewares.UserAuthMiddleware),
 			beego.NSInclude(
 				&controllers.Agent_api_requestsController{},
 			),

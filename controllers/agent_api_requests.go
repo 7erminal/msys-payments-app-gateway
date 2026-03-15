@@ -166,10 +166,10 @@ func (c *Agent_api_requestsController) GetUserDetails() {
 	// Extract headers
 	phoneNumber := c.Ctx.Input.Header("PhoneNumber")
 	// sourceSystem := c.Ctx.Input.Header("SourceSystem")
-	cust := c.Ctx.Input.GetData("user")
+	user := c.Ctx.Input.GetData("user")
 
-	logs.Info("User details: %s", cust)
-	userData, ok := cust.(*responses.Users)
+	logs.Info("User details: %s", user)
+	userData, ok := user.(*responses.Users)
 	if !ok {
 		logs.Error("Error asserting user data")
 		c.Data["json"] = "Invalid user data"

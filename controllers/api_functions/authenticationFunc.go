@@ -269,7 +269,7 @@ func VerifyTokenNew(token string) (resp responses.CustomerResponseDTO2) {
 	return data
 }
 
-func VerifyResetToken(c *beego.Controller, token string, email string) (resp responses.UserOriResponseDTO) {
+func VerifyUserToken(token string, email string) (resp responses.UserOriResponseDTO) {
 	host, _ := beego.AppConfig.String("authenticationBaseUrl")
 
 	logs.Info("About to verify token ", token)
@@ -288,12 +288,11 @@ func VerifyResetToken(c *beego.Controller, token string, email string) (resp res
 	res, err := client.SendRequest()
 	if err != nil {
 		logs.Error("client.Error: %v", err)
-		c.Data["json"] = err.Error()
 	}
 	defer res.Body.Close()
 	read, err := io.ReadAll(res.Body)
 	if err != nil {
-		c.Data["json"] = err.Error()
+		logs.Error("Error reading response body: ", err)
 	}
 
 	// Pretty print the raw JSON response for easier reading
@@ -306,7 +305,6 @@ func VerifyResetToken(c *beego.Controller, token string, email string) (resp res
 	// data := map[string]interface{}{}
 	var data responses.UserOriResponseDTO
 	json.Unmarshal(read, &data)
-	c.Data["json"] = data
 
 	return data
 }
