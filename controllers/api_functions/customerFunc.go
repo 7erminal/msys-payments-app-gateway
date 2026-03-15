@@ -223,6 +223,50 @@ func GetCustomerDetailsWithPhoneNumber(c *beego.Controller, phoneNumber string) 
 	return data
 }
 
+func GetUserDetails(c *beego.Controller, userid int64) (resp responses.UserResponseDTO) {
+	host, _ := beego.AppConfig.String("customerBaseUrl")
+
+	logs.Info("Getting user details ", userid)
+
+	request := api.NewRequest(
+		host,
+		"/v1/users/"+strconv.FormatInt(userid, 10),
+		api.GET)
+	// request.Params["username"] = username
+	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+	client := api.Client{
+		Request: request,
+		Type_:   "params",
+	}
+	res, err := client.SendRequest()
+	if err != nil {
+		logs.Error("client.Error: %v", err)
+		c.Data["json"] = err.Error()
+	}
+	defer res.Body.Close()
+	read, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	}
+
+	// logs.Info("Raw response received is ", res)
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, read, "", "  "); err != nil {
+		logs.Info("Raw response received is ", string(read))
+	} else {
+		logs.Info("Raw response received is \n", prettyJSON.String())
+	}
+	// data := map[string]interface{}{}
+	var data responses.UserResponseDTO
+	json.Unmarshal(read, &data)
+	c.Data["json"] = data
+
+	logs.Info("Resp is ", data)
+	// logs.Info("Resp is ", data.User)
+
+	return data
+}
+
 func GetCustomers(c *beego.Controller, query string, fields string, sortby string, order string,
 	offset string, limit string, search string) (resp responses.CustomersResponseDTO) {
 	host, _ := beego.AppConfig.String("customerBaseUrl")

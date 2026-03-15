@@ -116,6 +116,12 @@ type CustomerResponseDTO struct {
 	StatusDesc string
 }
 
+// type UserResponseDTO struct {
+// 	StatusCode int
+// 	User   *UserGateway
+// 	StatusDesc string
+// }
+
 type CustomerResponseDTO2 struct {
 	StatusCode int
 	Result     *Customer

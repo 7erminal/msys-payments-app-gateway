@@ -153,6 +153,101 @@ func (c *Agent_api_requestsController) GetCorporatives() {
 	c.ServeJSON()
 }
 
+// GetUserDetails ...
+// @Title Get User Details
+// @Description Get User Details
+// @Param	Authorization		header 	string true		"header for User"
+// @Param	PhoneNumber		header 	string true		"header for Customer's phone number"
+// @Param	SourceSystem		header 	string true		"header for Source system"
+// @Success 201 {int} models.Api_requests
+// @Failure 403 body is empty
+// @router /get-user-details [post]
+func (c *Agent_api_requestsController) GetUserDetails() {
+	// Extract headers
+	phoneNumber := c.Ctx.Input.Header("PhoneNumber")
+	// sourceSystem := c.Ctx.Input.Header("SourceSystem")
+	cust := c.Ctx.Input.GetData("user")
+
+	logs.Info("User details: %s", cust)
+	userData, ok := cust.(*responses.Users)
+	if !ok {
+		logs.Error("Error asserting user data")
+		c.Data["json"] = "Invalid user data"
+		c.ServeJSON()
+		return
+	}
+
+	reqBody := c.Ctx.Input.RequestBody
+	reqHeaders := c.Ctx.Request.Header
+
+	requestMap := map[string]interface{}{
+		"headers": reqHeaders,
+		"body":    string(reqBody),
+	}
+
+	reqText, err := json.Marshal(requestMap)
+	if err != nil {
+		logs.Error("Error marshalling request input: ", err)
+		c.Data["json"] = err.Error()
+		c.ServeJSON()
+		return
+	}
+	var v models.Api_requests = models.Api_requests{
+		Request:      string(reqText),
+		RequestType:  "Get User details",
+		PhoneNumber:  phoneNumber,
+		RequestDate:  time.Now(),
+		DateCreated:  time.Now(),
+		DateModified: time.Now(),
+	}
+	if _, err := models.AddApi_requests(&v); err == nil {
+		logs.Info("API request logged successfully: ", v)
+
+		var response responses.UserGatewayResponseDTO = responses.UserGatewayResponseDTO{
+			Success:    false,
+			StatusDesc: "User fetch failed",
+			Result:     nil,
+		}
+
+		userStatus := "INACTIVE"
+		if userData.Active == 1 {
+			userStatus = "ACTIVE"
+		}
+
+		userResp := responses.UserGateway{
+			UserId:         userData.UserId,
+			FullName:       userData.FullName,
+			ImagePath:      userData.ImagePath,
+			Email:          userData.Email,
+			PhoneNumber:    userData.PhoneNumber,
+			Status:         userStatus,
+			DateRegistered: userData.DateCreated,
+		}
+
+		logs.Info("Formatted request for customer: ")
+
+		response = responses.UserGatewayResponseDTO{
+			Success:    true,
+			StatusDesc: "Customer fetched successfully",
+			Result:     &userResp,
+		}
+
+		c.Ctx.Output.SetStatus(200)
+		c.Data["json"] = response
+
+	} else {
+		var response responses.UserGatewayResponseDTO = responses.UserGatewayResponseDTO{
+			Success:    false,
+			StatusDesc: "Something went wrong:: " + err.Error(),
+			Result:     nil,
+		}
+
+		c.Data["json"] = response
+	}
+	logs.Info("Final response to be sent: ", c.Data["json"])
+	c.ServeJSON()
+}
+
 // Deposit ...
 // @Title Deposit
 // @Description Deposit to account
