@@ -39,3 +39,7 @@ type CloseAccountRequest struct {
 	AccountNumber string `json:"accountNumber"`
 	ClientId      string `json:"clientId"`
 }
+
+type GetCorporativesRequest struct {
+	RequestId string `json:"request_id"`
+}

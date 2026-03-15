@@ -843,7 +843,7 @@ func LogTransaction(c *beego.Controller, req requests.LogTransactionApiRequest) 
 		api.POST)
 	// request.Params["username"] = username
 	// request.Params = {"UserId": strconv.Itoa(int(userid))}
-	request.HeaderField["sourceSystem"] = "MSYS_PAYMENT_APP_GATEWAY"
+	request.HeaderField["sourceSystem"] = req.Source
 
 	type ExtraData struct {
 		ExtraData1 string
@@ -870,6 +870,7 @@ func LogTransaction(c *beego.Controller, req requests.LogTransactionApiRequest) 
 	request.InterfaceParams["ClientReference"] = req.ExternalReferenceNumber
 	request.InterfaceParams["Package"] = req.TransactionPackage
 	request.InterfaceParams["CorpId"] = req.CorpId
+	request.InterfaceParams["CreatedBy"] = req.CreatedBy
 	client := api.Client{
 		Request: request,
 		Type_:   "body",

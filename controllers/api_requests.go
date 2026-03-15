@@ -52,8 +52,6 @@ func (c *Api_requestsController) URLMapping() {
 	c.Mapping("Deposit", c.Deposit)
 	c.Mapping("Withdrawal", c.Withdrawal)
 	c.Mapping("PayWaterBill", c.PayWaterBill)
-	c.Mapping("ListAccountLoans", c.ListAccountLoans)
-	c.Mapping("LoanRepayment", c.LoanRepayment)
 	c.Mapping("CloseAccount", c.CloseAccount)
 	// c.Mapping("TransferFunds", c.TransferFunds)
 }
@@ -4541,129 +4539,6 @@ func (c *Api_requestsController) ValidateCustomer() {
 // 	}
 // 	c.ServeJSON()
 // }
-
-// Get Account Loans ...
-// @Title GetAccountLoans
-// @Description Get account loans
-// @Param	body		body 	requests.AccountLoansRequest	true		"body for crediting of account"
-// @Param	clientId		header	true		"header for requests"
-// @Success 201 {object} models.Service_requests
-// @Failure 403 body is empty
-// @router /v2/list-account-loans [post]
-func (c *Api_requestsController) ListAccountLoans() {
-	clientId := c.Ctx.Input.Header("clientId")
-	logs.Debug("Client id is ", clientId)
-
-	var v requests.AccountLoansRequest
-	json.Unmarshal(c.Ctx.Input.RequestBody, &v)
-
-	status := false
-	statusMessage := "Error retrieving account loans"
-
-	// logs.Debug("Request::: ", c.Ctx.Input.RequestBody)
-	reqBody, err := json.Marshal(v)
-	if err != nil {
-		logs.Error("Error marshalling request body: %v", err)
-	} else {
-		logs.Debug("Get account loans request: %s", string(reqBody))
-	}
-
-	resp := apifunctions.ListAccountLoans(&c.Controller, clientId, v.AccountNumber)
-
-	logs.Debug("Response is ", resp)
-
-	var response responses.ListLoansResponse
-
-	var result []responses.LoanData
-
-	if resp.StatusCode == 200 {
-		logs.Info("Successfully fetched account statement")
-		status = true
-		statusMessage = "Successfully fetched account loans"
-		if resp.Result != nil {
-			result = *resp.Result
-		} else {
-			result = []responses.LoanData{}
-			logs.Info("No loans found for the account")
-			statusMessage = "No loans found for the account"
-		}
-	} else {
-		logs.Error("Error fetching account statement")
-		statusMessage = resp.StatusDesc
-	}
-
-	response = responses.ListLoansResponse{
-		StatusCode: status,
-		StatusDesc: statusMessage,
-		Result:     &result,
-	}
-
-	c.Data["json"] = response
-
-	c.ServeJSON()
-}
-
-// Loan Repayment ...
-// @Title LoanRepayment
-// @Description Repay loan
-// @Param	body		body 	requests.LoanRepaymentRequest	true		"body for crediting of account"
-// @Param	clientId		header	true		"header for requests"
-// @Success 201 {object} models.Service_requests
-// @Failure 403 body is empty
-// @router /v2/loan-repayment [post]
-func (c *Api_requestsController) LoanRepayment() {
-	clientId := c.Ctx.Input.Header("clientId")
-	logs.Debug("Client id is ", clientId)
-
-	var v requests.LoanRepaymentRequest
-	json.Unmarshal(c.Ctx.Input.RequestBody, &v)
-
-	status := false
-	statusMessage := "Error retrieving account loans"
-	result := "Repayment failed"
-
-	// logs.Debug("Request::: ", c.Ctx.Input.RequestBody)
-	reqBody, err := json.Marshal(v)
-	if err != nil {
-		logs.Error("Error marshalling request body: %v", err)
-	} else {
-		logs.Debug("Get account loans request: %s", string(reqBody))
-	}
-
-	req := requests.LoanRepaymentApiRequest{
-		AccountNumber: v.AccountNumber,
-		Amount:        v.Amount,
-		MobileNumber:  v.MobileNumber,
-		LoanId:        v.LoanId,
-		ClientId:      v.ClientId,
-	}
-
-	resp := apifunctions.LoanRepayment(&c.Controller, req)
-
-	logs.Debug("Response is ", resp)
-
-	var response responses.RepayLoanResponse
-
-	if resp.StatusCode == 200 {
-		logs.Info("Successfully fetched account statement")
-		status = true
-		statusMessage = "Successfully fetched account loans"
-		result = resp.Result
-	} else {
-		logs.Error("Error fetching account statement")
-		statusMessage = resp.StatusDesc
-	}
-
-	response = responses.RepayLoanResponse{
-		StatusCode: status,
-		StatusDesc: statusMessage,
-		Result:     result,
-	}
-
-	c.Data["json"] = response
-
-	c.ServeJSON()
-}
 
 // Close Account ...
 // @Title CloseAccount

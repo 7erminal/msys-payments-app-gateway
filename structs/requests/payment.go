@@ -104,6 +104,7 @@ type DepositAPIRequest struct {
 	Destination string  `json:"destination" valid:"required~Destination is required"`
 	Source      string  `json:"source" valid:"required~Source is required"`
 	ClientId    string  `json:"client_id" valid:"required~Client ID is required"`
+	CreatedBy string `json:"created_by" valid:"required~Created By is required"`
 }
 
 type WithdrawalAPIRequest struct {

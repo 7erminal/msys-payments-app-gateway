@@ -19,6 +19,8 @@ type LogTransactionApiRequest struct {
 	PhoneNumber              string
 	TransactionPackage       string
 	ExternalReferenceNumber  string
+	CreatedBy                string
+	Source                   string
 }
 
 type LogTransactionRequest struct {
@@ -40,6 +42,7 @@ type LogTransactionRequest struct {
 	PhoneNumber              string
 	TransactionPackage       string
 	ExternalReferenceNumber  string
+	CreatedBy                string
 }
 
 type TransferApiRequest struct {

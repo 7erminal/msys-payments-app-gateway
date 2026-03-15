@@ -22,6 +22,12 @@ func init() {
 				&controllers.Api_requestsController{},
 			),
 		),
+		beego.NSNamespace("/agent/api",
+			beego.NSBefore(middlewares.AuthMiddleware),
+			beego.NSInclude(
+				&controllers.Agent_api_requestsController{},
+			),
+		),
 		beego.NSNamespace("/callback",
 			beego.NSInclude(
 				&controllers.CallbackController{},
