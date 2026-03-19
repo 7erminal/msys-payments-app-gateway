@@ -151,6 +151,7 @@ func (c *CallbackController) Callback() {
 					Description:            "Commission for transaction " + v.Data.ClientReference,
 					RecipientName:          "Commission Wallet",
 					Status:                 "PENDING",
+					ServiceCode:            "COMMISSION",
 				}
 
 				commResp, err := helpers.LogTransferTransaction(&c.Controller, commReq, true)

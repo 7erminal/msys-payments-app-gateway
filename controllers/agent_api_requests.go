@@ -267,7 +267,7 @@ func (c *Agent_api_requestsController) Deposit() {
 	sourceSystem := c.Ctx.Input.Header("SourceSystem")
 	network := c.Ctx.Input.Header("Network")
 
-	var req requests.DepositAPIRequest
+	var req requests.AgentDepositRequest
 	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
 
 	destinationPhoneNumber := req.Destination
@@ -345,7 +345,7 @@ func (c *Agent_api_requestsController) Deposit() {
 
 		} else {
 
-			req := requests.PaymentRequestApiRequestDTO{
+			req2 := requests.PaymentRequestApiRequestDTO{
 				ClientId:        clientId,
 				Amount:          req.Amount,
 				PaymentMethod:   "MOBILEMONEY",
@@ -362,7 +362,7 @@ func (c *Agent_api_requestsController) Deposit() {
 
 			logs.Info("Amount to debit is ", req.Amount)
 
-			resp, err := helpers.RequestPaymentMain(&c.Controller, req)
+			resp, err := helpers.RequestPaymentMain(&c.Controller, req2)
 
 			logs.Info("Response from Deposit API: ", resp)
 
@@ -371,6 +371,36 @@ func (c *Agent_api_requestsController) Deposit() {
 			} else {
 				if resp.Success {
 					// accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Deposit", req.Amount, req.ClientId, "credit")
+
+					commissionFloat := resp.Result.Commission
+					if err != nil {
+						logs.Error("Error parsing commission: ", err)
+						commissionFloat = 0
+					}
+
+					commReq := requests.TransferApiRequest{
+						RequestId:              requestIdStr,
+						Amount:                 resp.Result.Amount,
+						Charge:                 resp.Result.Charge,
+						Commission:             commissionFloat,
+						TotalDebitAmount:       resp.Result.Amount + resp.Result.Charge,
+						SenderAccountNumber:    "SYSTEM",
+						RecipientAccountNumber: "2037071",
+						TransferCode:           "DEPOSIT",
+						Description:            "Deposit for transaction " + resp.Result.ClientReference,
+						RecipientName:          "Commission Wallet",
+						Status:                 "PENDING",
+						ServiceCode:            "COMMISSION",
+						CreatedBy:              req.CreatedBy,
+					}
+
+					commResp, err := helpers.LogTransferTransaction(&c.Controller, commReq, true)
+
+					if err != nil {
+						logs.Error("Error transferring commission to commission wallet: %v", err)
+					} else {
+						logs.Info("Commission transfer response: ", commResp)
+					}
 
 					isSuccess = true
 					message = "Deposit successful"

@@ -25,5 +25,5 @@ type BuyAirtimeAPIResponse struct {
 type MakePaymentResponse struct {
 	Success       bool
 	StatusMessage string
-	Result        interface{}
+	Result        *PaymentResponse
 }

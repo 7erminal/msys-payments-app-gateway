@@ -2841,6 +2841,7 @@ func LogTransferTransaction(c *beego.Controller, req requests.TransferApiRequest
 	request.InterfaceParams["Description"] = req.Description
 	request.InterfaceParams["RecipientName"] = req.RecipientName
 	request.InterfaceParams["Status"] = req.Status
+	request.InterfaceParams["ServiceCode"] = req.ServiceCode
 	client := api.Client{
 		Request: request,
 		Type_:   "body",

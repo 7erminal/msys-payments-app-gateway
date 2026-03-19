@@ -1053,6 +1053,7 @@ func RequestPaymentMain(c *beego.Controller, req requests.PaymentRequestApiReque
 
 	isSuccess := false
 	statusMessage := "Unable to process payment at the moment"
+	result := responses.PaymentResponse{}
 	var destinationPhoneNumber string
 	var network string
 
@@ -1143,6 +1144,7 @@ func RequestPaymentMain(c *beego.Controller, req requests.PaymentRequestApiReque
 					logs.Info("Payment request successful: ", reqMoneyResp)
 					isSuccess = true
 					statusMessage = "Payment request successful"
+					result = *reqMoneyResp.Payment
 				} else {
 					logs.Error("Error in payment request response: ", reqMoneyResp.StatusDesc)
 					isSuccess = false
@@ -1155,7 +1157,7 @@ func RequestPaymentMain(c *beego.Controller, req requests.PaymentRequestApiReque
 	response := responses.MakePaymentResponse{
 		Success:       isSuccess,
 		StatusMessage: statusMessage,
-		Result:        nil,
+		Result:        &result,
 	}
 
 	return response, nil

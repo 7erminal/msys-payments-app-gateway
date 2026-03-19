@@ -57,6 +57,8 @@ type TransferApiRequest struct {
 	Description            string
 	RecipientName          string
 	Status                 string
+	ServiceCode            string
+	CreatedBy              string
 }
 
 type TransferCommissionApiRequest struct {
