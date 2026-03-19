@@ -403,7 +403,7 @@ func DeleteUser(c *beego.Controller, req requests.DeleteUserApiRequest) (resp re
 }
 
 func CreateBranch(c *beego.Controller, req requests.BranchApiRequestDTO) (resp responses.UserResponseDTO) {
-	host, _ := beego.AppConfig.String("customerBaseUrl")
+	host, _ := beego.AppConfig.String("systemBaseUrl")
 
 	request := api.NewRequest(
 		host,
