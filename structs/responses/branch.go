@@ -39,6 +39,14 @@ type Branches struct {
 	BranchManager *Users     `orm:"rel(fk);column(branch_manager);null"`
 }
 
+type BranchesResponse struct {
+	BranchName  string
+	Country     string
+	Location    string
+	PhoneNumber string
+	Active      int
+}
+
 type BranchesResponseDTO struct {
 	StatusCode int
 	Branches   *[]interface{}

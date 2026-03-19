@@ -607,7 +607,7 @@ type UserGateway struct {
 	IsVerified     bool
 	Role           *Role
 	DateRegistered time.Time `orm:"type(datetime)"`
-	Branch         *Branches
+	Branch         *BranchesResponse
 }
 
 type UserTokens struct {

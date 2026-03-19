@@ -402,7 +402,7 @@ func DeleteUser(c *beego.Controller, req requests.DeleteUserApiRequest) (resp re
 	return data
 }
 
-func CreateBranch(c *beego.Controller, req requests.BranchApiRequestDTO) (resp responses.UserResponseDTO) {
+func CreateBranch(c *beego.Controller, req requests.BranchApiRequestDTO) (resp responses.BranchApiResponseDTO) {
 	host, _ := beego.AppConfig.String("systemBaseUrl")
 
 	request := api.NewRequest(
@@ -440,7 +440,7 @@ func CreateBranch(c *beego.Controller, req requests.BranchApiRequestDTO) (resp r
 
 	logs.Info("Raw response received is ", res)
 	// data := map[string]interface{}{}
-	var data responses.UserResponseDTO
+	var data responses.BranchApiResponseDTO
 	json.Unmarshal(read, &data)
 	c.Data["json"] = data
 

@@ -704,6 +704,15 @@ func (c *Auth_requestsController) RegisterUser() {
 
 				isSuccess = true
 				statusMessage = "User registered successfully"
+
+				branch := responses.BranchesResponse{
+					BranchName:  branchResp.Branch.Branch,
+					Location:    branchResp.Branch.Location,
+					Country:     branchResp.Branch.Country.Country,
+					PhoneNumber: branchResp.Branch.PhoneNumber,
+					Active:      branchResp.Branch.Active,
+				}
+
 				user = responses.UserGateway{
 					UserId:         resp.User.UserId,
 					FullName:       resp.User.FullName,
@@ -711,6 +720,7 @@ func (c *Auth_requestsController) RegisterUser() {
 					PhoneNumber:    resp.User.PhoneNumber,
 					ImagePath:      resp.User.ImagePath,
 					DateRegistered: resp.User.DateCreated,
+					Branch:         &branch,
 				}
 			}
 		}
