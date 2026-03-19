@@ -414,6 +414,7 @@ func CreateBranch(c *beego.Controller, req requests.BranchApiRequestDTO) (resp r
 	request.InterfaceParams["PhoneNumber"] = req.PhoneNumber
 	request.InterfaceParams["Location"] = req.Location
 	request.InterfaceParams["AddedBy"] = req.AddedBy
+	request.InterfaceParams["BranchManager"] = req.BranchManager
 
 	// request.Params = {"UserId": strconv.Itoa(int(userid))}
 	client := api.Client{

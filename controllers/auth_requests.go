@@ -686,12 +686,14 @@ func (c *Auth_requestsController) RegisterUser() {
 			logs.Info("User registered successfully: ", resp)
 
 			// Add Branch
+			userIdStr := fmt.Sprintf("%d", resp.User.UserId)
 			branchRequest := requests.BranchApiRequestDTO{
-				BranchName:  req.Username,
-				Location:    "",
-				PhoneNumber: req.MobileNumber,
-				CountryCode: "GHA",
-				AddedBy:     "1",
+				BranchName:    req.Username,
+				Location:      "",
+				PhoneNumber:   req.MobileNumber,
+				CountryCode:   "GHA",
+				AddedBy:       "1",
+				BranchManager: userIdStr,
 			}
 
 			branchResp := apifunctions.CreateBranch(&c.Controller, branchRequest)
