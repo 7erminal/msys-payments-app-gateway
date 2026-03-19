@@ -596,26 +596,18 @@ type Users struct {
 }
 
 type UserGateway struct {
-	UserId int64 `orm:"auto"`
-	// UserType    int
-	FullName    string `orm:"size(255)"`
-	Username    string `orm:"size(255)"`
-	Email       string `orm:"size(255)"`
-	PhoneNumber string `orm:"size(255)"`
-	ImagePath   string
-	Customer    *UserExtraDetails
-	// Gender         string    `orm:"size(10)"`
-	// Dob            time.Time `orm:"type(datetime)"`
-	// Address        string    `orm:"size(255)"`
-	// IdType         string    `orm:"size(5)"`
-	// IdNumber       string    `orm:"size(100)"`
+	UserId         int64  `orm:"auto"`
+	FullName       string `orm:"size(255)"`
+	Username       string `orm:"size(255)"`
+	Email          string `orm:"size(255)"`
+	PhoneNumber    string `orm:"size(255)"`
+	ImagePath      string
+	Customer       *UserExtraDetails
 	Status         string
 	IsVerified     bool
 	Role           *Role
 	DateRegistered time.Time `orm:"type(datetime)"`
-	// DateModified time.Time `orm:"type(datetime)"`
-	// CreatedBy    int
-	// ModifiedBy   int
+	Branch         *Branches
 }
 
 type UserTokens struct {

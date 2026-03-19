@@ -682,6 +682,9 @@ func (c *Auth_requestsController) RegisterUser() {
 		if resp.StatusCode != 200 {
 			logs.Error("Error registering user: ", resp.StatusDesc)
 			statusMessage = resp.StatusDesc
+		} else {
+			logs.Info("User registered successfully: ", resp)
+
 			// Add Branch
 			branchRequest := requests.BranchApiRequestDTO{
 				BranchName:  req.Username,
@@ -694,20 +697,21 @@ func (c *Auth_requestsController) RegisterUser() {
 			branchResp := apifunctions.CreateBranch(&c.Controller, branchRequest)
 			if branchResp.StatusCode != 200 {
 				logs.Error("Error adding branch for user: ", branchResp.StatusDesc)
+				isSuccess = false
+				statusMessage = "User registered but error adding branch: " + branchResp.StatusDesc
 			} else {
 				logs.Info("Branch added successfully for user: ", branchResp)
-			}
-		} else {
-			logs.Info("User registered successfully: ", resp)
-			isSuccess = true
-			statusMessage = "User registered successfully"
-			user = responses.UserGateway{
-				UserId:         resp.User.UserId,
-				FullName:       resp.User.FullName,
-				Email:          resp.User.Email,
-				PhoneNumber:    resp.User.PhoneNumber,
-				ImagePath:      resp.User.ImagePath,
-				DateRegistered: resp.User.DateCreated,
+
+				isSuccess = true
+				statusMessage = "User registered successfully"
+				user = responses.UserGateway{
+					UserId:         resp.User.UserId,
+					FullName:       resp.User.FullName,
+					Email:          resp.User.Email,
+					PhoneNumber:    resp.User.PhoneNumber,
+					ImagePath:      resp.User.ImagePath,
+					DateRegistered: resp.User.DateCreated,
+				}
 			}
 		}
 	}
