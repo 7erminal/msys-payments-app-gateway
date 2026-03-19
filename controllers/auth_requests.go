@@ -687,7 +687,7 @@ func (c *Auth_requestsController) RegisterUser() {
 				BranchName:  req.Username,
 				Location:    "",
 				PhoneNumber: req.MobileNumber,
-				CountryCode: "GH",
+				CountryCode: "GHA",
 				AddedBy:     "1",
 			}
 
