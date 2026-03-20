@@ -269,7 +269,7 @@ func VerifyTokenNew(token string) (resp responses.CustomerResponseDTO2) {
 	return data
 }
 
-func VerifyUserToken(token string, email string) (resp responses.UserOriResponseDTO) {
+func VerifyUserToken(token string) (resp responses.UserOriResponseDTO) {
 	host, _ := beego.AppConfig.String("authenticationBaseUrl")
 
 	logs.Info("About to verify token ", token)
@@ -279,7 +279,6 @@ func VerifyUserToken(token string, email string) (resp responses.UserOriResponse
 		"/v1/auth/token/verify",
 		api.POST)
 	request.InterfaceParams["Token"] = token
-	request.InterfaceParams["Email"] = email
 	// request.Params = {"UserId": strconv.Itoa(int(userid))}
 	client := api.Client{
 		Request: request,
