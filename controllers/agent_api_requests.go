@@ -35,6 +35,8 @@ func (c *Agent_api_requestsController) URLMapping() {
 	c.Mapping("LoanRepayment", c.LoanRepayment)
 	c.Mapping("Deposit", c.Deposit)
 	c.Mapping("GetCorporatives", c.GetCorporatives)
+	c.Mapping("GetUserDetails", c.GetUserDetails)
+	c.Mapping("GetAgentTransactions", c.GetAgentTransactions)
 }
 
 // GetCorporatives ...
