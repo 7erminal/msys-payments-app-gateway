@@ -37,6 +37,7 @@ func (c *Agent_api_requestsController) URLMapping() {
 	c.Mapping("GetCorporatives", c.GetCorporatives)
 	c.Mapping("GetUserDetails", c.GetUserDetails)
 	c.Mapping("GetAgentTransactions", c.GetAgentTransactions)
+	c.Mapping("AccountBalance", c.AccountBalance)
 }
 
 // GetCorporatives ...
@@ -282,6 +283,17 @@ func (c *Agent_api_requestsController) Deposit() {
 	sourceSystem := c.Ctx.Input.Header("SourceSystem")
 	network := c.Ctx.Input.Header("Network")
 
+	user := c.Ctx.Input.GetData("user")
+
+	logs.Info("User details: %s", user)
+	userData, ok := user.(*responses.UsersOri)
+	if !ok {
+		logs.Error("Error asserting user data")
+		c.Data["json"] = "Invalid user data"
+		c.ServeJSON()
+		return
+	}
+
 	var req requests.AgentDepositRequest
 	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
 
@@ -326,6 +338,7 @@ func (c *Agent_api_requestsController) Deposit() {
 		RequestDate:  time.Now(),
 		DateCreated:  time.Now(),
 		DateModified: time.Now(),
+		CreatedBy:    int(userData.UserId),
 	}
 	if _, err := models.AddApi_requests(&v); err == nil {
 		logs.Info("API request logged successfully: ", v)
@@ -350,7 +363,7 @@ func (c *Agent_api_requestsController) Deposit() {
 			PhoneNumber:              phoneNumber,
 			TransactionPackage:       amountString,
 			ExternalReferenceNumber:  "",
-			CreatedBy:                req.CreatedBy,
+			CreatedBy:                strconv.FormatInt(userData.UserId, 10),
 		}
 
 		if txn, err := helpers.LogTransaction(&c.Controller, transactionLog); err != nil {
@@ -363,7 +376,7 @@ func (c *Agent_api_requestsController) Deposit() {
 			req2 := requests.PaymentRequestApiRequestDTO{
 				ClientId:        clientId,
 				Amount:          req.Amount,
-				PaymentMethod:   "MOBILEMONEY",
+				PaymentMethod:   req.PaymentMethod,
 				Service:         "DEPOSIT",
 				SenderAccount:   accountNumber,
 				ReceiverAccount: destinationPhoneNumber,
@@ -406,7 +419,7 @@ func (c *Agent_api_requestsController) Deposit() {
 						RecipientName:          "Commission Wallet",
 						Status:                 "PENDING",
 						ServiceCode:            "COMMISSION",
-						CreatedBy:              req.CreatedBy,
+						CreatedBy:              strconv.FormatInt(userData.UserId, 10),
 					}
 
 					commResp, err := helpers.LogTransferTransaction(&c.Controller, commReq, true)
@@ -473,6 +486,17 @@ func (c *Agent_api_requestsController) ListAccountLoans() {
 	clientId := c.Ctx.Input.Header("clientId")
 	logs.Debug("Client id is ", clientId)
 
+	user := c.Ctx.Input.GetData("user")
+
+	logs.Info("User details: %s", user)
+	userData, ok := user.(*responses.UsersOri)
+	if !ok {
+		logs.Error("Error asserting user data")
+		c.Data["json"] = "Invalid user data"
+		c.ServeJSON()
+		return
+	}
+
 	var v requests.AccountLoansRequest
 	json.Unmarshal(c.Ctx.Input.RequestBody, &v)
 
@@ -480,35 +504,59 @@ func (c *Agent_api_requestsController) ListAccountLoans() {
 	statusMessage := "Error retrieving account loans"
 
 	// logs.Debug("Request::: ", c.Ctx.Input.RequestBody)
-	reqBody, err := json.Marshal(v)
-	if err != nil {
-		logs.Error("Error marshalling request body: %v", err)
-	} else {
-		logs.Debug("Get account loans request: %s", string(reqBody))
+	reqBody := c.Ctx.Input.RequestBody
+	reqHeaders := c.Ctx.Request.Header
+
+	requestMap := map[string]interface{}{
+		"headers": reqHeaders,
+		"body":    string(reqBody),
 	}
 
-	resp := apifunctions.ListAccountLoans(&c.Controller, clientId, v.AccountNumber)
-
-	logs.Debug("Response is ", resp)
+	reqText, err := json.Marshal(requestMap)
+	if err != nil {
+		logs.Error("Error marshalling request input: ", err)
+		c.Data["json"] = err.Error()
+		c.ServeJSON()
+		return
+	}
 
 	var response responses.ListLoansResponse
 
 	var result []responses.LoanData
+	var ap models.Api_requests = models.Api_requests{
+		Request:      string(reqText),
+		PhoneNumber:  v.AccountNumber,
+		RequestType:  "List Account Loans",
+		RequestDate:  time.Now(),
+		DateCreated:  time.Now(),
+		DateModified: time.Now(),
+		CreatedBy:    int(userData.UserId),
+	}
+	if _, err := models.AddApi_requests(&ap); err == nil {
+		logs.Info("API request logged successfully: ", v)
 
-	if resp.StatusCode == 200 {
-		logs.Info("Successfully fetched account statement")
-		status = true
-		statusMessage = "Successfully fetched account loans"
-		if resp.Result != nil {
-			result = *resp.Result
+		resp := apifunctions.ListAccountLoans(&c.Controller, clientId, v.AccountNumber)
+
+		logs.Debug("Response is ", resp)
+
+		if resp.StatusCode == 200 {
+			logs.Info("Successfully fetched account statement")
+			status = true
+			statusMessage = "Successfully fetched account loans"
+			if resp.Result != nil {
+				result = *resp.Result
+			} else {
+				result = []responses.LoanData{}
+				logs.Info("No loans found for the account")
+				statusMessage = "No loans found for the account"
+			}
 		} else {
-			result = []responses.LoanData{}
-			logs.Info("No loans found for the account")
-			statusMessage = "No loans found for the account"
+			logs.Error("Error fetching account statement")
+			statusMessage = resp.StatusDesc
 		}
 	} else {
-		logs.Error("Error fetching account statement")
-		statusMessage = resp.StatusDesc
+		logs.Error("Error logging API request: ", err)
+		statusMessage = "Error logging API request: " + err.Error()
 	}
 
 	response = responses.ListLoansResponse{
@@ -534,43 +582,77 @@ func (c *Agent_api_requestsController) LoanRepayment() {
 	clientId := c.Ctx.Input.Header("clientId")
 	logs.Debug("Client id is ", clientId)
 
+	user := c.Ctx.Input.GetData("user")
+
+	logs.Info("User details: %s", user)
+	userData, ok := user.(*responses.UsersOri)
+	if !ok {
+		logs.Error("Error asserting user data")
+		c.Data["json"] = "Invalid user data"
+		c.ServeJSON()
+		return
+	}
+
 	var v requests.LoanRepaymentRequest
 	json.Unmarshal(c.Ctx.Input.RequestBody, &v)
 
 	status := false
 	statusMessage := "Error retrieving account loans"
 	result := "Repayment failed"
-
-	// logs.Debug("Request::: ", c.Ctx.Input.RequestBody)
-	reqBody, err := json.Marshal(v)
-	if err != nil {
-		logs.Error("Error marshalling request body: %v", err)
-	} else {
-		logs.Debug("Get account loans request: %s", string(reqBody))
-	}
-
-	req := requests.LoanRepaymentApiRequest{
-		AccountNumber: v.AccountNumber,
-		Amount:        v.Amount,
-		MobileNumber:  v.MobileNumber,
-		LoanId:        v.LoanId,
-		ClientId:      v.ClientId,
-	}
-
-	resp := apifunctions.LoanRepayment(&c.Controller, req)
-
-	logs.Debug("Response is ", resp)
-
 	var response responses.RepayLoanResponse
 
-	if resp.StatusCode == 200 {
-		logs.Info("Successfully fetched account statement")
-		status = true
-		statusMessage = "Successfully fetched account loans"
-		result = resp.Result
+	// logs.Debug("Request::: ", c.Ctx.Input.RequestBody)
+	reqBody := c.Ctx.Input.RequestBody
+	reqHeaders := c.Ctx.Request.Header
+
+	requestMap := map[string]interface{}{
+		"headers": reqHeaders,
+		"body":    string(reqBody),
+	}
+
+	reqText, err := json.Marshal(requestMap)
+	if err != nil {
+		logs.Error("Error marshalling request input: ", err)
+		c.Data["json"] = err.Error()
+		c.ServeJSON()
+		return
+	}
+	var ap models.Api_requests = models.Api_requests{
+		Request:      string(reqText),
+		PhoneNumber:  v.MobileNumber,
+		RequestType:  "Loan Repayment",
+		RequestDate:  time.Now(),
+		DateCreated:  time.Now(),
+		DateModified: time.Now(),
+		CreatedBy:    int(userData.UserId),
+	}
+	if _, err := models.AddApi_requests(&ap); err == nil {
+		logs.Info("API request logged successfully: ", v)
+
+		req := requests.LoanRepaymentApiRequest{
+			AccountNumber: v.AccountNumber,
+			Amount:        v.Amount,
+			MobileNumber:  v.MobileNumber,
+			LoanId:        v.LoanId,
+			ClientId:      v.ClientId,
+		}
+
+		resp := apifunctions.LoanRepayment(&c.Controller, req)
+
+		logs.Debug("Response is ", resp)
+
+		if resp.StatusCode == 200 {
+			logs.Info("Successfully fetched account statement")
+			status = true
+			statusMessage = "Successfully fetched account loans"
+			result = resp.Result
+		} else {
+			logs.Error("Error fetching account statement")
+			statusMessage = resp.StatusDesc
+		}
 	} else {
-		logs.Error("Error fetching account statement")
-		statusMessage = resp.StatusDesc
+		logs.Error("Error logging API request: ", err)
+		statusMessage = "Error logging API request: " + err.Error()
 	}
 
 	response = responses.RepayLoanResponse{
@@ -596,6 +678,17 @@ func (c *Agent_api_requestsController) GetAgentTransactions() {
 	clientId := c.Ctx.Input.Header("clientId")
 	logs.Debug("Client id is ", clientId)
 
+	user := c.Ctx.Input.GetData("user")
+
+	logs.Info("User details: %s", user)
+	userData, ok := user.(*responses.UsersOri)
+	if !ok {
+		logs.Error("Error asserting user data")
+		c.Data["json"] = "Invalid user data"
+		c.ServeJSON()
+		return
+	}
+
 	var req requests.AgentTransactionsRequest
 	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
 
@@ -603,98 +696,129 @@ func (c *Agent_api_requestsController) GetAgentTransactions() {
 	statusMessage := "Error retrieving agent float"
 	result := []responses.Trx_transactions{}
 
-	var allowedDateList [6]string = [6]string{"2006-01-02", "2006/01/02", "2006-01-02 15:04:05.000", "2006/01/02 15:04:05.000", "2006-01-02T15:04:05.000Z", "2006-01-02 15:04:05.000000 -0700 MST"}
+	reqBody := c.Ctx.Input.RequestBody
+	reqHeaders := c.Ctx.Request.Header
 
-	proceed := false
-	fromDate := time.Time{}
-	for _, date_ := range allowedDateList {
-		logs.Debug("About to convert ", req.FromDate)
-		logs.Debug("About to convert ", c.Ctx.Input.Query("Dob"))
-		// Convert dob string to date
-		tdobm, error := time.Parse(date_, req.FromDate)
-
-		if error != nil {
-			logs.Error("Error parsing date", error)
-			statusMessage = "Invalid date format for FromDate. Please use one of the following formats: YYYY-MM-DD, YYYY/MM/DD, YYYY-MM-DD HH:MM:SS.sss, YYYY/MM/DD HH:MM:SS.sss, YYYY-MM-DDTHH:MM:SS.sssZ, or YYYY-MM-DD HH:MM:SS.ssssss -0700 MST"
-			proceed = false
-		} else {
-			logs.Info("Date converted to time successfully", tdobm)
-			fromDate = tdobm
-			proceed = true
-
-			break
-		}
+	requestMap := map[string]interface{}{
+		"headers": reqHeaders,
+		"body":    string(reqBody),
 	}
 
-	proceed = false
-	toDate := time.Time{}
-	for _, date_ := range allowedDateList {
-		logs.Debug("About to convert ", req.ToDate)
-		logs.Debug("About to convert ", c.Ctx.Input.Query("Dob"))
-		// Convert dob string to date
-		tdobm, error := time.Parse(date_, req.ToDate)
-
-		if error != nil {
-			logs.Error("Error parsing date", error)
-			statusMessage = "Invalid date format for ToDate. Please use one of the following formats: YYYY-MM-DD, YYYY/MM/DD, YYYY-MM-DD HH:MM:SS.sss, YYYY/MM/DD HH:MM:SS.sss, YYYY-MM-DDTHH:MM:SS.sssZ, or YYYY-MM-DD HH:MM:SS.ssssss -0700 MST"
-			proceed = false
-		} else {
-			logs.Info("Date converted to time successfully", tdobm)
-			toDate = tdobm
-			proceed = true
-
-			break
-		}
+	reqText, err := json.Marshal(requestMap)
+	if err != nil {
+		logs.Error("Error marshalling request input: ", err)
+		c.Data["json"] = err.Error()
+		c.ServeJSON()
+		return
 	}
+	var v models.Api_requests = models.Api_requests{
+		Request:      string(reqText),
+		PhoneNumber:  req.AgentCode,
+		RequestType:  "Agent Transactions",
+		RequestDate:  time.Now(),
+		DateCreated:  time.Now(),
+		DateModified: time.Now(),
+		CreatedBy:    int(userData.UserId),
+	}
+	if _, err := models.AddApi_requests(&v); err == nil {
+		logs.Info("API request logged successfully: ", v)
 
-	if proceed {
-		fromDateStr := fromDate.Format("2006-01-02 15:04:05")
-		toDateStr := toDate.Format("2006-01-02 15:04:05")
-		logs.Debug("From date is ", fromDateStr)
-		logs.Debug("To date is ", toDateStr)
+		var allowedDateList [6]string = [6]string{"2006-01-02", "2006/01/02", "2006-01-02 15:04:05.000", "2006/01/02 15:04:05.000", "2006-01-02T15:04:05.000Z", "2006-01-02 15:04:05.000000 -0700 MST"}
 
-		getUser := apifunctions.GetUserDetailsWithCode(&c.Controller, req.AgentCode)
+		proceed := false
+		fromDate := time.Time{}
+		for _, date_ := range allowedDateList {
+			logs.Debug("About to convert ", req.FromDate)
+			logs.Debug("About to convert ", c.Ctx.Input.Query("Dob"))
+			// Convert dob string to date
+			tdobm, error := time.Parse(date_, req.FromDate)
 
-		if getUser.StatusCode != 200 {
-			logs.Error("Error fetching user details for agent code ", req.AgentCode)
-			statusMessage = "Invalid agent code"
-			response := responses.AgentTransactionsResponse{
-				Success:    status,
-				StatusDesc: statusMessage,
-				Result:     result,
-			}
-
-			c.Data["json"] = response
-			c.ServeJSON()
-			return
-		}
-
-		allTrxns := []responses.Trx_transactions{}
-
-		for _, user := range *getUser.Users {
-			logs.Debug("User fetched for agent code ", req.AgentCode, ": ", user.FullName)
-
-			query := "CreatedBy:" + strconv.Itoa(int(user.UserId)) + ",DateCreated__gte:" + fromDateStr + ",DateCreated__lte:" + toDateStr
-			resp := apifunctions.GetAgentTransactions(&c.Controller, query)
-
-			logs.Debug("Response is ", resp)
-
-			if resp.StatusCode == 200 {
-				logs.Info("Successfully fetched agent transactions")
-				status = true
-				statusMessage = "Successfully fetched agent transactions"
-				if resp.Result != nil {
-					allTrxns = append(allTrxns, *resp.Result...)
-				} else {
-					logs.Info("No transactions found for the agent in the specified date range")
-					statusMessage = "No transactions found for the agent in the specified date range"
-				}
+			if error != nil {
+				logs.Error("Error parsing date", error)
+				statusMessage = "Invalid date format for FromDate. Please use one of the following formats: YYYY-MM-DD, YYYY/MM/DD, YYYY-MM-DD HH:MM:SS.sss, YYYY/MM/DD HH:MM:SS.sss, YYYY-MM-DDTHH:MM:SS.sssZ, or YYYY-MM-DD HH:MM:SS.ssssss -0700 MST"
+				proceed = false
 			} else {
-				logs.Error("Error fetching agent transactions")
-				statusMessage = resp.StatusDesc
+				logs.Info("Date converted to time successfully", tdobm)
+				fromDate = tdobm
+				proceed = true
+
+				break
 			}
 		}
-		result = allTrxns
+
+		proceed = false
+		toDate := time.Time{}
+		for _, date_ := range allowedDateList {
+			logs.Debug("About to convert ", req.ToDate)
+			logs.Debug("About to convert ", c.Ctx.Input.Query("Dob"))
+			// Convert dob string to date
+			tdobm, error := time.Parse(date_, req.ToDate)
+
+			if error != nil {
+				logs.Error("Error parsing date", error)
+				statusMessage = "Invalid date format for ToDate. Please use one of the following formats: YYYY-MM-DD, YYYY/MM/DD, YYYY-MM-DD HH:MM:SS.sss, YYYY/MM/DD HH:MM:SS.sss, YYYY-MM-DDTHH:MM:SS.sssZ, or YYYY-MM-DD HH:MM:SS.ssssss -0700 MST"
+				proceed = false
+			} else {
+				logs.Info("Date converted to time successfully", tdobm)
+				toDate = tdobm
+				proceed = true
+
+				break
+			}
+		}
+
+		if proceed {
+			fromDateStr := fromDate.Format("2006-01-02 15:04:05")
+			toDateStr := toDate.Format("2006-01-02 15:04:05")
+			logs.Debug("From date is ", fromDateStr)
+			logs.Debug("To date is ", toDateStr)
+
+			getUser := apifunctions.GetUserDetailsWithCode(&c.Controller, req.AgentCode)
+
+			if getUser.StatusCode != 200 {
+				logs.Error("Error fetching user details for agent code ", req.AgentCode)
+				statusMessage = "Invalid agent code"
+				response := responses.AgentTransactionsResponse{
+					Success:    status,
+					StatusDesc: statusMessage,
+					Result:     result,
+				}
+
+				c.Data["json"] = response
+				c.ServeJSON()
+				return
+			}
+
+			allTrxns := []responses.Trx_transactions{}
+
+			for _, user := range *getUser.Users {
+				logs.Debug("User fetched for agent code ", req.AgentCode, ": ", user.FullName)
+
+				query := "CreatedBy:" + strconv.Itoa(int(user.UserId)) + ",DateCreated__gte:" + fromDateStr + ",DateCreated__lte:" + toDateStr
+				resp := apifunctions.GetAgentTransactions(&c.Controller, query)
+
+				logs.Debug("Response is ", resp)
+
+				if resp.StatusCode == 200 {
+					logs.Info("Successfully fetched agent transactions")
+					status = true
+					statusMessage = "Successfully fetched agent transactions"
+					if resp.Result != nil {
+						allTrxns = append(allTrxns, *resp.Result...)
+					} else {
+						logs.Info("No transactions found for the agent in the specified date range")
+						statusMessage = "No transactions found for the agent in the specified date range"
+					}
+				} else {
+					logs.Error("Error fetching agent transactions")
+					statusMessage = resp.StatusDesc
+				}
+			}
+			result = allTrxns
+		}
+	} else {
+		logs.Error("Error logging API request: ", err)
+		statusMessage = "Error logging API request: " + err.Error()
 	}
 
 	response := responses.AgentTransactionsResponse{
@@ -704,6 +828,141 @@ func (c *Agent_api_requestsController) GetAgentTransactions() {
 	}
 
 	c.Data["json"] = response
+}
+
+// AccountBalance ...
+// @Title Account Balance
+// @Description Account Balance
+// @Param	Authorization		header 	string true		"header for User"
+// @Param	PhoneNumber		header 	string true		"header for Customer's phone number"
+// @Param	SourceSystem		header 	string true		"header for Source system"
+// @Param	body		body 	requests.NumberExistsApiRequest	true		"body for Request content"
+// @Success 201 {int} models.Api_requests
+// @Failure 403 body is empty
+// @router /account-balance [post]
+func (c *Agent_api_requestsController) AccountBalance() {
+	// Extract headers
+	// phoneNumber := c.Ctx.Input.Header("PhoneNumber")
+	sourceSystem := c.Ctx.Input.Header("SourceSystem")
+	phoneNumber := c.Ctx.Input.Header("PhoneNumber")
+
+	user := c.Ctx.Input.GetData("user")
+
+	logs.Info("User details: %s", user)
+	userData, ok := user.(*responses.UsersOri)
+	if !ok {
+		logs.Error("Error asserting user data")
+		c.Data["json"] = "Invalid user data"
+		c.ServeJSON()
+		return
+	}
+
+	var req requests.AccountBalanceApiRequest
+	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
+
+	logs.Info("Account Balance called with AccountNumber: %s, SourceSystem: %s", req.AccountNumber, sourceSystem)
+	reqBody := c.Ctx.Input.RequestBody
+	reqHeaders := c.Ctx.Request.Header
+
+	requestMap := map[string]interface{}{
+		"headers": reqHeaders,
+		"body":    string(reqBody),
+	}
+
+	reqText, err := json.Marshal(requestMap)
+	if err != nil {
+		logs.Error("Error marshalling request input: ", err)
+		c.Data["json"] = err.Error()
+		c.ServeJSON()
+		return
+	}
+	var v models.Api_requests = models.Api_requests{
+		Request:      string(reqText),
+		PhoneNumber:  phoneNumber,
+		RequestType:  "Account Balance",
+		RequestDate:  time.Now(),
+		DateCreated:  time.Now(),
+		DateModified: time.Now(),
+		CreatedBy:    int(userData.UserId),
+	}
+	if _, err := models.AddApi_requests(&v); err == nil {
+		logs.Info("API request logged successfully: ", v)
+		accountBalanceRequest := requests.AccountBalanceApiRequest{
+			AccountNumber: req.AccountNumber,
+			ClientId:      req.ClientId,
+		}
+
+		if accountResp := apifunctions.GetCustomerAccount(&c.Controller, req.AccountNumber); accountResp.StatusCode != "200" {
+			logs.Error("Error fetching account details: ", accountResp.StatusMessage)
+			var response responses.AccountBalanceResponse = responses.AccountBalanceResponse{
+				StatusCode:    false,
+				StatusMessage: "Error fetching account details: " + accountResp.StatusMessage,
+				Result:        nil,
+			}
+			c.Ctx.Output.SetStatus(200)
+			c.Data["json"] = response
+			c.ServeJSON()
+			return
+		}
+		logs.Info("Formatted request for account balance: ", accountBalanceRequest)
+		resp := apifunctions.GetAccountBalance(&c.Controller, accountBalanceRequest)
+		logs.Info("Response from account balance API: ", resp)
+
+		var response responses.AccountBalanceResponse = responses.AccountBalanceResponse{
+			StatusCode:    false,
+			StatusMessage: "Something went wrong",
+			Result:        nil,
+		}
+
+		if resp.StatusCode != 200 {
+			response = responses.AccountBalanceResponse{
+				StatusCode:    false,
+				StatusMessage: resp.StatusDesc,
+				Result:        nil,
+			}
+		} else {
+			responseText, err := json.Marshal(response.Result)
+			if err != nil {
+				logs.Error("Error marshalling response result: ", err)
+				responseText = []byte("[]")
+			}
+			v.RequestResponse = string(responseText)
+			v.DateModified = time.Now()
+			v.ResponseDate = time.Now()
+			if err := models.UpdateApi_requestsById(&v); err != nil {
+				logs.Error("Error updating API request with response: ", err)
+			} else {
+				logs.Info("API request updated with response successfully: ", v)
+			}
+
+			accBal := responses.AccountBalanceDataResp{
+				AccountNumber:    req.AccountNumber,
+				AccountStatus:    resp.Result.AccountStatus,
+				AvailableBalance: resp.Result.AvailableBalance,
+				ClearBalance:     resp.Result.ClearBalance,
+				LoanBalance:      resp.Result.LoanBalance,
+				SharesBalance:    resp.Result.SharesBalance,
+			}
+			response = responses.AccountBalanceResponse{
+				StatusCode:    true,
+				StatusMessage: "Account balance fetched succeefully",
+				Result:        &accBal,
+			}
+		}
+
+		c.Ctx.Output.SetStatus(200)
+		c.Data["json"] = response
+
+	} else {
+		var response responses.AccountBalanceResponse = responses.AccountBalanceResponse{
+			StatusCode:    false,
+			StatusMessage: "Something went wrong:: " + err.Error(),
+			Result:        nil,
+		}
+
+		c.Data["json"] = response
+	}
+	c.ServeJSON()
 }
 
 // @Description create Agent_api_requests
