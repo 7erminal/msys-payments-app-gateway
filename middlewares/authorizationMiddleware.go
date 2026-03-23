@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/beego/beego/v2/core/logs"
+	beego "github.com/beego/beego/v2/server/web"
 	"github.com/beego/beego/v2/server/web/context"
 )
 
@@ -95,7 +96,7 @@ func UserAuthMiddleware(ctx *context.Context) {
 	token := strings.Split(authorization, " ")
 
 	if token[0] == "Bearer" {
-		verifyToken := apifunctions.VerifyUserToken(token[1])
+		verifyToken := apifunctions.VerifyToken(&beego.Controller{Ctx: ctx}, token[1])
 		if verifyToken.StatusCode == 200 {
 			logs.Info("Token is valid")
 			customerJson, err := json.Marshal(verifyToken.User)

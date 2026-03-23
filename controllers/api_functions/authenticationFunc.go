@@ -279,6 +279,7 @@ func VerifyUserToken(token string) (resp responses.UserOriResponseDTO) {
 		"/v1/auth/token/verify",
 		api.POST)
 	request.InterfaceParams["Token"] = token
+	request.HeaderField["Authorization"] = token
 	// request.Params = {"UserId": strconv.Itoa(int(userid))}
 	client := api.Client{
 		Request: request,
