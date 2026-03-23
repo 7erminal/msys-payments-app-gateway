@@ -230,7 +230,6 @@ func VerifyToken(c *beego.Controller, token string) (resp responses.UserOriRespo
 	// data := map[string]interface{}{}
 	var data responses.UserOriResponseDTO
 	json.Unmarshal(read, &data)
-	c.Data["json"] = data
 
 	return data
 }
