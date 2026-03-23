@@ -492,7 +492,7 @@ type CustomerLoginResponse struct {
 
 type UserOriResponseDTO struct {
 	StatusCode int
-	User       *UsersOri
+	User       *Users
 	StatusDesc string
 }
 
@@ -539,7 +539,7 @@ type Role struct {
 type UserExtraDetails struct {
 	// CustomerId int64
 	// User       int64
-	// Branch *BranchResp
+	Branch *Branches
 	// Shop             *Shops
 	// CustomerCategory *Customer_categories
 	// Nickname         string
