@@ -707,22 +707,46 @@ func (c *Auth_requestsController) RegisterUser() {
 				isSuccess = true
 				statusMessage = "User registered successfully"
 
-				branch := responses.BranchesResponse{
-					BranchName:  branchResp.Branch.Branch,
-					Location:    branchResp.Branch.Location,
-					Country:     branchResp.Branch.Country.Country,
-					PhoneNumber: branchResp.Branch.PhoneNumber,
-					Active:      branchResp.Branch.Active,
+				// Update User with Branch ID
+				updateUserBranchRequest := requests.UpdateUser{
+					UserId:        resp.User.UserId,
+					Branch:        branchResp.Branch.BranchId,
+					Name:          resp.User.FullName,
+					Email:         resp.User.Email,
+					PhoneNumber:   resp.User.PhoneNumber,
+					Location:      resp.User.Address,
+					Gender:        resp.User.Gender,
+					MaritalStatus: resp.User.MaritalStatus,
+					ImagePath:     resp.User.ImagePath,
+					Status:        1,
+					Address:       resp.User.Address,
 				}
 
-				user = responses.UserGateway{
-					UserId:         resp.User.UserId,
-					FullName:       resp.User.FullName,
-					Email:          resp.User.Email,
-					PhoneNumber:    resp.User.PhoneNumber,
-					ImagePath:      resp.User.ImagePath,
-					DateRegistered: resp.User.DateCreated,
-					Branch:         &branch,
+				updateResp := apifunctions.UpdateUser(&c.Controller, updateUserBranchRequest)
+
+				if updateResp.StatusCode != 200 {
+					logs.Error("Error updating user with branch ID: ", updateResp.StatusDesc)
+					isSuccess = false
+					statusMessage = "User registered but error updating user with branch ID: " + updateResp.StatusDesc
+				} else {
+					logs.Info("User updated successfully with branch ID: ", updateResp)
+					branch := responses.BranchesResponse{
+						BranchName:  branchResp.Branch.Branch,
+						Location:    branchResp.Branch.Location,
+						Country:     branchResp.Branch.Country.Country,
+						PhoneNumber: branchResp.Branch.PhoneNumber,
+						Active:      branchResp.Branch.Active,
+					}
+
+					user = responses.UserGateway{
+						UserId:         resp.User.UserId,
+						FullName:       resp.User.FullName,
+						Email:          resp.User.Email,
+						PhoneNumber:    resp.User.PhoneNumber,
+						ImagePath:      resp.User.ImagePath,
+						DateRegistered: resp.User.DateCreated,
+						Branch:         &branch,
+					}
 				}
 			}
 		}

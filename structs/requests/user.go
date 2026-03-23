@@ -287,6 +287,20 @@ type RegisterUser struct {
 	Branch      string
 }
 
+type UpdateUser struct {
+	Email         string
+	Name          string
+	PhoneNumber   string
+	Location      string
+	Gender        string
+	MaritalStatus string
+	ImagePath     string
+	Branch        int64
+	UserId        int64
+	Status        int
+	Address       string
+}
+
 type AddCustomerCredential struct {
 	CustomerId int64
 	Username   string

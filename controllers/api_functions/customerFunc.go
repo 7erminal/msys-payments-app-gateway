@@ -311,6 +311,76 @@ func GetUserDetailsWithCode(c *beego.Controller, userCode string) (resp response
 	return data
 }
 
+func UpdateUser(c *beego.Controller, req requests.UpdateUser) (resp responses.UsersResponseDTO) {
+	host, _ := beego.AppConfig.String("customerBaseUrl")
+
+	logs.Info("Sending first name ", req.Name)
+
+	logs.Info("Sending email ", req.Email)
+
+	branchid := strconv.FormatInt(req.Branch, 10)
+	userid := strconv.FormatInt(req.UserId, 10)
+	status := strconv.Itoa(req.Status)
+
+	logs.Info("User status is ", req.Status)
+	logs.Info("User status string is ", status)
+
+	// Get date
+	now := time.Now()
+	y, m, d := now.Date()
+	d_str := strconv.Itoa(d)
+	m_str := strconv.Itoa(int(m))
+	if len(d_str) < 2 {
+		d_str = "0" + d_str
+	}
+	if len(m_str) < 2 {
+		m_str = "0" + m_str
+	}
+	dob := strconv.Itoa(y) + "/" + m_str + "/" + d_str
+
+	request := api.NewRequest(
+		host,
+		"/v1/users/"+userid,
+		api.PUT)
+	request.Params["FullName"] = req.Name
+	request.Params["Email"] = req.Email
+	request.Params["Gender"] = req.Gender
+	request.Params["PhoneNumber"] = req.PhoneNumber
+	request.Params["MaritalStatus"] = req.MaritalStatus
+	request.Params["Dob"] = dob
+	request.Params["UpdatedBy"] = strconv.FormatInt(req.UserId, 10)
+	request.Params["Location"] = req.Location
+	request.FileField["Address"] = req.Address
+	request.Params["BranchId"] = branchid
+	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+	client := api.Client{
+		Request: request,
+		Type_:   "params",
+	}
+	res, err := client.SendRequest()
+	if err != nil {
+		logs.Error("client.Error: %v", err)
+		c.Data["json"] = err.Error()
+	}
+	defer res.Body.Close()
+	read, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	}
+
+	logs.Info("Raw response received is ", res)
+	// data := map[string]interface{}{}
+	// var dataOri responses.UserOriResponseDTO
+	var data responses.UsersResponseDTO
+	json.Unmarshal(read, &data)
+	c.Data["json"] = data
+
+	logs.Info("Resp is ", data)
+	// logs.Info("Resp is ", data.User.Branch.Country.DefaultCurrency)
+
+	return data
+}
+
 func GetCustomers(c *beego.Controller, query string, fields string, sortby string, order string,
 	offset string, limit string, search string) (resp responses.CustomersResponseDTO) {
 	host, _ := beego.AppConfig.String("customerBaseUrl")
