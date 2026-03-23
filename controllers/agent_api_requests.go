@@ -214,14 +214,27 @@ func (c *Agent_api_requestsController) GetUserDetails() {
 			userStatus = "ACTIVE"
 		}
 
+		branchResp := responses.BranchesResponse{
+			BranchName:  userData.Customer.Branch.Branch,
+			Country:     userData.Customer.Branch.Country.Country,
+			Location:    userData.Customer.Branch.Location,
+			PhoneNumber: userData.Customer.Branch.PhoneNumber,
+			Active:      userData.Customer.Branch.Active,
+		}
+
 		userResp := responses.UserGateway{
 			UserId:         userData.UserId,
 			FullName:       userData.FullName,
+			Username:       userData.Username,
 			ImagePath:      userData.ImagePath,
 			Email:          userData.Email,
 			PhoneNumber:    userData.PhoneNumber,
 			Status:         userStatus,
 			DateRegistered: userData.DateCreated,
+			Customer:       userData.Customer,
+			IsVerified:     userData.IsVerified,
+			Role:           userData.Role,
+			Branch:         &branchResp,
 		}
 
 		logs.Info("Formatted request for customer: ")
