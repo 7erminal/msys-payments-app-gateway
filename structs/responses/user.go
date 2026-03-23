@@ -502,6 +502,12 @@ type UserResponseDTO struct {
 	StatusDesc string
 }
 
+type UsersResponseDTO struct {
+	StatusCode int
+	Users      *[]Users
+	StatusDesc string
+}
+
 type UserGatewayResponseDTO struct {
 	Success    bool
 	Result     *UserGateway

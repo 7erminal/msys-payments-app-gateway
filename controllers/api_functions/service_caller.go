@@ -370,6 +370,50 @@ func OpenAccount(c *beego.Controller, req requests.OpenAccountApiRequest) (resp 
 	return data
 }
 
+func GetAgentTransactions(c *beego.Controller, query string) (resp responses.TransactionsApiResponseDTO) {
+	host, _ := beego.AppConfig.String("transferBaseUrl")
+
+	logs.Info("Getting corporatives")
+	request := api.NewRequest(
+		host,
+		"/v2/transactions",
+		api.GET)
+	// request.Params["username"] = username
+	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+	request.Params["query"] = query
+
+	client := api.Client{
+		Request: request,
+		Type_:   "params",
+	}
+	res, err := client.SendRequest()
+	if err != nil {
+		logs.Error("client.Error: %v", err)
+		c.Data["json"] = err.Error()
+	}
+	defer res.Body.Close()
+	read, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	}
+
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, read, "", "  "); err != nil {
+		logs.Info("Raw response received is ", string(read))
+	} else {
+		logs.Info("Raw response received is \n", prettyJSON.String())
+	}
+	// data := map[string]interface{}{}
+	var data responses.TransactionsApiResponseDTO
+	json.Unmarshal(read, &data)
+	c.Data["json"] = data
+
+	logs.Info("Resp is ", data)
+	// logs.Info("Resp is ", data.User)
+
+	return data
+}
+
 func AddAccount(c *beego.Controller, req requests.AddCustomerAccountApiRequest) (resp responses.CustomerAccountApiResponse) {
 	host, _ := beego.AppConfig.String("accountBaseUrl")
 

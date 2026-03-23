@@ -569,8 +569,128 @@ func (c *Agent_api_requestsController) LoanRepayment() {
 	c.ServeJSON()
 }
 
-// Post ...
-// @Title Create
+// GetFloat ...
+// @Title Get Float
+// @Description Get float for agent
+// @Param	body		body 	requests.GetFloatRequest	true		"body for crediting of account"
+// @Param	clientId		header	true		"header for requests"
+// @Success 201 {object} models.Service_requests
+// @Failure 403 body is empty
+// @router /v2/get-agent-transactions [post]
+func (c *Agent_api_requestsController) GetAgentTransactions() {
+	clientId := c.Ctx.Input.Header("clientId")
+	logs.Debug("Client id is ", clientId)
+
+	var req requests.AgentTransactionsRequest
+	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
+
+	status := false
+	statusMessage := "Error retrieving agent float"
+	result := []responses.Trx_transactions{}
+
+	var allowedDateList [6]string = [6]string{"2006-01-02", "2006/01/02", "2006-01-02 15:04:05.000", "2006/01/02 15:04:05.000", "2006-01-02T15:04:05.000Z", "2006-01-02 15:04:05.000000 -0700 MST"}
+
+	proceed := false
+	fromDate := time.Time{}
+	for _, date_ := range allowedDateList {
+		logs.Debug("About to convert ", req.FromDate)
+		logs.Debug("About to convert ", c.Ctx.Input.Query("Dob"))
+		// Convert dob string to date
+		tdobm, error := time.Parse(date_, req.FromDate)
+
+		if error != nil {
+			logs.Error("Error parsing date", error)
+			statusMessage = "Invalid date format for FromDate. Please use one of the following formats: YYYY-MM-DD, YYYY/MM/DD, YYYY-MM-DD HH:MM:SS.sss, YYYY/MM/DD HH:MM:SS.sss, YYYY-MM-DDTHH:MM:SS.sssZ, or YYYY-MM-DD HH:MM:SS.ssssss -0700 MST"
+			proceed = false
+		} else {
+			logs.Info("Date converted to time successfully", tdobm)
+			fromDate = tdobm
+			proceed = true
+
+			break
+		}
+	}
+
+	proceed = false
+	toDate := time.Time{}
+	for _, date_ := range allowedDateList {
+		logs.Debug("About to convert ", req.ToDate)
+		logs.Debug("About to convert ", c.Ctx.Input.Query("Dob"))
+		// Convert dob string to date
+		tdobm, error := time.Parse(date_, req.ToDate)
+
+		if error != nil {
+			logs.Error("Error parsing date", error)
+			statusMessage = "Invalid date format for ToDate. Please use one of the following formats: YYYY-MM-DD, YYYY/MM/DD, YYYY-MM-DD HH:MM:SS.sss, YYYY/MM/DD HH:MM:SS.sss, YYYY-MM-DDTHH:MM:SS.sssZ, or YYYY-MM-DD HH:MM:SS.ssssss -0700 MST"
+			proceed = false
+		} else {
+			logs.Info("Date converted to time successfully", tdobm)
+			toDate = tdobm
+			proceed = true
+
+			break
+		}
+	}
+
+	if proceed {
+		fromDateStr := fromDate.Format("2006-01-02 15:04:05")
+		toDateStr := toDate.Format("2006-01-02 15:04:05")
+		logs.Debug("From date is ", fromDateStr)
+		logs.Debug("To date is ", toDateStr)
+
+		getUser := apifunctions.GetUserDetailsWithCode(&c.Controller, req.AgentCode)
+
+		if getUser.StatusCode != 200 {
+			logs.Error("Error fetching user details for agent code ", req.AgentCode)
+			statusMessage = "Invalid agent code"
+			response := responses.AgentTransactionsResponse{
+				Success:    status,
+				StatusDesc: statusMessage,
+				Result:     result,
+			}
+
+			c.Data["json"] = response
+			c.ServeJSON()
+			return
+		}
+
+		allTrxns := []responses.Trx_transactions{}
+
+		for _, user := range *getUser.Users {
+			logs.Debug("User fetched for agent code ", req.AgentCode, ": ", user.FullName)
+
+			query := "CreatedBy:" + strconv.Itoa(int(user.UserId)) + ",DateCreated__gte:" + fromDateStr + ",DateCreated__lte:" + toDateStr
+			resp := apifunctions.GetAgentTransactions(&c.Controller, query)
+
+			logs.Debug("Response is ", resp)
+
+			if resp.StatusCode == 200 {
+				logs.Info("Successfully fetched agent transactions")
+				status = true
+				statusMessage = "Successfully fetched agent transactions"
+				if resp.Result != nil {
+					allTrxns = append(allTrxns, *resp.Result...)
+				} else {
+					logs.Info("No transactions found for the agent in the specified date range")
+					statusMessage = "No transactions found for the agent in the specified date range"
+				}
+			} else {
+				logs.Error("Error fetching agent transactions")
+				statusMessage = resp.StatusDesc
+			}
+		}
+		result = allTrxns
+	}
+
+	response := responses.AgentTransactionsResponse{
+		Success:    status,
+		StatusDesc: statusMessage,
+		Result:     result,
+	}
+
+	c.Data["json"] = response
+}
+
 // @Description create Agent_api_requests
 // @Param	body		body 	models.Agent_api_requests	true		"body for Agent_api_requests content"
 // @Success 201 {object} models.Agent_api_requests

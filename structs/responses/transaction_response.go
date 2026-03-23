@@ -78,3 +78,15 @@ type TransferApiResponseDTO struct {
 	StatusDesc string            `json:"statusDesc"`
 	Result     *Trx_transactions `json:"result"`
 }
+
+type TransactionsApiResponseDTO struct {
+	StatusCode int                 `json:"success"`
+	StatusDesc string              `json:"statusDesc"`
+	Result     *[]Trx_transactions `json:"result"`
+}
+
+type TransactionsResponseDTO struct {
+	Success    bool                `json:"success"`
+	StatusDesc string              `json:"statusDesc"`
+	Result     *[]Trx_transactions `json:"result"`
+}
