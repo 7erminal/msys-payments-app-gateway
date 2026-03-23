@@ -492,7 +492,7 @@ type CustomerLoginResponse struct {
 
 type UserOriResponseDTO struct {
 	StatusCode int
-	User       *Users
+	User       *UsersOri
 	StatusDesc string
 }
 

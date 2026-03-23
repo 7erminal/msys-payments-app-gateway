@@ -169,7 +169,7 @@ func (c *Agent_api_requestsController) GetUserDetails() {
 	user := c.Ctx.Input.GetData("user")
 
 	logs.Info("User details: %s", user)
-	userData, ok := user.(*responses.Users)
+	userData, ok := user.(*responses.UsersOri)
 	if !ok {
 		logs.Error("Error asserting user data")
 		c.Data["json"] = "Invalid user data"
@@ -215,11 +215,11 @@ func (c *Agent_api_requestsController) GetUserDetails() {
 		}
 
 		branchResp := responses.BranchesResponse{
-			BranchName:  userData.Customer.Branch.Branch,
-			Country:     userData.Customer.Branch.Country.Country,
-			Location:    userData.Customer.Branch.Location,
-			PhoneNumber: userData.Customer.Branch.PhoneNumber,
-			Active:      userData.Customer.Branch.Active,
+			BranchName:  userData.UserDetails.Branch.Branch,
+			Country:     userData.UserDetails.Branch.Country.Country,
+			Location:    userData.UserDetails.Branch.Location,
+			PhoneNumber: userData.UserDetails.Branch.PhoneNumber,
+			Active:      userData.UserDetails.Branch.Active,
 		}
 
 		userResp := responses.UserGateway{
@@ -231,7 +231,7 @@ func (c *Agent_api_requestsController) GetUserDetails() {
 			PhoneNumber:    userData.PhoneNumber,
 			Status:         userStatus,
 			DateRegistered: userData.DateCreated,
-			Customer:       userData.Customer,
+			Customer:       userData.UserDetails,
 			IsVerified:     userData.IsVerified,
 			Role:           userData.Role,
 			Branch:         &branchResp,
