@@ -371,7 +371,7 @@ func OpenAccount(c *beego.Controller, req requests.OpenAccountApiRequest) (resp 
 }
 
 func GetAgentTransactions(c *beego.Controller, query string) (resp responses.TransactionsApiResponseDTO) {
-	host, _ := beego.AppConfig.String("transactionBaseUrl")
+	host, _ := beego.AppConfig.String("transferBaseUrl")
 
 	logs.Info("Getting corporatives")
 	request := api.NewRequest(
