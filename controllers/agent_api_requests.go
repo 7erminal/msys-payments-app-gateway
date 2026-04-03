@@ -767,6 +767,10 @@ func (c *Agent_api_requestsController) GetAgentTransactions() {
 			}
 		}
 
+		logs.Debug("From date is ", fromDate)
+		logs.Debug("To date is ", toDate)
+		logs.Debug("Proceed? ", proceed)
+
 		if proceed {
 			fromDateStr := fromDate.Format("2006-01-02 15:04:05")
 			toDateStr := toDate.Format("2006-01-02 15:04:05")
