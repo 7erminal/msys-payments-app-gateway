@@ -909,58 +909,61 @@ func (c *Agent_api_requestsController) AccountBalance() {
 			c.Data["json"] = response
 			c.ServeJSON()
 			return
-		}
-		logs.Info("Formatted request for account balance: ", accountBalanceRequest)
-		resp := apifunctions.GetAccountBalance(&c.Controller, accountBalanceRequest)
-		logs.Info("Response from account balance API: ", resp)
+		} else {
+			logs.Info("Formatted request for account balance: ", accountBalanceRequest)
+			resp := apifunctions.GetAccountBalance(&c.Controller, accountBalanceRequest)
+			logs.Info("Response from account balance API: ", resp)
 
-		var response responses.AccountBalanceResponse = responses.AccountBalanceResponse{
-			StatusCode:    false,
-			StatusMessage: "Something went wrong",
-			Result:        nil,
-		}
-
-		if resp.StatusCode != 200 {
-			response = responses.AccountBalanceResponse{
+			var response responses.AccountDetailsResponse = responses.AccountDetailsResponse{
 				StatusCode:    false,
-				StatusMessage: resp.StatusDesc,
+				StatusMessage: "Something went wrong",
 				Result:        nil,
 			}
-		} else {
-			responseText, err := json.Marshal(response.Result)
-			if err != nil {
-				logs.Error("Error marshalling response result: ", err)
-				responseText = []byte("[]")
-			}
-			v.RequestResponse = string(responseText)
-			v.DateModified = time.Now()
-			v.ResponseDate = time.Now()
-			if err := models.UpdateApi_requestsById(&v); err != nil {
-				logs.Error("Error updating API request with response: ", err)
+
+			if resp.StatusCode != 200 {
+				response = responses.AccountDetailsResponse{
+					StatusCode:    false,
+					StatusMessage: resp.StatusDesc,
+					Result:        nil,
+				}
 			} else {
-				logs.Info("API request updated with response successfully: ", v)
+				responseText, err := json.Marshal(response.Result)
+				if err != nil {
+					logs.Error("Error marshalling response result: ", err)
+					responseText = []byte("[]")
+				}
+				v.RequestResponse = string(responseText)
+				v.DateModified = time.Now()
+				v.ResponseDate = time.Now()
+				if err := models.UpdateApi_requestsById(&v); err != nil {
+					logs.Error("Error updating API request with response: ", err)
+				} else {
+					logs.Info("API request updated with response successfully: ", v)
+				}
+
+				accBal := responses.AccountDetailsDataResp{
+					CustomerName:     accountResp.Result.CustomerName,
+					AccountAlias:     accountResp.Result.AccountAlias,
+					AccountNumber:    req.AccountNumber,
+					AccountStatus:    resp.Result.AccountStatus,
+					AvailableBalance: resp.Result.AvailableBalance,
+					ClearBalance:     resp.Result.ClearBalance,
+					LoanBalance:      resp.Result.LoanBalance,
+					SharesBalance:    resp.Result.SharesBalance,
+				}
+				response = responses.AccountDetailsResponse{
+					StatusCode:    true,
+					StatusMessage: "Account balance fetched succeefully",
+					Result:        &accBal,
+				}
 			}
 
-			accBal := responses.AccountBalanceDataResp{
-				AccountNumber:    req.AccountNumber,
-				AccountStatus:    resp.Result.AccountStatus,
-				AvailableBalance: resp.Result.AvailableBalance,
-				ClearBalance:     resp.Result.ClearBalance,
-				LoanBalance:      resp.Result.LoanBalance,
-				SharesBalance:    resp.Result.SharesBalance,
-			}
-			response = responses.AccountBalanceResponse{
-				StatusCode:    true,
-				StatusMessage: "Account balance fetched succeefully",
-				Result:        &accBal,
-			}
+			c.Ctx.Output.SetStatus(200)
+			c.Data["json"] = response
 		}
 
-		c.Ctx.Output.SetStatus(200)
-		c.Data["json"] = response
-
 	} else {
-		var response responses.AccountBalanceResponse = responses.AccountBalanceResponse{
+		var response responses.AccountDetailsResponse = responses.AccountDetailsResponse{
 			StatusCode:    false,
 			StatusMessage: "Something went wrong:: " + err.Error(),
 			Result:        nil,

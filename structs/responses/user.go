@@ -309,6 +309,17 @@ type AccountBalanceDataResp struct {
 	SharesBalance    *float64
 }
 
+type AccountDetailsDataResp struct {
+	AccountAlias     string
+	CustomerName     string
+	AccountNumber    string
+	AccountStatus    string
+	AvailableBalance *float64
+	ClearBalance     *float64
+	LoanBalance      *float64
+	SharesBalance    *float64
+}
+
 type AccountBalanceDataResponseResult struct {
 	StatusCode    int
 	StatusMessage string
@@ -327,6 +338,12 @@ type AccountBalanceResponse struct {
 	StatusCode    bool
 	StatusMessage string
 	Result        *AccountBalanceDataResp
+}
+
+type AccountDetailsResponse struct {
+	StatusCode    bool
+	StatusMessage string
+	Result        *AccountDetailsDataResp
 }
 
 type CustAccountBalanceResponse struct {
@@ -756,6 +773,7 @@ type CustomerGuarantorResponseDTO struct {
 
 type CustomerAccountResponseObj struct {
 	CustomerAccountId int64   `json:"customer_account_id"`
+	CustomerName      string  `json:"customer_name"`
 	AccountNumber     string  `json:"account_number"`
 	AccountAlias      string  `json:"account_alias"`
 	AccountType       string  `json:"account_type,omitempty"`
