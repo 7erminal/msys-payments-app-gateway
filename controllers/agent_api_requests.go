@@ -832,6 +832,8 @@ func (c *Agent_api_requestsController) GetAgentTransactions() {
 	}
 
 	c.Data["json"] = response
+
+	c.ServeJSON()
 }
 
 // AccountBalance ...
