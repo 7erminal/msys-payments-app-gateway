@@ -373,10 +373,10 @@ func OpenAccount(c *beego.Controller, req requests.OpenAccountApiRequest) (resp 
 func GetAgentTransactions(c *beego.Controller, query string) (resp responses.TransactionsApiResponseDTO) {
 	host, _ := beego.AppConfig.String("transferBaseUrl")
 
-	logs.Info("Getting corporatives")
+	logs.Info("Getting agent transactions with query ", query)
 	request := api.NewRequest(
 		host,
-		"/v2/transactions",
+		"/v1/transfer/transactions",
 		api.GET)
 	// request.Params["username"] = username
 	// request.Params = {"UserId": strconv.Itoa(int(userid))}
