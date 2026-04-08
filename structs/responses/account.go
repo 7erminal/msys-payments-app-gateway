@@ -26,3 +26,15 @@ type CloseAccountApiResponse struct {
 	Result     string `json:"Result,omitempty"`
 	Client     string `json:"Client,omitempty"`
 }
+
+type AccountDetailsData struct {
+	AccountName   string
+	AccountNumber string
+	Product       string
+}
+
+type AccountDetailsApiResponse struct {
+	StatusCode int
+	StatusDesc string
+	Result     []*AccountDetailsData
+}

@@ -1047,10 +1047,10 @@ func (c *Agent_api_requestsController) ListAccountDetails() {
 			Result:        nil,
 		}
 
-		if resp.StatusCode != true {
+		if resp.StatusCode != 200 {
 			response = responses.AccountDetailsResponse{
 				StatusCode:    false,
-				StatusMessage: resp.StatusMessage,
+				StatusMessage: resp.StatusDesc,
 				Result:        nil,
 			}
 		} else {
@@ -1068,10 +1068,29 @@ func (c *Agent_api_requestsController) ListAccountDetails() {
 				logs.Info("API request updated with response successfully: ", v)
 			}
 
+			customerName := ""
+			accountNumber := ""
+			accountAlias := ""
+			product := ""
+
+			for i, acc := range resp.Result {
+				if i == 0 {
+					customerName = acc.AccountName
+					accountNumber = acc.AccountNumber
+					accountAlias = acc.AccountNumber
+					product = acc.Product
+				} else {
+					customerName += ", " + acc.AccountName
+					accountNumber += ", " + acc.AccountNumber
+					accountAlias += ", " + acc.AccountNumber
+					product += ", " + acc.Product
+				}
+			}
+
 			accBal := responses.AccountDetailsDataResp{
-				CustomerName:     "",
-				AccountAlias:     "",
-				AccountNumber:    "",
+				CustomerName:     customerName,
+				AccountAlias:     accountAlias,
+				AccountNumber:    accountNumber,
 				AccountStatus:    req.AccountId,
 				AvailableBalance: 0.00,
 				ClearBalance:     0.00,
@@ -1080,7 +1099,7 @@ func (c *Agent_api_requestsController) ListAccountDetails() {
 			}
 			response = responses.AccountDetailsResponse{
 				StatusCode:    true,
-				StatusMessage: "Account balance fetched succeefully",
+				StatusMessage: "Account details fetched successfully",
 				Result:        &accBal,
 			}
 		}
