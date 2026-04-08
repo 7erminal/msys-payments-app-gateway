@@ -1005,7 +1005,7 @@ func (c *Agent_api_requestsController) ListAccountDetails() {
 	var req requests.AccountIdApiRequest
 	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
 
-	logs.Info("Account Balance called with AccountId: %s, SourceSystem: %s", req.AccountId, sourceSystem)
+	logs.Info("Account Details called with AccountId: %s, SourceSystem: %s", req.AccountId, sourceSystem)
 	reqBody := c.Ctx.Input.RequestBody
 	reqHeaders := c.Ctx.Request.Header
 
@@ -1024,7 +1024,7 @@ func (c *Agent_api_requestsController) ListAccountDetails() {
 	var v models.Api_requests = models.Api_requests{
 		Request:      string(reqText),
 		PhoneNumber:  phoneNumber,
-		RequestType:  "Account Balance",
+		RequestType:  "Account Details",
 		RequestDate:  time.Now(),
 		DateCreated:  time.Now(),
 		DateModified: time.Now(),
@@ -1037,9 +1037,9 @@ func (c *Agent_api_requestsController) ListAccountDetails() {
 			ClientId:  req.ClientId,
 		}
 
-		logs.Info("Formatted request for account balance: ", accountBalanceRequest)
+		logs.Info("Formatted request for account details: ", accountBalanceRequest)
 		resp := apifunctions.ListAccounts(&c.Controller, accountBalanceRequest)
-		logs.Info("Response from account balance API: ", resp)
+		logs.Info("Response from account details API: ", resp)
 
 		var response responses.AccountDetailsResponse = responses.AccountDetailsResponse{
 			StatusCode:    false,
