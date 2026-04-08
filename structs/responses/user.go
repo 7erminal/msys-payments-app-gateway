@@ -314,10 +314,10 @@ type AccountDetailsDataResp struct {
 	CustomerName     string
 	AccountNumber    string
 	AccountStatus    string
-	AvailableBalance *float64
-	ClearBalance     *float64
-	LoanBalance      *float64
-	SharesBalance    *float64
+	AvailableBalance float64
+	ClearBalance     float64
+	LoanBalance      float64
+	SharesBalance    float64
 }
 
 type AccountBalanceDataResponseResult struct {

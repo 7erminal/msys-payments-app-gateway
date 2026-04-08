@@ -38,6 +38,7 @@ func (c *Agent_api_requestsController) URLMapping() {
 	c.Mapping("GetUserDetails", c.GetUserDetails)
 	c.Mapping("GetAgentTransactions", c.GetAgentTransactions)
 	c.Mapping("AccountBalance", c.AccountBalance)
+	c.Mapping("ListAccountDetails", c.ListAccountDetails)
 }
 
 // GetCorporatives ...
@@ -946,10 +947,10 @@ func (c *Agent_api_requestsController) AccountBalance() {
 					AccountAlias:     accountResp.Result.AccountAlias,
 					AccountNumber:    req.AccountNumber,
 					AccountStatus:    resp.Result.AccountStatus,
-					AvailableBalance: resp.Result.AvailableBalance,
-					ClearBalance:     resp.Result.ClearBalance,
-					LoanBalance:      resp.Result.LoanBalance,
-					SharesBalance:    resp.Result.SharesBalance,
+					AvailableBalance: *resp.Result.AvailableBalance,
+					ClearBalance:     *resp.Result.ClearBalance,
+					LoanBalance:      *resp.Result.LoanBalance,
+					SharesBalance:    *resp.Result.SharesBalance,
 				}
 				response = responses.AccountDetailsResponse{
 					StatusCode:    true,
@@ -961,6 +962,131 @@ func (c *Agent_api_requestsController) AccountBalance() {
 			c.Ctx.Output.SetStatus(200)
 			c.Data["json"] = response
 		}
+
+	} else {
+		var response responses.AccountDetailsResponse = responses.AccountDetailsResponse{
+			StatusCode:    false,
+			StatusMessage: "Something went wrong:: " + err.Error(),
+			Result:        nil,
+		}
+
+		c.Data["json"] = response
+	}
+	c.ServeJSON()
+}
+
+// AccountDetails ...
+// @Title Account Details
+// @Description Account Details
+// @Param	Authorization		header 	string true		"header for User"
+// @Param	PhoneNumber		header 	string true		"header for Customer's phone number"
+// @Param	SourceSystem		header 	string true		"header for Source system"
+// @Param	body		body 	requests.NumberExistsApiRequest	true		"body for Request content"
+// @Success 201 {int} models.Api_requests
+// @Failure 403 body is empty
+// @router /account-details [post]
+func (c *Agent_api_requestsController) ListAccountDetails() {
+	// Extract headers
+	// phoneNumber := c.Ctx.Input.Header("PhoneNumber")
+	sourceSystem := c.Ctx.Input.Header("SourceSystem")
+	phoneNumber := c.Ctx.Input.Header("PhoneNumber")
+
+	user := c.Ctx.Input.GetData("user")
+
+	logs.Info("User details: %s", user)
+	userData, ok := user.(*responses.UsersOri)
+	if !ok {
+		logs.Error("Error asserting user data")
+		c.Data["json"] = "Invalid user data"
+		c.ServeJSON()
+		return
+	}
+
+	var req requests.AccountIdApiRequest
+	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
+
+	logs.Info("Account Balance called with AccountId: %s, SourceSystem: %s", req.AccountId, sourceSystem)
+	reqBody := c.Ctx.Input.RequestBody
+	reqHeaders := c.Ctx.Request.Header
+
+	requestMap := map[string]interface{}{
+		"headers": reqHeaders,
+		"body":    string(reqBody),
+	}
+
+	reqText, err := json.Marshal(requestMap)
+	if err != nil {
+		logs.Error("Error marshalling request input: ", err)
+		c.Data["json"] = err.Error()
+		c.ServeJSON()
+		return
+	}
+	var v models.Api_requests = models.Api_requests{
+		Request:      string(reqText),
+		PhoneNumber:  phoneNumber,
+		RequestType:  "Account Balance",
+		RequestDate:  time.Now(),
+		DateCreated:  time.Now(),
+		DateModified: time.Now(),
+		CreatedBy:    int(userData.UserId),
+	}
+	if _, err := models.AddApi_requests(&v); err == nil {
+		logs.Info("API request logged successfully: ", v)
+		accountBalanceRequest := requests.AccountIdApiRequest{
+			AccountId: req.AccountId,
+			ClientId:  req.ClientId,
+		}
+
+		logs.Info("Formatted request for account balance: ", accountBalanceRequest)
+		resp := apifunctions.ListAccounts(&c.Controller, accountBalanceRequest)
+		logs.Info("Response from account balance API: ", resp)
+
+		var response responses.AccountDetailsResponse = responses.AccountDetailsResponse{
+			StatusCode:    false,
+			StatusMessage: "Something went wrong",
+			Result:        nil,
+		}
+
+		if resp.StatusCode != true {
+			response = responses.AccountDetailsResponse{
+				StatusCode:    false,
+				StatusMessage: resp.StatusMessage,
+				Result:        nil,
+			}
+		} else {
+			responseText, err := json.Marshal(response.Result)
+			if err != nil {
+				logs.Error("Error marshalling response result: ", err)
+				responseText = []byte("[]")
+			}
+			v.RequestResponse = string(responseText)
+			v.DateModified = time.Now()
+			v.ResponseDate = time.Now()
+			if err := models.UpdateApi_requestsById(&v); err != nil {
+				logs.Error("Error updating API request with response: ", err)
+			} else {
+				logs.Info("API request updated with response successfully: ", v)
+			}
+
+			accBal := responses.AccountDetailsDataResp{
+				CustomerName:     "",
+				AccountAlias:     "",
+				AccountNumber:    "",
+				AccountStatus:    req.AccountId,
+				AvailableBalance: 0.00,
+				ClearBalance:     0.00,
+				LoanBalance:      0.00,
+				SharesBalance:    0.00,
+			}
+			response = responses.AccountDetailsResponse{
+				StatusCode:    true,
+				StatusMessage: "Account balance fetched succeefully",
+				Result:        &accBal,
+			}
+		}
+
+		c.Ctx.Output.SetStatus(200)
+		c.Data["json"] = response
 
 	} else {
 		var response responses.AccountDetailsResponse = responses.AccountDetailsResponse{

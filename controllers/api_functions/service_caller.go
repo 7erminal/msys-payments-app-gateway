@@ -649,6 +649,51 @@ func NumberExists(c *beego.Controller, req requests.NumberExistsApiRequest) (res
 	return data
 }
 
+func ListAccounts(c *beego.Controller, req requests.AccountIdApiRequest) (resp responses.BuyAirtimeResponse) {
+	host, _ := beego.AppConfig.String("clientBaseUrl")
+
+	logs.Info("List accounts with account ID ", req.AccountId)
+	request := api.NewRequest(
+		host,
+		"/v2/api/list-accounts",
+		api.POST)
+	// request.Params["username"] = username
+	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+	request.HeaderField["clientId"] = req.ClientId
+	request.InterfaceParams["Id"] = req.AccountId
+
+	client := api.Client{
+		Request: request,
+		Type_:   "body",
+	}
+	res, err := client.SendRequest()
+	if err != nil {
+		logs.Error("client.Error: %v", err)
+		c.Data["json"] = err.Error()
+	}
+	defer res.Body.Close()
+	read, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	}
+
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, read, "", "  "); err != nil {
+		logs.Info("Raw response received is ", string(read))
+	} else {
+		logs.Info("Raw response received is \n", prettyJSON.String())
+	}
+	// data := map[string]interface{}{}
+	var data responses.BuyAirtimeResponse
+	json.Unmarshal(read, &data)
+	c.Data["json"] = data
+
+	logs.Info("Resp is ", data)
+	// logs.Info("Resp is ", data.User)
+
+	return data
+}
+
 func GetCustomerAccounts(c *beego.Controller, customerId string) (resp responses.CustomerApprovalAccountsResponse) {
 	host, _ := beego.AppConfig.String("accountBaseUrl")
 

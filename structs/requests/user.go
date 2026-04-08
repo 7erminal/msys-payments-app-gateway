@@ -140,6 +140,11 @@ type ActivateVerifiedCustomerApiRequest struct {
 	ClientId     string
 }
 
+type AccountIdApiRequest struct {
+	AccountId string
+	ClientId  string
+}
+
 type NumberExistsApiRequest struct {
 	MobileNumber string
 	ClientId     string
