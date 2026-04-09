@@ -109,7 +109,7 @@ func init() {
     beego.GlobalControllerRouter["msys_payment_app_gateway/controllers:Agent_api_requestsController"] = append(beego.GlobalControllerRouter["msys_payment_app_gateway/controllers:Agent_api_requestsController"],
         beego.ControllerComments{
             Method: "ListAccountLoans",
-            Router: `/v2/list-account-loans`,
+            Router: `/list-account-loans`,
             AllowHTTPMethods: []string{"post"},
             MethodParams: param.Make(),
             Filters: nil,
@@ -118,7 +118,7 @@ func init() {
     beego.GlobalControllerRouter["msys_payment_app_gateway/controllers:Agent_api_requestsController"] = append(beego.GlobalControllerRouter["msys_payment_app_gateway/controllers:Agent_api_requestsController"],
         beego.ControllerComments{
             Method: "LoanRepayment",
-            Router: `/v2/loan-repayment`,
+            Router: `/loan-repayment`,
             AllowHTTPMethods: []string{"post"},
             MethodParams: param.Make(),
             Filters: nil,
