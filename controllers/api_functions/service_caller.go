@@ -649,7 +649,7 @@ func NumberExists(c *beego.Controller, req requests.NumberExistsApiRequest) (res
 	return data
 }
 
-func ListAccounts(c *beego.Controller, req requests.AccountIdApiRequest) (resp responses.AccountDetailsApiResponse) {
+func ListAccounts(c *beego.Controller, req requests.AccountIdApiRequest) (resp responses.AccountDetailsApiResponseData) {
 	host, _ := beego.AppConfig.String("clientBaseUrl")
 
 	logs.Info("List accounts with account ID ", req.AccountId)
@@ -684,7 +684,7 @@ func ListAccounts(c *beego.Controller, req requests.AccountIdApiRequest) (resp r
 		logs.Info("Raw response received is \n", prettyJSON.String())
 	}
 	// data := map[string]interface{}{}
-	var data responses.AccountDetailsApiResponse
+	var data responses.AccountDetailsApiResponseData
 	json.Unmarshal(read, &data)
 	c.Data["json"] = data
 

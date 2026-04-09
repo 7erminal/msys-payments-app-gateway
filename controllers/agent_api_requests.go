@@ -1047,33 +1047,34 @@ func (c *Agent_api_requestsController) ListAccountDetails() {
 			Result:        nil,
 		}
 
-		if resp.StatusCode != 200 {
+		responseText, err := json.Marshal(response.Result)
+		if err != nil {
+			logs.Error("Error marshalling response result: ", err)
+			responseText = []byte("[]")
+		}
+		v.RequestResponse = string(responseText)
+		v.DateModified = time.Now()
+		v.ResponseDate = time.Now()
+		if err := models.UpdateApi_requestsById(&v); err != nil {
+			logs.Error("Error updating API request with response: ", err)
+		} else {
+			logs.Info("API request updated with response successfully: ", v)
+		}
+
+		if resp.Data.StatusCode != 200 {
 			response = responses.AccountDetailsResponse{
 				StatusCode:    false,
-				StatusMessage: resp.StatusDesc,
+				StatusMessage: resp.Data.StatusDesc,
 				Result:        nil,
 			}
-		} else {
-			responseText, err := json.Marshal(response.Result)
-			if err != nil {
-				logs.Error("Error marshalling response result: ", err)
-				responseText = []byte("[]")
-			}
-			v.RequestResponse = string(responseText)
-			v.DateModified = time.Now()
-			v.ResponseDate = time.Now()
-			if err := models.UpdateApi_requestsById(&v); err != nil {
-				logs.Error("Error updating API request with response: ", err)
-			} else {
-				logs.Info("API request updated with response successfully: ", v)
-			}
+		} else if len(resp.Data.Result) > 0 {
 
 			customerName := ""
 			accountNumber := ""
 			accountAlias := ""
 			product := ""
 
-			for i, acc := range resp.Result {
+			for i, acc := range resp.Data.Result {
 				if i == 0 {
 					customerName = acc.AccountName
 					accountNumber = acc.AccountNumber
@@ -1101,6 +1102,12 @@ func (c *Agent_api_requestsController) ListAccountDetails() {
 				StatusCode:    true,
 				StatusMessage: "Account details fetched successfully",
 				Result:        &accBal,
+			}
+		} else {
+			response = responses.AccountDetailsResponse{
+				StatusCode:    false,
+				StatusMessage: "No account found for the provided account ID",
+				Result:        nil,
 			}
 		}
 

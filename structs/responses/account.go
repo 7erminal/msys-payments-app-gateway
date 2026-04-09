@@ -38,3 +38,7 @@ type AccountDetailsApiResponse struct {
 	StatusDesc string
 	Result     []*AccountDetailsData
 }
+
+type AccountDetailsApiResponseData struct {
+	Data AccountDetailsApiResponse `json:"data"`
+}
