@@ -328,8 +328,9 @@ func (c *Agent_api_requestsController) Deposit() {
 
 	isSuccess := false
 	message := "Deposit failed"
+	txnData := responses.DepositData{}
 
-	var response responses.PaymentRequestResponse = responses.PaymentRequestResponse{
+	var response responses.DepositResponse = responses.DepositResponse{
 		Success:       isSuccess,
 		StatusMessage: message,
 		Result:        nil,
@@ -437,6 +438,10 @@ func (c *Agent_api_requestsController) Deposit() {
 					message = "Deposit successful"
 					responseText, err := json.Marshal(resp)
 
+					txnData.Amount = txn.Result.Amount
+					txnData.Currency = txn.Result.TransactingCurrency
+					txnData.TransactionReference = txn.Result.TransactionRefNumber
+
 					// if !accountCheckResp.StatusCode {
 					// 	logs.Error("Error logging account activity for deposit: ", accountCheckResp.StatusMessage)
 					// 	message = "Deposit failed: " + accountCheckResp.StatusMessage
@@ -466,10 +471,10 @@ func (c *Agent_api_requestsController) Deposit() {
 		logs.Error("Error logging API request: ", err)
 	}
 
-	response = responses.PaymentRequestResponse{
+	response = responses.DepositResponse{
 		Success:       isSuccess,
 		StatusMessage: message,
-		Result:        nil,
+		Result:        &txnData,
 	}
 
 	c.Data["json"] = response
