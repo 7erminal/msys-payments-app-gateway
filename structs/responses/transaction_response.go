@@ -44,6 +44,35 @@ type LogTransactionResponse struct {
 	StatusDesc string
 }
 
+type TxnResp struct {
+	TransactionRefNumber    string
+	Service                 string
+	BillerCode              string
+	TransactionBy           string
+	Amount                  float64
+	TransactingCurrency     string
+	SourceChannel           string
+	SourceAccount           string
+	DestinationAccount      string
+	Package                 string
+	Charge                  float64
+	ExternalReferenceNumber string
+	Status                  *models.Status_codes
+	CorpId                  string
+	ExtraDetails1           string
+	ExtraDetails2           string
+	ExtraDetails3           string
+	TransactionDate         time.Time
+	CreatedBy               int
+	Active                  int
+}
+
+type Bil_TransactionResponse struct {
+	Success       bool
+	Result        *TxnResp
+	StatusMessage string
+}
+
 type TransferApiResponseData struct {
 	ClientRefernce string  `json:"clientReference"`
 	Amount         float64 `json:"amount"`
