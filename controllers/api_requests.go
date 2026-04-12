@@ -4470,7 +4470,7 @@ func (c *Api_requestsController) GetBilTransactionWithTransactionRef() {
 				Charge:                  resp.Result.Charge,
 				BillerCode:              resp.Result.BillerCode,
 				TransactionBy:           resp.Result.TransactionBy.FullName,
-				Status:                  resp.Result.Status,
+				Status:                  resp.Result.Status.Status,
 				Service:                 resp.Result.Service.ServiceName,
 				TransactingCurrency:     resp.Result.TransactingCurrency,
 				SourceChannel:           resp.Result.SourceChannel,

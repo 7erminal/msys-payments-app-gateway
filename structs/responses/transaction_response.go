@@ -57,7 +57,7 @@ type TxnResp struct {
 	Package                 string
 	Charge                  float64
 	ExternalReferenceNumber string
-	Status                  *models.Status_codes
+	Status                  string
 	CorpId                  string
 	ExtraDetails1           string
 	ExtraDetails2           string
