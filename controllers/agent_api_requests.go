@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/beego/beego/v2/core/logs"
@@ -39,6 +40,7 @@ func (c *Agent_api_requestsController) URLMapping() {
 	c.Mapping("GetAgentTransactions", c.GetAgentTransactions)
 	c.Mapping("AccountBalance", c.AccountBalance)
 	c.Mapping("ListAccountDetails", c.ListAccountDetails)
+	c.Mapping("GetBilTransactionWithTransactionRef", c.GetBilTransactionWithTransactionRef)
 }
 
 // GetCorporatives ...
@@ -1124,6 +1126,85 @@ func (c *Agent_api_requestsController) ListAccountDetails() {
 
 		c.Data["json"] = response
 	}
+	c.ServeJSON()
+}
+
+// GetBilTransactionWithTransactionRef ...
+// @Title Get Biller Transaction By Reference
+// @Description Get a biller transaction using transaction reference
+// @Param	Authorization		header 	string true		"header for User"
+// @Param	SourceSystem		header 	string true		"header for Source system"
+// @Param	body		body 	object true		"body containing transactionReference"
+// @Success 200 {object} interface{}
+// @Failure 400 invalid request body
+// @router /get-transaction-by-reference [post]
+func (c *Agent_api_requestsController) GetBilTransactionWithTransactionRef() {
+	var req struct {
+		TransactionReference string `json:"transactionReference"`
+	}
+
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &req); err != nil {
+		c.Ctx.Output.SetStatus(400)
+		c.Data["json"] = map[string]interface{}{
+			"status":  false,
+			"message": "Invalid request body",
+		}
+		c.ServeJSON()
+		return
+	}
+
+	responseStatus := false
+	responseMessage := "Something went wrong"
+	result := responses.TxnResp{}
+
+	reference := strings.TrimSpace(req.TransactionReference)
+
+	if reference == "" {
+		c.Ctx.Output.SetStatus(400)
+		c.Data["json"] = map[string]interface{}{
+			"status":  false,
+			"message": "transactionReference is required",
+		}
+		c.ServeJSON()
+		return
+	}
+
+	resp := apifunctions.GetBilTransactionWithTransactionRef(&c.Controller, reference)
+
+	if resp.StatusCode != 200 {
+		responseStatus = false
+		responseMessage = resp.StatusDesc
+	} else {
+		responseStatus = true
+		responseMessage = "Transaction fetched successfully"
+		if resp.Result != nil {
+			result = responses.TxnResp{
+				TransactionRefNumber:    resp.Result.TransactionRefNumber,
+				Amount:                  resp.Result.Amount,
+				Charge:                  resp.Result.Charge,
+				BillerCode:              resp.Result.BillerCode,
+				TransactionBy:           resp.Result.TransactionBy.FullName,
+				Status:                  resp.Result.Status.Status,
+				Service:                 resp.Result.Service.ServiceName,
+				TransactingCurrency:     resp.Result.TransactingCurrency,
+				SourceChannel:           resp.Result.SourceChannel,
+				SourceAccount:           resp.Result.Source,
+				DestinationAccount:      resp.Result.Destination,
+				Package:                 resp.Result.Package,
+				ExternalReferenceNumber: resp.Result.ExternalReferenceNumber,
+				TransactionDate:         resp.Result.DateCreated,
+			}
+		}
+	}
+
+	c.Ctx.Output.SetStatus(200)
+
+	response := responses.Bil_TransactionResponse{
+		Success:       responseStatus,
+		StatusMessage: responseMessage,
+		Result:        &result,
+	}
+	c.Data["json"] = response
 	c.ServeJSON()
 }
 
