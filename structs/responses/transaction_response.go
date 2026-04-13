@@ -33,7 +33,7 @@ type Bil_transactions struct {
 	ExtraDetails3           string               `orm:"size(255)"`
 	DateCreated             time.Time            `orm:"type(datetime)"`
 	DateModified            time.Time            `orm:"type(datetime)"`
-	CreatedBy               int
+	CreatedBy               *Users               `orm:"rel(fk);column(created_by)"`
 	ModifiedBy              int
 	Active                  int
 }
@@ -63,7 +63,8 @@ type TxnResp struct {
 	ExtraDetails2           string
 	ExtraDetails3           string
 	TransactionDate         time.Time
-	CreatedBy               int
+	OfficerName             string
+	OfficerNumber           string
 	Active                  int
 }
 

@@ -1189,7 +1189,7 @@ func (c *Agent_api_requestsController) GetBilTransactionWithTransactionRef() {
 				Charge:                  resp.Result.Charge,
 				BillerCode:              resp.Result.BillerCode,
 				TransactionBy:           resp.Result.TransactionBy.FullName,
-				Status:                  resp.Result.Status.Status,
+				Status:                  resp.Result.Status.StatusCode,
 				Service:                 resp.Result.Service.ServiceName,
 				TransactingCurrency:     resp.Result.TransactingCurrency,
 				SourceChannel:           resp.Result.SourceChannel,
@@ -1198,6 +1198,8 @@ func (c *Agent_api_requestsController) GetBilTransactionWithTransactionRef() {
 				Package:                 resp.Result.Package,
 				ExternalReferenceNumber: resp.Result.ExternalReferenceNumber,
 				TransactionDate:         resp.Result.DateCreated,
+				OfficerName:             resp.Result.CreatedBy.FullName,
+				OfficerNumber:           resp.Result.CreatedBy.PhoneNumber,
 			}
 		}
 

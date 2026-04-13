@@ -596,7 +596,7 @@ type Users struct {
 	UserId        int64 `orm:"auto"`
 	UserType      int
 	ImagePath     string
-	Customer      *UserExtraDetails `orm:"rel(fk);column(customer_id)"`
+	UserDetails   *UserExtraDetails `orm:"rel(fk);column(customer_id)"`
 	FullName      string            `orm:"size(255)"`
 	Username      string            `orm:"size(255)"`
 	Password      string            `orm:"size(255)"`
