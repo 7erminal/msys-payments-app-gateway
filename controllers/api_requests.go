@@ -4419,7 +4419,7 @@ func (c *Api_requestsController) ValidateCustomer() {
 // @Param	body		body 	object true		"body containing transactionReference"
 // @Success 200 {object} interface{}
 // @Failure 400 invalid request body
-// @router /get-biller-transaction-by-reference [post]
+// @router /get-transaction-by-reference [post]
 func (c *Api_requestsController) GetBilTransactionWithTransactionRef() {
 	var req struct {
 		TransactionReference string `json:"transactionReference"`
@@ -4469,7 +4469,8 @@ func (c *Api_requestsController) GetBilTransactionWithTransactionRef() {
 				Amount:                  resp.Result.Amount,
 				Charge:                  resp.Result.Charge,
 				BillerCode:              resp.Result.BillerCode,
-				TransactionBy:           resp.Result.TransactionBy.FullName,
+				CustomerName:            resp.Result.TransactionBy.FullName,
+				CustomerNumber:          resp.Result.TransactionBy.PhoneNumber,
 				Status:                  resp.Result.Status.Status,
 				Service:                 resp.Result.Service.ServiceName,
 				TransactingCurrency:     resp.Result.TransactingCurrency,
