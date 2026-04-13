@@ -389,7 +389,7 @@ func (c *Agent_api_requestsController) Deposit() {
 				Description:            "Deposit for transaction " + requestIdStr,
 				RecipientName:          network,
 				Status:                 "PENDING",
-				ServiceCode:            "MOBILEMONEY",
+				ServiceCode:            req.PaymentMethod,
 				CreatedBy:              strconv.FormatInt(userData.UserId, 10),
 			}
 
@@ -400,61 +400,62 @@ func (c *Agent_api_requestsController) Deposit() {
 			} else {
 				logs.Info("Transfer transaction logged successfully: ", txn)
 
-				req2 := requests.PaymentRequestApiRequestDTO{
-					ClientId:        clientId,
-					Amount:          req.Amount,
-					PaymentMethod:   req.PaymentMethod,
-					Service:         "DEPOSIT",
-					SenderAccount:   accountNumber,
-					ReceiverAccount: destinationPhoneNumber,
-					Network:         network,
-					ServiceNetwork:  req.ClientId,
-					ServicePackage:  strconv.FormatFloat(req.Amount, 'f', -1, 64),
-					MobileNumber:    phoneNumber,
-					TransactionId:   txn.Result.TransactionRefNumber,
-				}
-				//
-
-				logs.Info("Amount to debit is ", req.Amount)
-
-				resp, err := helpers.RequestPaymentMain(&c.Controller, req2)
-
-				logs.Info("Response from Deposit API: ", resp)
-
-				if err != nil {
-					message = err.Error()
-				} else {
-					if resp.Success {
-						// accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Deposit", req.Amount, req.ClientId, "credit")
-
-						isSuccess = true
-						message = "Deposit successful"
-						responseText, err := json.Marshal(resp)
-
-						txnData.Amount = txn.Result.Amount
-						txnData.Currency = txn.Result.TransactingCurrency
-						txnData.TransactionReference = txn.Result.TransactionRefNumber
-
-						// if !accountCheckResp.StatusCode {
-						// 	logs.Error("Error logging account activity for deposit: ", accountCheckResp.StatusMessage)
-						// 	message = "Deposit failed: " + accountCheckResp.StatusMessage
-						// }
-
-						if err != nil {
-							logs.Error("Error marshalling response result: ", err)
-							responseText = []byte("[]")
-						}
-						v.RequestResponse = string(responseText)
-						v.DateModified = time.Now()
-						v.ResponseDate = time.Now()
-						if err := models.UpdateApi_requestsById(&v); err != nil {
-							logs.Error("Error updating API request with response: ", err)
-						} else {
-							logs.Info("API request updated with response successfully: ", v)
-						}
-					} else {
-						message = "Deposit failed: " + resp.StatusMessage
+				if req.PaymentMethod == "MOBILEMONEY" {
+					req2 := requests.PaymentRequestApiRequestDTO{
+						ClientId:        clientId,
+						Amount:          req.Amount,
+						PaymentMethod:   req.PaymentMethod,
+						Service:         "DEPOSIT",
+						SenderAccount:   accountNumber,
+						ReceiverAccount: destinationPhoneNumber,
+						Network:         network,
+						ServiceNetwork:  req.ClientId,
+						ServicePackage:  strconv.FormatFloat(req.Amount, 'f', -1, 64),
+						MobileNumber:    phoneNumber,
+						TransactionId:   txn.Result.TransactionRefNumber,
 					}
+					//
+
+					logs.Info("Amount to debit is ", req.Amount)
+
+					resp, err := helpers.RequestPaymentMain(&c.Controller, req2)
+
+					logs.Info("Response from Deposit API: ", resp)
+
+					if err != nil {
+						message = err.Error()
+					} else {
+						if resp.Success {
+							// accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Deposit", req.Amount, req.ClientId, "credit")
+
+							isSuccess = true
+							message = "Deposit successful"
+							responseText, err := json.Marshal(resp)
+
+							if err != nil {
+								logs.Error("Error marshalling response result: ", err)
+								responseText = []byte("[]")
+							}
+							v.RequestResponse = string(responseText)
+						} else {
+							message = "Deposit failed: " + resp.StatusMessage
+						}
+					}
+				} else {
+					isSuccess = true
+					message = "Deposit successful"
+				}
+
+				txnData.Amount = txn.Result.Amount
+				txnData.Currency = txn.Result.TransactingCurrency
+				txnData.TransactionReference = txn.Result.TransactionRefNumber
+
+				v.DateModified = time.Now()
+				v.ResponseDate = time.Now()
+				if err := models.UpdateApi_requestsById(&v); err != nil {
+					logs.Error("Error updating API request with response: ", err)
+				} else {
+					logs.Info("API request updated with response successfully: ", v)
 				}
 			}
 		}
@@ -584,6 +585,8 @@ func (c *Agent_api_requestsController) ListAccountLoans() {
 func (c *Agent_api_requestsController) LoanRepayment() {
 	clientId := c.Ctx.Input.Header("clientId")
 	logs.Debug("Client id is ", clientId)
+	// sourceSystem := c.Ctx.Input.Header("SourceSystem")
+	network := c.Ctx.Input.Header("Network")
 
 	user := c.Ctx.Input.GetData("user")
 
@@ -601,8 +604,8 @@ func (c *Agent_api_requestsController) LoanRepayment() {
 
 	status := false
 	statusMessage := "Error retrieving account loans"
-	result := "Repayment failed"
 	var response responses.RepayLoanResponse
+	txnData := responses.DepositData{}
 
 	// logs.Debug("Request::: ", c.Ctx.Input.RequestBody)
 	reqBody := c.Ctx.Input.RequestBody
@@ -629,29 +632,143 @@ func (c *Agent_api_requestsController) LoanRepayment() {
 		DateModified: time.Now(),
 		CreatedBy:    int(userData.UserId),
 	}
-	if _, err := models.AddApi_requests(&ap); err == nil {
+	if apiReq, err := models.AddApi_requests(&ap); err == nil {
 		logs.Info("API request logged successfully: ", v)
 
-		req := requests.LoanRepaymentApiRequest{
-			AccountNumber: v.AccountNumber,
-			Amount:        v.Amount,
-			MobileNumber:  v.MobileNumber,
-			LoanId:        v.LoanId,
-			ClientId:      v.ClientId,
+		requestIdStr := fmt.Sprintf("%d", apiReq)
+		vAmountFloat, _ := strconv.ParseFloat(v.Amount, 64)
+		amountString := strconv.FormatFloat(vAmountFloat, 'f', -1, 64)
+		transactionLog := requests.LogTransactionRequest{
+			RequestId:                requestIdStr,
+			SourceAccountNumber:      v.AccountNumber,
+			DestinationAccountNumber: v.AccountNumber,
+			Amount:                   vAmountFloat,
+			Charge:                   0.0,
+			TransactionType:          "LOAN_REPAYMENT",
+			ServiceCode:              "LOAN_REPAYMENT",
+			TransactionReference:     "SYSTEM",
+			StatusCode:               "PENDING",
+			ExtraDetails1:            amountString,
+			ExtraDetails2:            strconv.FormatFloat(vAmountFloat, 'f', -1, 64),
+			ExtraDetails3:            network,
+			Reference:                amountString,
+			ClientID:                 v.ClientId,
+			PhoneNumber:              v.MobileNumber,
+			TransactionPackage:       amountString,
+			ExternalReferenceNumber:  "",
+			CreatedBy:                strconv.FormatInt(userData.UserId, 10),
 		}
 
-		resp := apifunctions.LoanRepayment(&c.Controller, req)
+		if txn, err := helpers.LogTransaction(&c.Controller, transactionLog); err != nil {
+			logs.Error("Error logging transaction: ", err)
+			status = false
+			statusMessage = "Error logging transaction: " + err.Error()
 
-		logs.Debug("Response is ", resp)
-
-		if resp.StatusCode == 200 {
-			logs.Info("Successfully fetched account statement")
-			status = true
-			statusMessage = "Successfully fetched account loans"
-			result = resp.Result
 		} else {
-			logs.Error("Error fetching account statement")
-			statusMessage = resp.StatusDesc
+
+			transferRequest := requests.TransferApiRequest{
+				RequestId:              requestIdStr,
+				Amount:                 vAmountFloat,
+				Charge:                 0.0,
+				Commission:             0.0,
+				TotalDebitAmount:       vAmountFloat + 0.0,
+				SenderAccountNumber:    v.AccountNumber,
+				RecipientAccountNumber: v.AccountNumber,
+				TransferCode:           "LOAN_REPAYMENT",
+				Description:            "Loan repayment for transaction " + requestIdStr,
+				RecipientName:          network,
+				Status:                 "PENDING",
+				ServiceCode:            v.PaymentMethod,
+				CreatedBy:              strconv.FormatInt(userData.UserId, 10),
+			}
+
+			if _, err := helpers.LogTransferTransaction(&c.Controller, transferRequest, true); err != nil {
+				logs.Error("Error logging transfer transaction: ", err)
+				status = false
+				statusMessage = "Error logging transfer transaction: " + err.Error()
+			} else {
+
+				if v.PaymentMethod == "MOBILEMONEY" {
+					req2 := requests.PaymentRequestApiRequestDTO{
+						ClientId:        v.ClientId,
+						Amount:          vAmountFloat,
+						PaymentMethod:   v.PaymentMethod,
+						Service:         "LOAN_REPAYMENT",
+						SenderAccount:   v.AccountNumber,
+						ReceiverAccount: v.AccountNumber,
+						Network:         network,
+						ServiceNetwork:  v.ClientId,
+						ServicePackage:  strconv.FormatFloat(vAmountFloat, 'f', -1, 64),
+						MobileNumber:    v.MobileNumber,
+						TransactionId:   txn.Result.TransactionRefNumber,
+					}
+					//
+
+					logs.Info("Amount to debit is ", v.Amount)
+
+					resp, err := helpers.RequestPaymentMain(&c.Controller, req2)
+
+					logs.Info("Response from Deposit API: ", resp)
+
+					if err != nil {
+						statusMessage = err.Error()
+					} else {
+						if resp.Success {
+							// accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Deposit", req.Amount, req.ClientId, "credit")
+
+							status = true
+							statusMessage = "Deposit successful"
+							responseText, err := json.Marshal(resp)
+
+							if err != nil {
+								logs.Error("Error marshalling response result: ", err)
+								responseText = []byte("[]")
+							}
+							ap.RequestResponse = string(responseText)
+						} else {
+							statusMessage = "Deposit failed: " + resp.StatusMessage
+						}
+					}
+				} else {
+					status = true
+					statusMessage = "Deposit successful"
+				}
+
+				txnData.Amount = txn.Result.Amount
+				txnData.Currency = txn.Result.TransactingCurrency
+				txnData.TransactionReference = txn.Result.TransactionRefNumber
+
+				ap.DateModified = time.Now()
+				ap.ResponseDate = time.Now()
+				if err := models.UpdateApi_requestsById(&ap); err != nil {
+					logs.Error("Error updating API request with response: ", err)
+				} else {
+					logs.Info("API request updated with response successfully: ", v)
+				}
+
+				req := requests.LoanRepaymentApiRequest{
+					AccountNumber: v.AccountNumber,
+					Amount:        v.Amount,
+					MobileNumber:  v.MobileNumber,
+					LoanId:        v.LoanId,
+					ClientId:      v.ClientId,
+				}
+
+				resp := apifunctions.LoanRepayment(&c.Controller, req)
+
+				logs.Debug("Response is ", resp)
+
+				if resp.StatusCode == 200 {
+					logs.Info("Successfully fetched account statement")
+					status = true
+					statusMessage = "Successfully fetched account loans"
+
+				} else {
+					logs.Error("Error fetching account statement")
+					statusMessage = resp.StatusDesc
+				}
+
+			}
 		}
 	} else {
 		logs.Error("Error logging API request: ", err)
@@ -661,7 +778,7 @@ func (c *Agent_api_requestsController) LoanRepayment() {
 	response = responses.RepayLoanResponse{
 		StatusCode: status,
 		StatusDesc: statusMessage,
-		Result:     result,
+		Result:     txnData,
 	}
 
 	c.Data["json"] = response
