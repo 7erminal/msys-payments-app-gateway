@@ -348,115 +348,143 @@ func (c *Agent_api_requestsController) Deposit() {
 		logs.Info("API request logged successfully: ", v)
 
 		requestIdStr := fmt.Sprintf("%d", v.Id)
-		// amountString := strconv.FormatFloat(req.Amount, 'f', -1, 64)
-
-		transferRequest := requests.TransferApiRequest{
-			RequestId:              requestIdStr,
-			Amount:                 req.Amount,
-			Charge:                 0.0,
-			Commission:             0.0,
-			TotalDebitAmount:       req.Amount + 0.0,
-			SenderAccountNumber:    accountNumber,
-			RecipientAccountNumber: req.Destination,
-			TransferCode:           "DEPOSIT",
-			Description:            "Deposit for transaction " + requestIdStr,
-			RecipientName:          network,
-			Status:                 "PENDING",
-			ServiceCode:            "DEPOSIT",
-			CreatedBy:              strconv.FormatInt(userData.UserId, 10),
+		amountString := strconv.FormatFloat(req.Amount, 'f', -1, 64)
+		transactionLog := requests.LogTransactionRequest{
+			RequestId:                requestIdStr,
+			SourceAccountNumber:      accountNumber,
+			DestinationAccountNumber: req.Destination,
+			Amount:                   req.Amount,
+			Charge:                   0.0,
+			TransactionType:          "DEPOSIT",
+			ServiceCode:              "DEPOSIT",
+			TransactionReference:     "SYSTEM",
+			StatusCode:               "PENDING",
+			ExtraDetails1:            amountString,
+			ExtraDetails2:            strconv.FormatFloat(req.Amount, 'f', -1, 64),
+			ExtraDetails3:            network,
+			Reference:                amountString,
+			ClientID:                 req.ClientId,
+			PhoneNumber:              phoneNumber,
+			TransactionPackage:       amountString,
+			ExternalReferenceNumber:  "",
+			CreatedBy:                strconv.FormatInt(userData.UserId, 10),
 		}
 
-		if txn, err := helpers.LogTransferTransaction(&c.Controller, transferRequest, true); err != nil {
+		if txn, err := helpers.LogTransaction(&c.Controller, transactionLog); err != nil {
 			logs.Error("Error logging transaction: ", err)
 			isSuccess = false
 			message = "Error logging transaction: " + err.Error()
 
 		} else {
 
-			req2 := requests.PaymentRequestApiRequestDTO{
-				ClientId:        clientId,
-				Amount:          req.Amount,
-				PaymentMethod:   req.PaymentMethod,
-				Service:         "DEPOSIT",
-				SenderAccount:   accountNumber,
-				ReceiverAccount: destinationPhoneNumber,
-				Network:         network,
-				ServiceNetwork:  req.ClientId,
-				ServicePackage:  strconv.FormatFloat(req.Amount, 'f', -1, 64),
-				MobileNumber:    phoneNumber,
-				TransactionId:   txn.Result.TransactionId,
+			transferRequest := requests.TransferApiRequest{
+				RequestId:              requestIdStr,
+				Amount:                 req.Amount,
+				Charge:                 0.0,
+				Commission:             0.0,
+				TotalDebitAmount:       req.Amount + 0.0,
+				SenderAccountNumber:    accountNumber,
+				RecipientAccountNumber: req.Destination,
+				TransferCode:           "DEPOSIT",
+				Description:            "Deposit for transaction " + requestIdStr,
+				RecipientName:          network,
+				Status:                 "PENDING",
+				ServiceCode:            "DEPOSIT",
+				CreatedBy:              strconv.FormatInt(userData.UserId, 10),
 			}
-			//
 
-			logs.Info("Amount to debit is ", req.Amount)
-
-			resp, err := helpers.RequestPaymentMain(&c.Controller, req2)
-
-			logs.Info("Response from Deposit API: ", resp)
-
-			if err != nil {
-				message = err.Error()
+			if _, err := helpers.LogTransferTransaction(&c.Controller, transferRequest, true); err != nil {
+				logs.Error("Error logging transfer transaction: ", err)
+				isSuccess = false
+				message = "Error logging transfer transaction: " + err.Error()
 			} else {
-				if resp.Success {
-					// accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Deposit", req.Amount, req.ClientId, "credit")
+				logs.Info("Transfer transaction logged successfully: ", txn)
 
-					commissionFloat := resp.Result.Commission
-					if err != nil {
-						logs.Error("Error parsing commission: ", err)
-						commissionFloat = 0
-					}
+				req2 := requests.PaymentRequestApiRequestDTO{
+					ClientId:        clientId,
+					Amount:          req.Amount,
+					PaymentMethod:   req.PaymentMethod,
+					Service:         "DEPOSIT",
+					SenderAccount:   accountNumber,
+					ReceiverAccount: destinationPhoneNumber,
+					Network:         network,
+					ServiceNetwork:  req.ClientId,
+					ServicePackage:  strconv.FormatFloat(req.Amount, 'f', -1, 64),
+					MobileNumber:    phoneNumber,
+					TransactionId:   txn.Result.TransactionRefNumber,
+				}
+				//
 
-					commReq := requests.TransferApiRequest{
-						RequestId:              requestIdStr,
-						Amount:                 resp.Result.Amount,
-						Charge:                 resp.Result.Charge,
-						Commission:             commissionFloat,
-						TotalDebitAmount:       resp.Result.Amount + resp.Result.Charge,
-						SenderAccountNumber:    accountNumber,
-						RecipientAccountNumber: "2037071",
-						TransferCode:           "DEPOSIT",
-						Description:            "Deposit for transaction " + resp.Result.ClientReference,
-						RecipientName:          "Commission Wallet",
-						Status:                 "PENDING",
-						ServiceCode:            "COMMISSION",
-						CreatedBy:              strconv.FormatInt(userData.UserId, 10),
-					}
+				logs.Info("Amount to debit is ", req.Amount)
 
-					commResp, err := helpers.LogTransferTransaction(&c.Controller, commReq, true)
+				resp, err := helpers.RequestPaymentMain(&c.Controller, req2)
 
-					if err != nil {
-						logs.Error("Error transferring commission to commission wallet: %v", err)
-					} else {
-						logs.Info("Commission transfer response: ", commResp)
-					}
+				logs.Info("Response from Deposit API: ", resp)
 
-					isSuccess = true
-					message = "Deposit successful"
-					responseText, err := json.Marshal(resp)
-
-					txnData.Amount = txn.Result.Amount
-					txnData.Currency = "GHS"
-					txnData.TransactionReference = txn.Result.TransactionId
-
-					// if !accountCheckResp.StatusCode {
-					// 	logs.Error("Error logging account activity for deposit: ", accountCheckResp.StatusMessage)
-					// 	message = "Deposit failed: " + accountCheckResp.StatusMessage
-					// }
-
-					if err != nil {
-						logs.Error("Error marshalling response result: ", err)
-						responseText = []byte("[]")
-					}
-					v.RequestResponse = string(responseText)
-					v.DateModified = time.Now()
-					v.ResponseDate = time.Now()
-					if err := models.UpdateApi_requestsById(&v); err != nil {
-						logs.Error("Error updating API request with response: ", err)
-					} else {
-						logs.Info("API request updated with response successfully: ", v)
-					}
+				if err != nil {
+					message = err.Error()
 				} else {
-					message = "Deposit failed: " + resp.StatusMessage
+					if resp.Success {
+						// accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Deposit", req.Amount, req.ClientId, "credit")
+
+						commissionFloat := resp.Result.Commission
+						if err != nil {
+							logs.Error("Error parsing commission: ", err)
+							commissionFloat = 0
+						}
+
+						commReq := requests.TransferApiRequest{
+							RequestId:              requestIdStr,
+							Amount:                 resp.Result.Amount,
+							Charge:                 resp.Result.Charge,
+							Commission:             commissionFloat,
+							TotalDebitAmount:       resp.Result.Amount + resp.Result.Charge,
+							SenderAccountNumber:    accountNumber,
+							RecipientAccountNumber: "2037071",
+							TransferCode:           "DEPOSIT",
+							Description:            "Deposit for transaction " + resp.Result.ClientReference,
+							RecipientName:          "Commission Wallet",
+							Status:                 "PENDING",
+							ServiceCode:            "COMMISSION",
+							CreatedBy:              strconv.FormatInt(userData.UserId, 10),
+						}
+
+						commResp, err := helpers.LogTransferTransaction(&c.Controller, commReq, true)
+
+						if err != nil {
+							logs.Error("Error transferring commission to commission wallet: %v", err)
+						} else {
+							logs.Info("Commission transfer response: ", commResp)
+						}
+
+						isSuccess = true
+						message = "Deposit successful"
+						responseText, err := json.Marshal(resp)
+
+						txnData.Amount = txn.Result.Amount
+						txnData.Currency = txn.Result.TransactingCurrency
+						txnData.TransactionReference = txn.Result.TransactionRefNumber
+
+						// if !accountCheckResp.StatusCode {
+						// 	logs.Error("Error logging account activity for deposit: ", accountCheckResp.StatusMessage)
+						// 	message = "Deposit failed: " + accountCheckResp.StatusMessage
+						// }
+
+						if err != nil {
+							logs.Error("Error marshalling response result: ", err)
+							responseText = []byte("[]")
+						}
+						v.RequestResponse = string(responseText)
+						v.DateModified = time.Now()
+						v.ResponseDate = time.Now()
+						if err := models.UpdateApi_requestsById(&v); err != nil {
+							logs.Error("Error updating API request with response: ", err)
+						} else {
+							logs.Info("API request updated with response successfully: ", v)
+						}
+					} else {
+						message = "Deposit failed: " + resp.StatusMessage
+					}
 				}
 			}
 		}
