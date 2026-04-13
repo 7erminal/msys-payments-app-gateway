@@ -48,7 +48,8 @@ type TxnResp struct {
 	TransactionRefNumber    string
 	Service                 string
 	BillerCode              string
-	TransactionBy           string
+	CustomerName            string
+	CustomerNumber          string
 	Amount                  float64
 	TransactingCurrency     string
 	SourceChannel           string
