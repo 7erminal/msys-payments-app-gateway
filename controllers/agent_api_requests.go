@@ -348,29 +348,25 @@ func (c *Agent_api_requestsController) Deposit() {
 		logs.Info("API request logged successfully: ", v)
 
 		requestIdStr := fmt.Sprintf("%d", v.Id)
-		amountString := strconv.FormatFloat(req.Amount, 'f', -1, 64)
-		transactionLog := requests.LogTransactionRequest{
-			RequestId:                requestIdStr,
-			SourceAccountNumber:      accountNumber,
-			DestinationAccountNumber: req.Destination,
-			Amount:                   req.Amount,
-			Charge:                   0.0,
-			TransactionType:          "DEPOSIT",
-			ServiceCode:              "DEPOSIT",
-			TransactionReference:     "SYSTEM",
-			StatusCode:               "PENDING",
-			ExtraDetails1:            amountString,
-			ExtraDetails2:            strconv.FormatFloat(req.Amount, 'f', -1, 64),
-			ExtraDetails3:            network,
-			Reference:                amountString,
-			ClientID:                 req.ClientId,
-			PhoneNumber:              phoneNumber,
-			TransactionPackage:       amountString,
-			ExternalReferenceNumber:  "",
-			CreatedBy:                strconv.FormatInt(userData.UserId, 10),
+		// amountString := strconv.FormatFloat(req.Amount, 'f', -1, 64)
+
+		transferRequest := requests.TransferApiRequest{
+			RequestId:              requestIdStr,
+			Amount:                 req.Amount,
+			Charge:                 0.0,
+			Commission:             0.0,
+			TotalDebitAmount:       req.Amount + 0.0,
+			SenderAccountNumber:    accountNumber,
+			RecipientAccountNumber: req.Destination,
+			TransferCode:           "DEPOSIT",
+			Description:            "Deposit for transaction " + requestIdStr,
+			RecipientName:          network,
+			Status:                 "PENDING",
+			ServiceCode:            "DEPOSIT",
+			CreatedBy:              strconv.FormatInt(userData.UserId, 10),
 		}
 
-		if txn, err := helpers.LogTransaction(&c.Controller, transactionLog); err != nil {
+		if txn, err := helpers.LogTransferTransaction(&c.Controller, transferRequest, true); err != nil {
 			logs.Error("Error logging transaction: ", err)
 			isSuccess = false
 			message = "Error logging transaction: " + err.Error()
@@ -388,7 +384,7 @@ func (c *Agent_api_requestsController) Deposit() {
 				ServiceNetwork:  req.ClientId,
 				ServicePackage:  strconv.FormatFloat(req.Amount, 'f', -1, 64),
 				MobileNumber:    phoneNumber,
-				TransactionId:   txn.Result.TransactionRefNumber,
+				TransactionId:   txn.Result.TransactionId,
 			}
 			//
 
@@ -416,7 +412,7 @@ func (c *Agent_api_requestsController) Deposit() {
 						Charge:                 resp.Result.Charge,
 						Commission:             commissionFloat,
 						TotalDebitAmount:       resp.Result.Amount + resp.Result.Charge,
-						SenderAccountNumber:    "SYSTEM",
+						SenderAccountNumber:    accountNumber,
 						RecipientAccountNumber: "2037071",
 						TransferCode:           "DEPOSIT",
 						Description:            "Deposit for transaction " + resp.Result.ClientReference,
@@ -439,8 +435,8 @@ func (c *Agent_api_requestsController) Deposit() {
 					responseText, err := json.Marshal(resp)
 
 					txnData.Amount = txn.Result.Amount
-					txnData.Currency = txn.Result.TransactingCurrency
-					txnData.TransactionReference = txn.Result.TransactionRefNumber
+					txnData.Currency = "GHS"
+					txnData.TransactionReference = txn.Result.TransactionId
 
 					// if !accountCheckResp.StatusCode {
 					// 	logs.Error("Error logging account activity for deposit: ", accountCheckResp.StatusMessage)
