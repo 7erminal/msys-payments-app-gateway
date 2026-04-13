@@ -636,8 +636,10 @@ func (c *Agent_api_requestsController) LoanRepayment() {
 		logs.Info("API request logged successfully: ", v)
 
 		requestIdStr := fmt.Sprintf("%d", apiReq)
+		logs.Info("Amount from request is ", v.Amount)
 		vAmountFloat, _ := strconv.ParseFloat(v.Amount, 64)
 		amountString := strconv.FormatFloat(vAmountFloat, 'f', -1, 64)
+		logs.Info("Float amount is ", vAmountFloat)
 		transactionLog := requests.LogTransactionRequest{
 			RequestId:                requestIdStr,
 			SourceAccountNumber:      v.AccountNumber,
