@@ -389,7 +389,7 @@ func (c *Agent_api_requestsController) Deposit() {
 				Description:            "Deposit for transaction " + requestIdStr,
 				RecipientName:          network,
 				Status:                 "PENDING",
-				ServiceCode:            "DEPOSIT",
+				ServiceCode:            "MOBILEMONEY",
 				CreatedBy:              strconv.FormatInt(userData.UserId, 10),
 			}
 
