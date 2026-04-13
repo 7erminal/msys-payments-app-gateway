@@ -1205,6 +1205,7 @@ func (c *Agent_api_requestsController) GetBilTransactionWithTransactionRef() {
 		}
 
 		logs.Info("Transaction reference number: ", result.TransactionRefNumber, " Status: ", result.Status, resp.Result.Status.Status)
+		logs.Info("Customer name ", result.CustomerName, " customer number: ", result.CustomerNumber)
 	}
 
 	c.Ctx.Output.SetStatus(200)
