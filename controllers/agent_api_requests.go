@@ -757,6 +757,8 @@ func (c *Agent_api_requestsController) LoanRepayment() {
 					ClientId:      v.ClientId,
 				}
 
+				logs.Info("Loan repayment request: ", func() string { b, _ := json.Marshal(req); return string(b) }())
+
 				resp := apifunctions.LoanRepayment(&c.Controller, req)
 
 				logs.Debug("Response is ", resp)
