@@ -779,9 +779,9 @@ func (c *Agent_api_requestsController) LoanRepayment() {
 	}
 
 	response = responses.RepayLoanResponse{
-		StatusCode: status,
-		StatusDesc: statusMessage,
-		Result:     txnData,
+		Success:       status,
+		StatusMessage: statusMessage,
+		Result:        txnData,
 	}
 
 	c.Data["json"] = response
