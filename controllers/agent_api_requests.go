@@ -689,6 +689,7 @@ func (c *Agent_api_requestsController) LoanRepayment() {
 			} else {
 
 				if v.PaymentMethod == "MOBILEMONEY" {
+					logs.Info("Payment method is mobile money. About to request ", vAmountFloat, " from customer phone number ", v.MobileNumber)
 					req2 := requests.PaymentRequestApiRequestDTO{
 						ClientId:        v.ClientId,
 						Amount:          vAmountFloat,
@@ -708,7 +709,7 @@ func (c *Agent_api_requestsController) LoanRepayment() {
 
 					resp, err := helpers.RequestPaymentMain(&c.Controller, req2)
 
-					logs.Info("Response from Deposit API: ", resp)
+					logs.Info("Response from Loan repayment API: ", resp)
 
 					if err != nil {
 						statusMessage = err.Error()
@@ -717,7 +718,7 @@ func (c *Agent_api_requestsController) LoanRepayment() {
 							// accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Deposit", req.Amount, req.ClientId, "credit")
 
 							status = true
-							statusMessage = "Deposit successful"
+							statusMessage = "Loan repayment successful"
 							responseText, err := json.Marshal(resp)
 
 							if err != nil {
@@ -726,12 +727,12 @@ func (c *Agent_api_requestsController) LoanRepayment() {
 							}
 							ap.RequestResponse = string(responseText)
 						} else {
-							statusMessage = "Deposit failed: " + resp.StatusMessage
+							statusMessage = "Loan repayment failed: " + resp.StatusMessage
 						}
 					}
 				} else {
 					status = true
-					statusMessage = "Deposit successful"
+					statusMessage = "Loan repayment successful"
 				}
 
 				txnData.Amount = txn.Result.Amount
