@@ -427,36 +427,6 @@ func (c *Agent_api_requestsController) Deposit() {
 					if resp.Success {
 						// accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Deposit", req.Amount, req.ClientId, "credit")
 
-						commissionFloat := resp.Result.Commission
-						if err != nil {
-							logs.Error("Error parsing commission: ", err)
-							commissionFloat = 0
-						}
-
-						commReq := requests.TransferApiRequest{
-							RequestId:              requestIdStr,
-							Amount:                 resp.Result.Amount,
-							Charge:                 resp.Result.Charge,
-							Commission:             commissionFloat,
-							TotalDebitAmount:       resp.Result.Amount + resp.Result.Charge,
-							SenderAccountNumber:    accountNumber,
-							RecipientAccountNumber: "2037071",
-							TransferCode:           "DEPOSIT",
-							Description:            "Deposit for transaction " + resp.Result.ClientReference,
-							RecipientName:          "Commission Wallet",
-							Status:                 "PENDING",
-							ServiceCode:            "COMMISSION",
-							CreatedBy:              strconv.FormatInt(userData.UserId, 10),
-						}
-
-						commResp, err := helpers.LogTransferTransaction(&c.Controller, commReq, true)
-
-						if err != nil {
-							logs.Error("Error transferring commission to commission wallet: %v", err)
-						} else {
-							logs.Info("Commission transfer response: ", commResp)
-						}
-
 						isSuccess = true
 						message = "Deposit successful"
 						responseText, err := json.Marshal(resp)
