@@ -86,10 +86,10 @@ func (c *Auth_requestsController) Login() {
 	result := responses.CustomerLoginDataResponseDTO{}
 
 	loginRequest := requests.LoginApiRequest{
-		PhoneNumber:  req.PhoneNumber,
-		SourceSystem: sourceSystem,
-		Password:     req.Password,
-		ClientId:     req.ClientId,
+		PhoneNumber:  strings.TrimSpace(req.PhoneNumber),
+		SourceSystem: strings.TrimSpace(sourceSystem),
+		Password:     strings.TrimSpace(req.Password),
+		ClientId:     strings.TrimSpace(req.ClientId),
 	}
 
 	logs.Info("Formatted request for Login: ", loginRequest)
@@ -361,7 +361,7 @@ func (c *Auth_requestsController) Register() {
 				}
 			} else {
 				customerCorporative := models.Customer_corporatives{
-					CustomerNumber: resp.Customer.CustomerNumber,
+					CustomerNumber: strings.TrimSpace(resp.Customer.CustomerNumber),
 					CorpId:         client,
 					IsActive:       0, // Set to inactive until verified
 					CreatedBy:      1,
@@ -391,14 +391,14 @@ func (c *Auth_requestsController) Register() {
 						gender = "F"
 					}
 					go helpers.AccountProcessor(&c.Controller, requests.VerifyCustomerApiRequest{
-						Username:     req.Username,
-						FirstName:    req.FirstName,
-						LastName:     req.LastName,
-						Email:        req.Email,
-						Dob:          req.Dob,
-						ClientId:     client.ClientCode,
-						Gender:       gender,
-						MobileNumber: req.MobileNumber,
+						Username:     strings.TrimSpace(req.Username),
+						FirstName:    strings.TrimSpace(req.FirstName),
+						LastName:     strings.TrimSpace(req.LastName),
+						Email:        strings.TrimSpace(req.Email),
+						Dob:          strings.TrimSpace(req.Dob),
+						ClientId:     strings.TrimSpace(client.ClientCode),
+						Gender:       strings.TrimSpace(gender),
+						MobileNumber: strings.TrimSpace(req.MobileNumber),
 					})
 
 					responseText, err := json.Marshal(response.Result)
@@ -666,14 +666,14 @@ func (c *Auth_requestsController) RegisterUser() {
 		}
 		// Register User
 		registerUserRequest := requests.RegisterUserApiRequest{
-			Username:     req.Username,
-			Name:         req.Name,
-			Email:        req.Email,
-			Password:     req.Password,
-			Gender:       gender,
-			Dob:          dob,
-			PhoneNumber:  req.MobileNumber,
-			Role:         req.Role,
+			Username:     strings.TrimSpace(req.Username),
+			Name:         strings.TrimSpace(req.Name),
+			Email:        strings.TrimSpace(req.Email),
+			Password:     strings.TrimSpace(req.Password),
+			Gender:       strings.TrimSpace(gender),
+			Dob:          strings.TrimSpace(dob),
+			PhoneNumber:  strings.TrimSpace(req.MobileNumber),
+			Role:         strings.TrimSpace(req.Role),
 			RoleRequired: false,
 		}
 
@@ -688,9 +688,9 @@ func (c *Auth_requestsController) RegisterUser() {
 			// Add Branch
 			userIdStr := fmt.Sprintf("%d", resp.User.UserId)
 			branchRequest := requests.BranchApiRequestDTO{
-				BranchName:    req.Username,
+				BranchName:    strings.TrimSpace(req.Username),
 				Location:      "",
-				PhoneNumber:   req.MobileNumber,
+				PhoneNumber:   strings.TrimSpace(req.MobileNumber),
 				CountryCode:   "GHA",
 				AddedBy:       "1",
 				BranchManager: userIdStr,
@@ -763,7 +763,7 @@ func (c *Auth_requestsController) RegisterUser() {
 
 							clientData := responses.Clients{
 								Id:           client.Id,
-								ClientName:   client.ClientName,
+								ClientName:   strings.Trim(client.ClientName, " "),
 								ClientCode:   client.ClientCode,
 								ClientUrl:    client.ClientUrl,
 								DateCreated:  client.DateCreated,
