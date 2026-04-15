@@ -153,6 +153,18 @@ type CustomerCorporativesResponseDTO struct {
 	ModifiedBy     int
 }
 
+type UserCorporativesResponseDTO struct {
+	Id           int64
+	UserId       string
+	CorpId       *Clients
+	Default      int
+	Active       int
+	DateCreated  time.Time
+	DateModified time.Time
+	CreatedBy    int
+	ModifiedBy   int
+}
+
 type CustomerGateway struct {
 	CustomerId           int64
 	FullName             string
@@ -631,6 +643,7 @@ type UserGateway struct {
 	Role           *Role
 	DateRegistered time.Time `orm:"type(datetime)"`
 	Branch         *BranchesResponse
+	Corporatives   *[]UserCorporativesResponseDTO
 }
 
 type UserTokens struct {

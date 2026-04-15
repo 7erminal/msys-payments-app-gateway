@@ -362,8 +362,8 @@ func (c *Auth_requestsController) Register() {
 			} else {
 				customerCorporative := models.Customer_corporatives{
 					CustomerNumber: resp.Customer.CustomerNumber,
-					CorpId:         client, // Assuming default corp ID, can be changed later
-					IsActive:       0,      // Set to inactive until verified
+					CorpId:         client,
+					IsActive:       0, // Set to inactive until verified
 					CreatedBy:      1,
 					ModifiedBy:     1,
 					IsDefault:      1,
@@ -738,14 +738,68 @@ func (c *Auth_requestsController) RegisterUser() {
 						Active:      branchResp.Branch.Active,
 					}
 
-					user = responses.UserGateway{
-						UserId:         resp.User.UserId,
-						FullName:       resp.User.FullName,
-						Email:          resp.User.Email,
-						PhoneNumber:    resp.User.PhoneNumber,
-						ImagePath:      resp.User.ImagePath,
-						DateRegistered: resp.User.DateCreated,
-						Branch:         &branch,
+					logs.Info("Getting client by ID ", req.ClientId)
+					if client, err := models.GetClientsById(req.ClientId); err != nil {
+						logs.Error("Error getting client by ID: ", err)
+						statusMessage = "User registered but error getting client by ID: " + err.Error()
+						isSuccess = false
+					} else {
+						userCorporative := models.User_corporatives{
+							UserId:       fmt.Sprintf("%d", resp.User.UserId),
+							CorpId:       client,
+							Active:       0, // Set to inactive until verified
+							CreatedBy:    1,
+							ModifiedBy:   1,
+							Default:      1,
+							DateCreated:  time.Now(),
+							DateModified: time.Now(),
+						}
+
+						if _, err := models.AddUser_corporatives(&userCorporative); err != nil {
+							logs.Error("An error occurred adding user corporative ", err.Error())
+							statusMessage = "User registered but error adding user corporative: " + err.Error()
+							isSuccess = false
+						} else {
+
+							clientData := responses.Clients{
+								Id:           client.Id,
+								ClientName:   client.ClientName,
+								ClientCode:   client.ClientCode,
+								ClientUrl:    client.ClientUrl,
+								DateCreated:  client.DateCreated,
+								DateModified: client.DateModified,
+								CreatedBy:    client.CreatedBy,
+								ModifiedBy:   client.ModifiedBy,
+								Active:       client.Active,
+							}
+
+							userCorporativeData := responses.UserCorporativesResponseDTO{
+								Id:           userCorporative.Id,
+								UserId:       userCorporative.UserId,
+								CorpId:       &clientData,
+								Default:      userCorporative.Default,
+								Active:       userCorporative.Active,
+								DateCreated:  userCorporative.DateCreated,
+								DateModified: userCorporative.DateModified,
+								CreatedBy:    userCorporative.CreatedBy,
+								ModifiedBy:   userCorporative.ModifiedBy,
+							}
+
+							userCorporatives := []responses.UserCorporativesResponseDTO{
+								userCorporativeData,
+							}
+
+							user = responses.UserGateway{
+								UserId:         resp.User.UserId,
+								FullName:       resp.User.FullName,
+								Email:          resp.User.Email,
+								PhoneNumber:    resp.User.PhoneNumber,
+								ImagePath:      resp.User.ImagePath,
+								DateRegistered: resp.User.DateCreated,
+								Branch:         &branch,
+								Corporatives:   &userCorporatives,
+							}
+						}
 					}
 				}
 			}

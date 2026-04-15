@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	apifunctions "msys_payment_app_gateway/controllers/api_functions"
 	"msys_payment_app_gateway/controllers/helpers"
@@ -228,6 +229,59 @@ func (c *Agent_api_requestsController) GetUserDetails() {
 			Active:      userData.UserDetails.Branch.Active,
 		}
 
+		var fields []string
+		var sortby []string
+		var order []string
+		var query = make(map[string]string)
+		var limit int64 = 10
+		var offset int64
+
+		userIdSearch := "UserId:" + strconv.FormatInt(userData.UserId, 10)
+
+		if v := userIdSearch; v != "" {
+			for _, cond := range strings.Split(v, ",") {
+				kv := strings.SplitN(cond, ":", 2)
+				if len(kv) != 2 {
+					c.Data["json"] = errors.New("Error: invalid query key/value pair")
+					c.ServeJSON()
+					return
+				}
+				k, v := kv[0], kv[1]
+				query[k] = v
+			}
+		}
+
+		logs.Debug("Query for user corporatives is ", query)
+
+		var userCorpsDTO []responses.UserCorporativesResponseDTO
+		if userCorps, err := models.GetAllUser_corporatives(query, fields, sortby, order, offset, limit); err == nil {
+			logs.Debug("Returned user corporatives data is ", userCorps)
+			for _, v := range userCorps {
+				logs.Debug("Processing user corporative: ", v)
+				var corpDTO responses.UserCorporativesResponseDTO
+				corpBytes, err := json.Marshal(v)
+				if err != nil {
+					logs.Error("Error marshalling user corporative data: ", err)
+					continue
+				}
+				if err := json.Unmarshal(corpBytes, &corpDTO); err != nil {
+					logs.Error("Error unmarshalling user corporative data: ", err)
+					continue
+				}
+				userCorpsDTO = append(userCorpsDTO, corpDTO)
+			}
+
+			// Log user corporatives data as readable JSON
+			corpsJSON, err := json.MarshalIndent(userCorpsDTO, "", "  ")
+			if err != nil {
+				logs.Error("Error marshalling user corporatives to JSON: ", err)
+			} else {
+				logs.Debug("Formatted user corporatives data is: %s", string(corpsJSON))
+			}
+		} else {
+			logs.Error("Error fetching user corporatives: ", err)
+		}
+
 		userResp := responses.UserGateway{
 			UserId:         userData.UserId,
 			FullName:       userData.FullName,
@@ -241,6 +295,7 @@ func (c *Agent_api_requestsController) GetUserDetails() {
 			IsVerified:     userData.IsVerified,
 			Role:           userData.Role,
 			Branch:         &branchResp,
+			Corporatives:   &userCorpsDTO,
 		}
 
 		logs.Info("Formatted request for customer: ")
