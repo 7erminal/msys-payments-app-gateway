@@ -95,3 +95,10 @@ type UserTransactionRequestDTO struct {
 	ExtraData                ExtraData
 	CreatedBy                string
 }
+
+type SendDepositRequest struct {
+	Amount        float64
+	AccountNumber string
+	MobileNumber  string
+	ClientId      string
+}

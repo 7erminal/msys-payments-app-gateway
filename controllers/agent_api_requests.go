@@ -499,6 +499,23 @@ func (c *Agent_api_requestsController) Deposit() {
 					message = "Deposit successful"
 				}
 
+				if isSuccess {
+					sendDepositRequest := requests.SendDepositRequest{
+						Amount:        req.Amount,
+						AccountNumber: req.Destination,
+						MobileNumber:  destinationPhoneNumber,
+						ClientId:      clientId,
+					}
+
+					if resp := apifunctions.SendDeposit(&c.Controller, sendDepositRequest); resp.StatusCode != true {
+						logs.Error("Error sending deposit to core banking: ", err)
+						isSuccess = false
+						message = "Error sending deposit to core banking: " + resp.StatusMessage
+					} else {
+						logs.Info("Deposit sent to core banking successfully")
+					}
+				}
+
 				txnData.Amount = txn.Result.Amount
 				txnData.Currency = txn.Result.TransactingCurrency
 				txnData.TransactionReference = txn.Result.TransactionRefNumber

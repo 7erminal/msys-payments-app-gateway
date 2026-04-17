@@ -3137,6 +3137,54 @@ func SendCommissionResp(c *beego.Controller, req requests.TransferCallbackReques
 	return data
 }
 
+func SendDeposit(c *beego.Controller, req requests.SendDepositRequest) (resp responses.TransactionStatusApiResponse) {
+	host, _ := beego.AppConfig.String("clientBaseUrl")
+
+	logs.Info("Deposit for ", req.AccountNumber)
+	request := api.NewRequest(
+		host,
+		"/v2/api/field-deposit",
+		api.POST)
+	// request.Params["username"] = username
+	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+
+	request.InterfaceParams["AccountNumber"] = req.AccountNumber
+	request.InterfaceParams["Amount"] = req.Amount
+	request.InterfaceParams["MobileNumber"] = req.MobileNumber
+
+	client := api.Client{
+		Request: request,
+		Type_:   "body",
+	}
+	res, err := client.SendRequest()
+	if err != nil {
+		logs.Error("client.Error: %v", err)
+		c.Data["json"] = err.Error()
+	}
+	defer res.Body.Close()
+	read, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	}
+
+	// logs.Info("Raw response received is ", res)
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, read, "", "  "); err != nil {
+		logs.Info("Raw response received is ", string(read))
+	} else {
+		logs.Info("Raw response received is \n", prettyJSON.String())
+	}
+	// data := map[string]interface{}{}
+	var data responses.TransactionStatusApiResponse
+	json.Unmarshal(read, &data)
+	c.Data["json"] = data
+
+	logs.Info("Resp is ", data)
+	// logs.Info("Resp is ", data.User)
+
+	return data
+}
+
 func ListAccountLoans(c *beego.Controller, clientId string, accountNumber string) (resp responses.ListLoansApiResponse) {
 	host, _ := beego.AppConfig.String("clientBaseUrl")
 
