@@ -1029,6 +1029,7 @@ func LogUserTransaction(c *beego.Controller, req requests.UserTransactionRequest
 	request.InterfaceParams["Package"] = req.Package
 	request.InterfaceParams["ClientReference"] = req.ClientReference
 	request.InterfaceParams["CreatedBy"] = req.CreatedBy
+	request.InterfaceParams["Status"] = req.Status
 	client := api.Client{
 		Request: request,
 		Type_:   "body",
