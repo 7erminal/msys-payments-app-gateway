@@ -515,6 +515,7 @@ func (c *Agent_api_requestsController) Deposit() {
 				}
 
 				if isSuccess {
+					logs.Info("Proceed....Client ID is ", clientId)
 					sendDepositRequest := requests.SendDepositRequest{
 						Amount:        req.Amount,
 						AccountNumber: req.Destination,
