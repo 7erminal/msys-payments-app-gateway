@@ -357,6 +357,15 @@ func (c *Agent_api_requestsController) Deposit() {
 
 	destinationPhoneNumber := req.Destination
 	clientId := req.ClientId
+	paymentMethod := req.PaymentMethod
+
+	if paymentMethod == "" {
+		paymentMethod = "CASH"
+	}
+
+	if paymentMethod == "MOBILEMONEY" {
+		paymentMethod = "MOMO"
+	}
 
 	if clientId == "" {
 		clientId, _ = beego.AppConfig.String("msysconsultCode")
@@ -504,6 +513,7 @@ func (c *Agent_api_requestsController) Deposit() {
 						Amount:        req.Amount,
 						AccountNumber: req.Destination,
 						MobileNumber:  destinationPhoneNumber,
+						PaymentMethod: paymentMethod,
 						ClientId:      clientId,
 					}
 

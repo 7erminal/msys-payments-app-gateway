@@ -3151,6 +3151,7 @@ func SendDeposit(c *beego.Controller, req requests.SendDepositRequest) (resp res
 	request.InterfaceParams["AccountNumber"] = req.AccountNumber
 	request.InterfaceParams["Amount"] = req.Amount
 	request.InterfaceParams["MobileNumber"] = req.MobileNumber
+	request.InterfaceParams["PaymentMethod"] = req.PaymentMethod
 
 	client := api.Client{
 		Request: request,

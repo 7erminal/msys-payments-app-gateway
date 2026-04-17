@@ -100,5 +100,6 @@ type SendDepositRequest struct {
 	Amount        float64
 	AccountNumber string
 	MobileNumber  string
+	PaymentMethod string
 	ClientId      string
 }
