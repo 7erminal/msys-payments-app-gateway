@@ -778,11 +778,11 @@ func (c *Agent_api_requestsController) LoanRepayment() {
 				TotalDebitAmount:       vAmountFloat + 0.0,
 				SenderAccountNumber:    v.AccountNumber,
 				RecipientAccountNumber: v.AccountNumber,
-				TransferCode:           "LOAN_REPAYMENT",
+				TransferCode:           v.PaymentMethod,
 				Description:            "Loan repayment for transaction " + requestIdStr,
 				RecipientName:          network,
 				Status:                 "PENDING",
-				ServiceCode:            v.PaymentMethod,
+				ServiceCode:            "LOAN_REPAYMENT",
 				CreatedBy:              strconv.FormatInt(userData.UserId, 10),
 			}
 
