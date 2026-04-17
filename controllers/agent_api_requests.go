@@ -430,6 +430,7 @@ func (c *Agent_api_requestsController) Deposit() {
 			Package:                  amountString,
 			PhoneNumber:              phoneNumber,
 			CreatedBy:                strconv.FormatInt(userData.UserId, 10),
+			Status:                   "PENDING",
 		}
 
 		if txn := apifunctions.LogUserTransaction(&c.Controller, transactionLog); txn.StatusCode != 200 {
@@ -666,6 +667,7 @@ func (c *Agent_api_requestsController) LoanRepayment() {
 	clientId := c.Ctx.Input.Header("clientId")
 	logs.Debug("Client id is ", clientId)
 	// sourceSystem := c.Ctx.Input.Header("SourceSystem")
+	sourceSystem := c.Ctx.Input.Header("SourceSystem")
 	network := c.Ctx.Input.Header("Network")
 
 	user := c.Ctx.Input.GetData("user")
@@ -720,31 +722,51 @@ func (c *Agent_api_requestsController) LoanRepayment() {
 		vAmountFloat, _ := strconv.ParseFloat(v.Amount, 64)
 		amountString := strconv.FormatFloat(vAmountFloat, 'f', -1, 64)
 		logs.Info("Float amount is ", vAmountFloat)
-		transactionLog := requests.LogTransactionRequest{
+		// transactionLog := requests.LogTransactionRequest{
+		// 	RequestId:                requestIdStr,
+		// 	SourceAccountNumber:      v.AccountNumber,
+		// 	DestinationAccountNumber: v.AccountNumber,
+		// 	Amount:                   vAmountFloat,
+		// 	Charge:                   0.0,
+		// 	TransactionType:          "LOAN_REPAYMENT",
+		// 	ServiceCode:              "LOAN_REPAYMENT",
+		// 	TransactionReference:     "SYSTEM",
+		// 	StatusCode:               "PENDING",
+		// 	ExtraDetails1:            amountString,
+		// 	ExtraDetails2:            strconv.FormatFloat(vAmountFloat, 'f', -1, 64),
+		// 	ExtraDetails3:            network,
+		// 	Reference:                amountString,
+		// 	ClientID:                 v.ClientId,
+		// 	PhoneNumber:              v.MobileNumber,
+		// 	TransactionPackage:       amountString,
+		// 	ExternalReferenceNumber:  "",
+		// 	CreatedBy:                strconv.FormatInt(userData.UserId, 10),
+		// }
+
+		extraData := requests.ExtraData{
+			ExtraData1: amountString,
+			ExtraData2: strconv.FormatFloat(vAmountFloat, 'f', -1, 64),
+			ExtraData3: network,
+		}
+		transactionLog := requests.UserTransactionRequestDTO{
+			SourceChannel:            sourceSystem,
 			RequestId:                requestIdStr,
 			SourceAccountNumber:      v.AccountNumber,
 			DestinationAccountNumber: v.AccountNumber,
 			Amount:                   vAmountFloat,
-			Charge:                   0.0,
-			TransactionType:          "LOAN_REPAYMENT",
-			ServiceCode:              "LOAN_REPAYMENT",
-			TransactionReference:     "SYSTEM",
-			StatusCode:               "PENDING",
-			ExtraDetails1:            amountString,
-			ExtraDetails2:            strconv.FormatFloat(vAmountFloat, 'f', -1, 64),
-			ExtraDetails3:            network,
-			Reference:                amountString,
-			ClientID:                 v.ClientId,
+			ServiceCode:              "DEPOSIT",
+			ClientReference:          "",
+			ExtraData:                extraData,
+			Package:                  amountString,
 			PhoneNumber:              v.MobileNumber,
-			TransactionPackage:       amountString,
-			ExternalReferenceNumber:  "",
 			CreatedBy:                strconv.FormatInt(userData.UserId, 10),
+			Status:                   "PENDING",
 		}
 
-		if txn, err := helpers.LogTransaction(&c.Controller, transactionLog); err != nil {
-			logs.Error("Error logging transaction: ", err)
+		if txn := apifunctions.LogUserTransaction(&c.Controller, transactionLog); txn.StatusCode != 200 {
+			logs.Error("Error logging transaction: ", txn.StatusDesc)
 			status = false
-			statusMessage = "Error logging transaction: " + err.Error()
+			statusMessage = "Error logging transaction: " + txn.StatusDesc
 
 		} else {
 
