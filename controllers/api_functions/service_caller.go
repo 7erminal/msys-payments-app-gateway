@@ -992,6 +992,75 @@ func LogTransaction(c *beego.Controller, req requests.LogTransactionApiRequest) 
 	return data
 }
 
+func LogUserTransaction(c *beego.Controller, req requests.UserTransactionRequestDTO) (resp responses.TransactionApiResponse) {
+	host, _ := beego.AppConfig.String("transactionBaseUrl")
+
+	logs.Info("Logging transaction for account number ", req.SourceAccountNumber, " and destination ", req.DestinationAccountNumber)
+
+	request := api.NewRequest(
+		host,
+		"/v2/transactions/user",
+		api.POST)
+	// request.Params["username"] = username
+	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+	request.HeaderField["sourceSystem"] = req.SourceChannel
+
+	type ExtraData struct {
+		ExtraData1 string
+		ExtraData2 string
+		ExtraData3 string
+	}
+
+	extraData := ExtraData{
+		ExtraData1: req.ExtraData.ExtraData1,
+		ExtraData2: req.ExtraData.ExtraData2,
+		ExtraData3: req.ExtraData.ExtraData3,
+	}
+
+	logs.Info("Sending extra data ", req.ExtraData.ExtraData1, req.ExtraData.ExtraData2, req.ExtraData.ExtraData3)
+
+	request.InterfaceParams["RequestId"] = req.RequestId
+	request.InterfaceParams["Amount"] = req.Amount
+	request.InterfaceParams["ServiceCode"] = req.ServiceCode
+	request.InterfaceParams["SourceAccountNumber"] = req.SourceAccountNumber
+	request.InterfaceParams["PhoneNumber"] = req.PhoneNumber
+	request.InterfaceParams["DestinationAccountNumber"] = req.DestinationAccountNumber
+	request.InterfaceParams["ExtraData"] = extraData
+	request.InterfaceParams["Package"] = req.Package
+	request.InterfaceParams["ClientReference"] = req.ClientReference
+	request.InterfaceParams["CreatedBy"] = req.CreatedBy
+	client := api.Client{
+		Request: request,
+		Type_:   "body",
+	}
+	res, err := client.SendRequest()
+	if err != nil {
+		logs.Error("client.Error: %v", err)
+		c.Data["json"] = err.Error()
+	}
+	defer res.Body.Close()
+	read, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	}
+
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, read, "", "  "); err != nil {
+		logs.Info("Raw response received is ", string(read))
+	} else {
+		logs.Info("Raw response received is \n", prettyJSON.String())
+	}
+	// data := map[string]interface{}{}
+	var data responses.TransactionApiResponse
+	json.Unmarshal(read, &data)
+	c.Data["json"] = data
+
+	logs.Info("Resp is ", data)
+	// logs.Info("Resp is ", data.User)
+
+	return data
+}
+
 func GetBilTransaction(c *beego.Controller, id string) (resp responses.LogTransactionResponse) {
 	host, _ := beego.AppConfig.String("transactionBaseUrl")
 

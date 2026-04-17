@@ -404,31 +404,29 @@ func (c *Agent_api_requestsController) Deposit() {
 
 		requestIdStr := fmt.Sprintf("%d", v.Id)
 		amountString := strconv.FormatFloat(req.Amount, 'f', -1, 64)
-		transactionLog := requests.LogTransactionRequest{
+		extraData := requests.ExtraData{
+			ExtraData1: amountString,
+			ExtraData2: strconv.FormatFloat(req.Amount, 'f', -1, 64),
+			ExtraData3: network,
+		}
+		transactionLog := requests.UserTransactionRequestDTO{
+			SourceChannel:            sourceSystem,
 			RequestId:                requestIdStr,
 			SourceAccountNumber:      accountNumber,
 			DestinationAccountNumber: req.Destination,
 			Amount:                   req.Amount,
-			Charge:                   0.0,
-			TransactionType:          "DEPOSIT",
 			ServiceCode:              "DEPOSIT",
-			TransactionReference:     "SYSTEM",
-			StatusCode:               "PENDING",
-			ExtraDetails1:            amountString,
-			ExtraDetails2:            strconv.FormatFloat(req.Amount, 'f', -1, 64),
-			ExtraDetails3:            network,
-			Reference:                amountString,
-			ClientID:                 req.ClientId,
+			ClientReference:          "",
+			ExtraData:                extraData,
+			Package:                  amountString,
 			PhoneNumber:              phoneNumber,
-			TransactionPackage:       amountString,
-			ExternalReferenceNumber:  "",
 			CreatedBy:                strconv.FormatInt(userData.UserId, 10),
 		}
 
-		if txn, err := helpers.LogTransaction(&c.Controller, transactionLog); err != nil {
-			logs.Error("Error logging transaction: ", err)
+		if txn := apifunctions.LogUserTransaction(&c.Controller, transactionLog); txn.StatusCode != 200 {
+			logs.Error("Error logging transaction: ", txn.StatusDesc)
 			isSuccess = false
-			message = "Error logging transaction: " + err.Error()
+			message = "Error logging transaction: " + txn.StatusDesc
 
 		} else {
 

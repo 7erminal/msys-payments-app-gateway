@@ -75,3 +75,23 @@ type TransferCommissionApiRequest struct {
 	RecipientName          string
 	Status                 string
 }
+
+type ExtraData struct {
+	ExtraData1 string
+	ExtraData2 string
+	ExtraData3 string
+}
+
+type UserTransactionRequestDTO struct {
+	SourceChannel            string
+	SourceAccountNumber      string
+	PhoneNumber              string
+	Amount                   float64
+	DestinationAccountNumber string
+	ClientReference          string
+	Package                  string
+	ServiceCode              string
+	RequestId                string
+	ExtraData                ExtraData
+	CreatedBy                string
+}
