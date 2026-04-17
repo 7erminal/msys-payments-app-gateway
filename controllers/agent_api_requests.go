@@ -456,7 +456,12 @@ func (c *Agent_api_requestsController) Deposit() {
 				CreatedBy:              strconv.FormatInt(userData.UserId, 10),
 			}
 
-			if _, err := helpers.LogTransferTransaction(&c.Controller, transferRequest, true); err != nil {
+			sendCommission := false
+			if req.PaymentMethod == "MOBILEMONEY" {
+				sendCommission = true
+			}
+
+			if _, err := helpers.LogTransferTransaction(&c.Controller, transferRequest, sendCommission); err != nil {
 				logs.Error("Error logging transfer transaction: ", err)
 				isSuccess = false
 				message = "Error logging transfer transaction: " + err.Error()
@@ -788,7 +793,12 @@ func (c *Agent_api_requestsController) LoanRepayment() {
 				CreatedBy:              strconv.FormatInt(userData.UserId, 10),
 			}
 
-			if _, err := helpers.LogTransferTransaction(&c.Controller, transferRequest, true); err != nil {
+			sendCommission := false
+			if v.PaymentMethod == "MOBILEMONEY" {
+				sendCommission = true
+			}
+
+			if _, err := helpers.LogTransferTransaction(&c.Controller, transferRequest, sendCommission); err != nil {
 				logs.Error("Error logging transfer transaction: ", err)
 				status = false
 				statusMessage = "Error logging transfer transaction: " + err.Error()
