@@ -770,6 +770,8 @@ func (c *Agent_api_requestsController) LoanRepayment() {
 
 		} else {
 
+			logs.Info("Payment method to be sent is ", v.PaymentMethod)
+
 			transferRequest := requests.TransferApiRequest{
 				RequestId:              requestIdStr,
 				Amount:                 vAmountFloat,

@@ -400,6 +400,12 @@ func LogTransaction(c *beego.Controller, transactionRequest requests.LogTransact
 
 func LogTransferTransaction(c *beego.Controller, transferRequest requests.TransferApiRequest, sendCommission bool) (transferResponse responses.TransferApiResponseDTO, err error) {
 	logs.Info("Logging transfer transaction with request: ", transferRequest)
+	jsonBytes, err := json.MarshalIndent(transferRequest, "", "  ")
+	if err != nil {
+		logs.Error("Error marshalling transferRequest to JSON: ", err)
+	} else {
+		logs.Info("transferRequest JSON: ", string(jsonBytes))
+	}
 
 	responseCode := 400
 	responseMessage := "Error logging transfer transaction"
