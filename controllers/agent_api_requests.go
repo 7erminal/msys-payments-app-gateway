@@ -448,11 +448,11 @@ func (c *Agent_api_requestsController) Deposit() {
 				TotalDebitAmount:       req.Amount + 0.0,
 				SenderAccountNumber:    accountNumber,
 				RecipientAccountNumber: req.Destination,
-				TransferCode:           "DEPOSIT",
+				TransferCode:           req.PaymentMethod,
 				Description:            "Deposit for transaction " + requestIdStr,
 				RecipientName:          network,
 				Status:                 "PENDING",
-				ServiceCode:            req.PaymentMethod,
+				ServiceCode:            "DEPOSIT",
 				CreatedBy:              strconv.FormatInt(userData.UserId, 10),
 			}
 
