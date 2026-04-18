@@ -3148,6 +3148,7 @@ func SendDeposit(c *beego.Controller, req requests.SendDepositRequest) (resp res
 		api.POST)
 	// request.Params["username"] = username
 	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+	request.HeaderField["clientId"] = req.ClientId
 
 	request.InterfaceParams["AccountNumber"] = req.AccountNumber
 	request.InterfaceParams["Amount"] = req.Amount
