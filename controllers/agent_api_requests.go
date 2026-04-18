@@ -524,10 +524,10 @@ func (c *Agent_api_requestsController) Deposit() {
 						ClientId:      clientId,
 					}
 
-					if resp := apifunctions.SendDeposit(&c.Controller, sendDepositRequest); resp.StatusCode != true {
+					if resp := apifunctions.SendDeposit(&c.Controller, sendDepositRequest); resp.Data.StatusCode != 200 {
 						logs.Error("Error sending deposit to core banking: ", err)
 						isSuccess = false
-						message = "Error sending deposit to core banking: " + resp.StatusMessage
+						message = "Error sending deposit to core banking: " + resp.Data.StatusDesc
 					} else {
 						logs.Info("Deposit sent to core banking successfully")
 					}

@@ -17,3 +17,14 @@ type DepositResponse struct {
 	StatusMessage string
 	Result        *DepositData
 }
+
+type SendDepositData struct {
+	Result     string
+	StatusCode int
+	Client     string
+	StatusDesc string
+}
+
+type SendDepositDataResponse struct {
+	Data SendDepositData `json:"data"`
+}

@@ -3139,7 +3139,7 @@ func SendCommissionResp(c *beego.Controller, req requests.TransferCallbackReques
 	return data
 }
 
-func SendDeposit(c *beego.Controller, req requests.SendDepositRequest) (resp responses.TransactionStatusApiResponse) {
+func SendDeposit(c *beego.Controller, req requests.SendDepositRequest) (resp responses.SendDepositDataResponse) {
 	host, _ := beego.AppConfig.String("clientBaseUrl")
 
 	logs.Info("Deposit for ", req.AccountNumber)
@@ -3180,7 +3180,7 @@ func SendDeposit(c *beego.Controller, req requests.SendDepositRequest) (resp res
 		logs.Info("Raw response received is \n", prettyJSON.String())
 	}
 	// data := map[string]interface{}{}
-	var data responses.TransactionStatusApiResponse
+	var data responses.SendDepositDataResponse
 	json.Unmarshal(read, &data)
 	c.Data["json"] = data
 
