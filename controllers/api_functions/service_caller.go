@@ -8,6 +8,7 @@ import (
 	"msys_payment_app_gateway/api"
 	"msys_payment_app_gateway/structs/requests"
 	"msys_payment_app_gateway/structs/responses"
+	"strconv"
 
 	"github.com/beego/beego/v2/core/logs"
 	beego "github.com/beego/beego/v2/server/web"
@@ -3142,6 +3143,7 @@ func SendDeposit(c *beego.Controller, req requests.SendDepositRequest) (resp res
 	host, _ := beego.AppConfig.String("clientBaseUrl")
 
 	logs.Info("Deposit for ", req.AccountNumber)
+	amountStr := strconv.FormatFloat(req.Amount, 'f', 2, 64)
 	request := api.NewRequest(
 		host,
 		"/v2/api/field-deposit",
@@ -3151,7 +3153,7 @@ func SendDeposit(c *beego.Controller, req requests.SendDepositRequest) (resp res
 	request.HeaderField["clientId"] = req.ClientId
 
 	request.InterfaceParams["AccountNumber"] = req.AccountNumber
-	request.InterfaceParams["Amount"] = req.Amount
+	request.InterfaceParams["Amount"] = amountStr
 	request.InterfaceParams["MobileNumber"] = req.MobileNumber
 	request.InterfaceParams["PaymentMethod"] = req.PaymentMethod
 
