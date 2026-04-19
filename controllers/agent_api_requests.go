@@ -479,7 +479,7 @@ func (c *Agent_api_requestsController) Deposit() {
 						Network:         network,
 						ServiceNetwork:  req.ClientId,
 						ServicePackage:  strconv.FormatFloat(req.Amount, 'f', -1, 64),
-						MobileNumber:    phoneNumber,
+						MobileNumber:    destinationPhoneNumber,
 						TransactionId:   txn.Result.TransactionId,
 					}
 					//
