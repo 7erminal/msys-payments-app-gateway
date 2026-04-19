@@ -818,7 +818,7 @@ func (c *Agent_api_requestsController) LoanRepayment() {
 						ServiceNetwork:  v.ClientId,
 						ServicePackage:  strconv.FormatFloat(vAmountFloat, 'f', -1, 64),
 						MobileNumber:    v.MobileNumber,
-						TransactionId:   txn.Result.TransactionRefNumber,
+						TransactionId:   txn.Result.TransactionId,
 					}
 					//
 
@@ -854,7 +854,7 @@ func (c *Agent_api_requestsController) LoanRepayment() {
 
 				txnData.Amount = txn.Result.Amount
 				txnData.Currency = txn.Result.TransactingCurrency
-				txnData.TransactionReference = txn.Result.TransactionRefNumber
+				txnData.TransactionReference = txn.Result.TransactionId
 
 				ap.DateModified = time.Now()
 				ap.ResponseDate = time.Now()
