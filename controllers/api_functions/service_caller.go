@@ -1151,7 +1151,7 @@ func GetBilTransactionWithTransactionRef(c *beego.Controller, id string) (resp r
 	return data
 }
 
-func GetUserTransactionWithTransactionRef(c *beego.Controller, id string) (resp responses.LogTransactionResponse) {
+func GetUserTransactionWithTransactionRef(c *beego.Controller, id string) (resp responses.LogUserTransactionResponse) {
 	host, _ := beego.AppConfig.String("transactionBaseUrl")
 
 	logs.Info("Getting transaction for ", id)
@@ -1185,7 +1185,7 @@ func GetUserTransactionWithTransactionRef(c *beego.Controller, id string) (resp 
 		logs.Info("Raw response received is \n", prettyJSON.String())
 	}
 	// data := map[string]interface{}{}
-	var data responses.LogTransactionResponse
+	var data responses.LogUserTransactionResponse
 	json.Unmarshal(read, &data)
 	c.Data["json"] = data
 

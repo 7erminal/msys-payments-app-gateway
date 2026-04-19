@@ -1415,14 +1415,13 @@ func (c *Agent_api_requestsController) GetBilTransactionWithTransactionRef() {
 		responseMessage = "Transaction fetched successfully"
 		if resp.Result != nil {
 			result = responses.TxnResp{
-				TransactionRefNumber:    resp.Result.TransactionRefNumber,
+				TransactionRefNumber:    resp.Result.TransactionId,
 				Amount:                  resp.Result.Amount,
 				Charge:                  resp.Result.Charge,
-				BillerCode:              resp.Result.BillerCode,
-				CustomerName:            resp.Result.TransactionBy.FullName,
-				CustomerNumber:          resp.Result.TransactionBy.PhoneNumber,
-				Status:                  resp.Result.Status.StatusCode,
-				Service:                 resp.Result.Service.ServiceName,
+				CustomerName:            resp.Result.TransactionCustomerReference,
+				CustomerNumber:          resp.Result.TransactionCustomerReference,
+				Status:                  resp.Result.Status,
+				Service:                 resp.Result.Service,
 				TransactingCurrency:     resp.Result.TransactingCurrency,
 				SourceChannel:           resp.Result.SourceChannel,
 				SourceAccount:           resp.Result.Source,
@@ -1430,12 +1429,12 @@ func (c *Agent_api_requestsController) GetBilTransactionWithTransactionRef() {
 				Package:                 resp.Result.Package,
 				ExternalReferenceNumber: resp.Result.ExternalReferenceNumber,
 				TransactionDate:         resp.Result.DateCreated,
-				OfficerName:             resp.Result.CreatedBy.FullName,
-				OfficerNumber:           resp.Result.CreatedBy.PhoneNumber,
+				OfficerName:             resp.Result.CreatedBy,
+				OfficerNumber:           resp.Result.CreatedBy,
 			}
 		}
 
-		logs.Info("Transaction reference number: ", result.TransactionRefNumber, " Status: ", result.Status, resp.Result.Status.Status)
+		logs.Info("Transaction reference number: ", result.TransactionRefNumber, " Status: ", result.Status, resp.Result.Status)
 		logs.Info("Customer name ", result.CustomerName, " customer number: ", result.CustomerNumber)
 	}
 

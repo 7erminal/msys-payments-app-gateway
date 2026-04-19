@@ -19,7 +19,7 @@ type UserTransactionApiResponse struct {
 
 type UserTransactionsData struct {
 	TransactionId                string
-	Service                      *Service
+	Service                      string
 	TransactionCustomerReference string
 	Amount                       float64
 	TransactingCurrency          string
@@ -28,14 +28,18 @@ type UserTransactionsData struct {
 	Destination                  string
 	Package                      string
 	Charge                       float64
+	Commission                   float64
 	ExternalReferenceNumber      string
-	Status                       *Status
-	CreatedBy                    *Users
-	ModifiedBy                   *Users
+	Status                       string
+	ExtraDetails1                string
+	ExtraDetails2                string
+	ExtraDetails3                string
+	ClientResponseCode           string
 	DateCreated                  time.Time
 	DateModified                 time.Time
+	CreatedBy                    string
+	ModifiedBy                   string
 	Active                       int
-	ClientResponseCode           string
 }
 
 type Bil_transactions struct {
@@ -68,6 +72,12 @@ type Bil_transactions struct {
 type LogTransactionResponse struct {
 	StatusCode int
 	Result     *Bil_transactions
+	StatusDesc string
+}
+
+type LogUserTransactionResponse struct {
+	StatusCode int
+	Result     *UserTransactionsData
 	StatusDesc string
 }
 
