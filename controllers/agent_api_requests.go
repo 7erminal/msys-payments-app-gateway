@@ -480,7 +480,7 @@ func (c *Agent_api_requestsController) Deposit() {
 						ServiceNetwork:  req.ClientId,
 						ServicePackage:  strconv.FormatFloat(req.Amount, 'f', -1, 64),
 						MobileNumber:    phoneNumber,
-						TransactionId:   txn.Result.TransactionRefNumber,
+						TransactionId:   txn.Result.TransactionId,
 					}
 					//
 
@@ -535,7 +535,7 @@ func (c *Agent_api_requestsController) Deposit() {
 
 				txnData.Amount = txn.Result.Amount
 				txnData.Currency = txn.Result.TransactingCurrency
-				txnData.TransactionReference = txn.Result.TransactionRefNumber
+				txnData.TransactionReference = txn.Result.TransactionId
 
 				v.DateModified = time.Now()
 				v.ResponseDate = time.Now()

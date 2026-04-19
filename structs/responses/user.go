@@ -862,14 +862,15 @@ type CustomersAccountStatementResponseDTO struct {
 }
 
 type Status struct {
-	StatusId     int64     `orm:"auto"`
-	Status       string    `orm:"size(128)"`
-	StatusCode   string    `orm:"size(128)"`
-	DateCreated  time.Time `orm:"type(datetime)"`
-	DateModified time.Time `orm:"type(datetime)"`
-	CreatedBy    int
-	ModifiedBy   int
-	Active       int
+	StatusId          int64     `orm:"auto"`
+	Status            string    `orm:"size(128)"`
+	StatusDescription string    `orm:"size(255)"`
+	StatusCode        string    `orm:"size(128)"`
+	DateCreated       time.Time `orm:"type(datetime)"`
+	DateModified      time.Time `orm:"type(datetime)"`
+	CreatedBy         int
+	ModifiedBy        int
+	Active            int
 }
 
 type Payments struct {
@@ -890,4 +891,11 @@ type Payments struct {
 	CreatedBy       int64
 	ModifiedBy      int64
 	Active          int
+}
+
+type Service struct {
+	ServiceId   int64
+	ServiceName string
+	ServiceCode string
+	Active      int
 }

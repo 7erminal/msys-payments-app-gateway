@@ -993,7 +993,7 @@ func LogTransaction(c *beego.Controller, req requests.LogTransactionApiRequest) 
 	return data
 }
 
-func LogUserTransaction(c *beego.Controller, req requests.UserTransactionRequestDTO) (resp responses.TransactionApiResponse) {
+func LogUserTransaction(c *beego.Controller, req requests.UserTransactionRequestDTO) (resp responses.UserTransactionApiResponse) {
 	host, _ := beego.AppConfig.String("transactionBaseUrl")
 
 	logs.Info("Logging transaction for account number ", req.SourceAccountNumber, " and destination ", req.DestinationAccountNumber)
@@ -1053,7 +1053,7 @@ func LogUserTransaction(c *beego.Controller, req requests.UserTransactionRequest
 		logs.Info("Raw response received is \n", prettyJSON.String())
 	}
 	// data := map[string]interface{}{}
-	var data responses.TransactionApiResponse
+	var data responses.UserTransactionApiResponse
 	json.Unmarshal(read, &data)
 	c.Data["json"] = data
 

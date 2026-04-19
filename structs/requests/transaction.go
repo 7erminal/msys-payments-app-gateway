@@ -83,6 +83,7 @@ type ExtraData struct {
 }
 
 type UserTransactionRequestDTO struct {
+	TransactionId            string
 	SourceChannel            string
 	SourceAccountNumber      string
 	PhoneNumber              string

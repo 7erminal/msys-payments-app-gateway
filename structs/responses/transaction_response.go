@@ -11,6 +11,33 @@ type TransactionApiResponse struct {
 	Result     *Bil_transactions
 }
 
+type UserTransactionApiResponse struct {
+	StatusCode int
+	StatusDesc string
+	Result     *UserTransactionsData
+}
+
+type UserTransactionsData struct {
+	TransactionId                string
+	Service                      *Service
+	TransactionCustomerReference string
+	Amount                       float64
+	TransactingCurrency          string
+	SourceChannel                string
+	Source                       string
+	Destination                  string
+	Package                      string
+	Charge                       float64
+	ExternalReferenceNumber      string
+	Status                       *Status
+	CreatedBy                    *Users
+	ModifiedBy                   *Users
+	DateCreated                  time.Time
+	DateModified                 time.Time
+	Active                       int
+	ClientResponseCode           string
+}
+
 type Bil_transactions struct {
 	TransactionId           int64            `orm:"auto"`
 	TransactionRefNumber    string           `orm:"size(255);unique"`
