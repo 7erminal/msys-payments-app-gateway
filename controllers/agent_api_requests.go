@@ -461,7 +461,7 @@ func (c *Agent_api_requestsController) Deposit() {
 				sendCommission = true
 			}
 
-			if _, err := helpers.LogTransferTransaction(&c.Controller, transferRequest, sendCommission); err != nil {
+			if txnResp, err := helpers.LogTransferTransaction(&c.Controller, transferRequest, sendCommission); err != nil {
 				logs.Error("Error logging transfer transaction: ", err)
 				isSuccess = false
 				message = "Error logging transfer transaction: " + err.Error()
@@ -480,7 +480,7 @@ func (c *Agent_api_requestsController) Deposit() {
 						ServiceNetwork:  req.ClientId,
 						ServicePackage:  strconv.FormatFloat(req.Amount, 'f', -1, 64),
 						MobileNumber:    req.Source,
-						TransactionId:   txn.Result.TransactionId,
+						TransactionId:   txnResp.Result.TransactionId,
 					}
 					//
 
@@ -799,7 +799,7 @@ func (c *Agent_api_requestsController) LoanRepayment() {
 				sendCommission = true
 			}
 
-			if _, err := helpers.LogTransferTransaction(&c.Controller, transferRequest, sendCommission); err != nil {
+			if txnResp, err := helpers.LogTransferTransaction(&c.Controller, transferRequest, sendCommission); err != nil {
 				logs.Error("Error logging transfer transaction: ", err)
 				status = false
 				statusMessage = "Error logging transfer transaction: " + err.Error()
@@ -818,7 +818,7 @@ func (c *Agent_api_requestsController) LoanRepayment() {
 						ServiceNetwork:  v.ClientId,
 						ServicePackage:  strconv.FormatFloat(vAmountFloat, 'f', -1, 64),
 						MobileNumber:    v.MobileNumber,
-						TransactionId:   txn.Result.TransactionId,
+						TransactionId:   txnResp.Result.TransactionId,
 					}
 					//
 
