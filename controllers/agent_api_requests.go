@@ -1405,7 +1405,7 @@ func (c *Agent_api_requestsController) GetBilTransactionWithTransactionRef() {
 		return
 	}
 
-	resp := apifunctions.GetBilTransactionWithTransactionRef(&c.Controller, reference)
+	resp := apifunctions.GetUserTransactionWithTransactionRef(&c.Controller, reference)
 
 	if resp.StatusCode != 200 {
 		responseStatus = false
