@@ -90,15 +90,6 @@ func init() {
 
     beego.GlobalControllerRouter["msys_payment_app_gateway/controllers:Agent_api_requestsController"] = append(beego.GlobalControllerRouter["msys_payment_app_gateway/controllers:Agent_api_requestsController"],
         beego.ControllerComments{
-            Method: "GetCorporatives",
-            Router: `/get-corporatives`,
-            AllowHTTPMethods: []string{"post"},
-            MethodParams: param.Make(),
-            Filters: nil,
-            Params: nil})
-
-    beego.GlobalControllerRouter["msys_payment_app_gateway/controllers:Agent_api_requestsController"] = append(beego.GlobalControllerRouter["msys_payment_app_gateway/controllers:Agent_api_requestsController"],
-        beego.ControllerComments{
             Method: "GetBilTransactionWithTransactionRef",
             Router: `/get-transaction-by-reference`,
             AllowHTTPMethods: []string{"post"},
@@ -479,6 +470,15 @@ func init() {
         beego.ControllerComments{
             Method: "LoginUser",
             Router: `/user/login`,
+            AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["msys_payment_app_gateway/controllers:Authless_requestsController"] = append(beego.GlobalControllerRouter["msys_payment_app_gateway/controllers:Authless_requestsController"],
+        beego.ControllerComments{
+            Method: "GetCorporatives",
+            Router: `/get-corporatives`,
             AllowHTTPMethods: []string{"post"},
             MethodParams: param.Make(),
             Filters: nil,

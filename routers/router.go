@@ -38,6 +38,11 @@ func init() {
 				&controllers.Auth_requestsController{},
 			),
 		),
+		beego.NSNamespace("/req",
+			beego.NSInclude(
+				&controllers.Authless_requestsController{},
+			),
+		),
 	)
 	beego.AddNamespace(ns)
 }
