@@ -470,17 +470,18 @@ func (c *Agent_api_requestsController) Deposit() {
 
 				if req.PaymentMethod == "MOBILEMONEY" {
 					req2 := requests.PaymentRequestApiRequestDTO{
-						ClientId:        clientId,
-						Amount:          req.Amount,
-						PaymentMethod:   req.PaymentMethod,
-						Service:         "DEPOSIT",
-						SenderAccount:   accountNumber,
-						ReceiverAccount: destinationPhoneNumber,
-						Network:         network,
-						ServiceNetwork:  req.ClientId,
-						ServicePackage:  strconv.FormatFloat(req.Amount, 'f', -1, 64),
-						MobileNumber:    req.Source,
-						TransactionId:   txn.Result.TransactionId,
+						ClientId:            clientId,
+						Amount:              req.Amount,
+						PaymentMethod:       req.PaymentMethod,
+						Service:             "DEPOSIT",
+						SenderAccount:       accountNumber,
+						ReceiverAccount:     destinationPhoneNumber,
+						Network:             network,
+						ServiceNetwork:      req.ClientId,
+						ServicePackage:      strconv.FormatFloat(req.Amount, 'f', -1, 64),
+						MobileNumber:        req.Source,
+						TransactionId:       txn.Result.TransactionId,
+						CallbackServiceCode: "USER_PAYMENT",
 					}
 					//
 

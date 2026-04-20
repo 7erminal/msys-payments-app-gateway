@@ -1917,6 +1917,8 @@ func MakePayment(c *beego.Controller, req requests.MakePaymentApiRequestDTO) (re
 	request.InterfaceParams["Network"] = req.Network
 	request.InterfaceParams["ServiceNetwork"] = req.ServiceNetwork
 	request.InterfaceParams["ServicePackage"] = req.ServicePackage
+	request.InterfaceParams["ServiceCode"] = req.ServiceCode
+	request.InterfaceParams["CallbackServiceCode"] = req.CallbackServiceCode
 
 	client := api.Client{
 		Request: request,
@@ -2428,6 +2430,62 @@ func ReceivePaymentCallback(c *beego.Controller, req requests.PaymentCallbackDat
 	request := api.NewRequest(
 		host,
 		"/v1/callback/process",
+		api.POST)
+	// request.Params["username"] = username
+	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+
+	request.InterfaceParams["AmountCharged"] = req.AmountCharged
+	request.InterfaceParams["ClientReference"] = req.TransactionId
+	request.InterfaceParams["TransactionId"] = req.ClientReference
+	request.InterfaceParams["Description"] = req.Description
+	request.InterfaceParams["ExternalTransactionId"] = req.ExternalTransactionId
+	request.InterfaceParams["Amount"] = req.Amount
+	request.InterfaceParams["Charges"] = req.Charges
+	request.InterfaceParams["Commission"] = req.Commission
+	request.InterfaceParams["AmountAfterCharges"] = req.AmountAfterCharges
+	request.InterfaceParams["PaymentDate"] = req.PaymentDate
+	request.InterfaceParams["OrderId"] = req.OrderId
+	request.InterfaceParams["Status"] = req.Status
+
+	client := api.Client{
+		Request: request,
+		Type_:   "body",
+	}
+	res, err := client.SendRequest()
+	if err != nil {
+		logs.Error("client.Error: %v", err)
+		c.Data["json"] = err.Error()
+	}
+	defer res.Body.Close()
+	read, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	}
+
+	// logs.Info("Raw response received is ", res)
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, read, "", "  "); err != nil {
+		logs.Info("Raw response received is ", string(read))
+	} else {
+		logs.Info("Raw response received is \n", prettyJSON.String())
+	}
+	// data := map[string]interface{}{}
+	var data responses.CallbackAPIResponse
+	json.Unmarshal(read, &data)
+	c.Data["json"] = data
+
+	logs.Info("Resp is ", data)
+	// logs.Info("Resp is ", data.User)
+
+	return data
+}
+
+func ReceiveUserPaymentCallback(c *beego.Controller, req requests.PaymentCallbackData) (resp responses.CallbackAPIResponse) {
+	host, _ := beego.AppConfig.String("paymentBaseUrl")
+
+	request := api.NewRequest(
+		host,
+		"/v1/callback/tx/process",
 		api.POST)
 	// request.Params["username"] = username
 	// request.Params = {"UserId": strconv.Itoa(int(userid))}

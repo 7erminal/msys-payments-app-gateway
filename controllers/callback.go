@@ -830,3 +830,197 @@ func (c *CallbackController) CheckTransactionStatus() {
 
 	c.ServeJSON()
 }
+
+// UserTransactionCallback ...
+// @Title UserTransactionCallback
+// @Description create UserTransactionCallback
+// @Param	body		body 	requests.PaymentCallbackFormulateRequest	true		"body for UserTransactionCallback content"
+// @Success 201 {object} models.Callback
+// @Failure 403 body is empty
+// @router /user-transaction-callback [post]
+func (c *CallbackController) UserTransactionCallback() {
+	var v requests.PaymentCallbackFormulateRequest
+
+	logs.Info("Received callback request: ", string(c.Ctx.Input.RequestBody))
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &v); err != nil {
+		c.Data["json"] = map[string]string{"error": "Invalid request body"}
+		c.Ctx.Output.SetStatus(400)
+		c.ServeJSON()
+		return
+	}
+
+	reqBody := c.Ctx.Input.RequestBody
+	reqHeaders := c.Ctx.Request.Header
+
+	requestMap := map[string]interface{}{
+		"headers": reqHeaders,
+		"body":    string(reqBody),
+	}
+
+	reqText, err := json.Marshal(requestMap)
+	if err != nil {
+		logs.Error("Error marshalling request input: ", err)
+		c.Data["json"] = err.Error()
+		c.ServeJSON()
+		return
+	}
+
+	responseStatus := false
+	responseMessage := "Invalid request"
+	result := responses.PaymentResponse{}
+
+	var j models.Api_requests = models.Api_requests{
+		Request:      string(reqText),
+		RequestType:  "Callback",
+		RequestDate:  time.Now(),
+		DateCreated:  time.Now(),
+		DateModified: time.Now(),
+	}
+	if _, err := models.AddApi_requests(&j); err == nil {
+
+		callbackReq := requests.PaymentCallbackData{}
+		proceed := false
+
+		if v.ResponseCode == "0000" {
+			logs.Info("Successful payment callback received for transaction: ", v.Data.ClientReference)
+			callbackReq = requests.PaymentCallbackData{
+				AmountCharged:         v.Data.Amount,
+				TransactionId:         v.Data.TransactionId,
+				ClientReference:       v.Data.ClientReference,
+				Description:           v.Data.Description,
+				ExternalTransactionId: v.Data.ExternalTransactionId,
+				Amount:                v.Data.Amount,
+				Charges:               v.Data.Charges,
+				AmountAfterCharges:    v.Data.AmountAfterCharges,
+				PaymentDate:           v.Data.PaymentDate,
+				OrderId:               v.Data.OrderId,
+				Status:                "SUCCESS",
+			}
+
+			proceed = true
+		} else {
+			logs.Info("Failed payment callback received for transaction: ", v.Data.ClientReference)
+			callbackReq = requests.PaymentCallbackData{
+				AmountCharged:         v.Data.Amount,
+				TransactionId:         v.Data.TransactionId,
+				ClientReference:       v.Data.ClientReference,
+				Description:           v.Data.Description,
+				ExternalTransactionId: v.Data.ExternalTransactionId,
+				Amount:                v.Data.Amount,
+				Charges:               v.Data.Charges,
+				Commission:            v.Data.Commission,
+				AmountAfterCharges:    v.Data.AmountAfterCharges,
+				PaymentDate:           v.Data.PaymentDate,
+				OrderId:               v.Data.OrderId,
+				Status:                "FAILED",
+			}
+		}
+
+		transaction := apifunctions.GetUserTransactionWithTransactionRef(&c.Controller, v.Data.ClientReference)
+
+		if transaction.StatusCode == 200 {
+
+			if proceed {
+				logs.Info("Sending callback request: ", callbackReq)
+				callbackReqJSON, _ := json.Marshal(callbackReq)
+				logs.Info("Callback request JSON: ", string(callbackReqJSON))
+				resp := apifunctions.ReceivePaymentCallback(&c.Controller, callbackReq)
+				// logs.Info("Callback response: ", resp)
+				respJSON, _ := json.Marshal(resp)
+				logs.Info("Callback response JSON: ", string(respJSON))
+
+				if resp.StatusCode != 200 {
+					logs.Error("Callback failed with response: ", resp)
+					responseStatus = false
+					responseMessage = resp.StatusMessage
+				} else {
+					responseText, err := json.Marshal(resp.Result)
+					if err != nil {
+						logs.Error("Error marshalling response result: ", err)
+						responseText = []byte("[]")
+					}
+					j.RequestResponse = string(responseText)
+					j.DateModified = time.Now()
+					j.ResponseDate = time.Now()
+					if err := models.UpdateApi_requestsById(&j); err != nil {
+						logs.Error("Error updating API request with response: ", err)
+					} else {
+						logs.Info("API request updated with response successfully: ", v)
+					}
+
+					// Send commission
+					commissionFloat, err := strconv.ParseFloat(v.Data.Commission, 64)
+					if err == nil && commissionFloat > 0 {
+						requestIdStr := fmt.Sprintf("%d", j.Id)
+						commissionFloat, err := strconv.ParseFloat(v.Data.Commission, 64)
+						if err != nil {
+							logs.Error("Error parsing commission: ", err)
+							commissionFloat = 0
+						}
+
+						commReq := requests.TransferApiRequest{
+							RequestId:              requestIdStr,
+							Amount:                 v.Data.Amount,
+							Charge:                 v.Data.Charges,
+							Commission:             commissionFloat,
+							TotalDebitAmount:       v.Data.AmountCharged,
+							SenderAccountNumber:    "SYSTEM",
+							RecipientAccountNumber: "2037071",
+							TransferCode:           "COMMISSION",
+							Description:            "Commission for transaction " + v.Data.ClientReference,
+							RecipientName:          "Commission Wallet",
+							Status:                 "PENDING",
+						}
+
+						commResp, err := helpers.LogTransferTransaction(&c.Controller, commReq, true)
+
+						if err != nil {
+							logs.Error("Error transferring commission to commission wallet: %v", err)
+						} else {
+							logs.Info("Commission transfer response: ", commResp)
+						}
+					}
+
+					logs.Info("Callback received. Service is ", resp.Result.Service)
+
+					responseStatus = true
+					responseMessage = resp.StatusMessage
+
+					if resp.Result.Service == "DEPOSIT" {
+						logs.Info("Amount to deposit is ", resp.Result.Amount)
+						helpers.LogAccountActivity(&c.Controller, resp.Result.ReceiverAccount, "Deposit", resp.Result.Amount, resp.Result.ServiceNetwork, "credit")
+						responseStatus = true
+						responseMessage = resp.StatusMessage
+					}
+
+					// if resp.Result.Service == "WITHDRAWAL" {
+					// 	logs.Info("Amount to withdraw is ", resp.Result.PaymentAmount)
+					// 	helpers.LogAccountActivity(&c.Controller, resp.Result.SenderAccount, "Withdrawal", resp.Result.PaymentAmount, resp.Result.ServiceNetwork, "debit")
+					// 	responseStatus = true
+					// 	responseMessage = resp.StatusMessage
+					// }
+				}
+
+				response := responses.CallbackResponse{
+					StatusCode:    responseStatus,
+					StatusMessage: responseMessage,
+					Result:        &result,
+				}
+
+				c.Data["json"] = response
+			}
+		} else {
+			logs.Info("Transaction not found for ID: %s", v.Data.ClientReference)
+			response := responses.CallbackResponse{
+				StatusCode:    false,
+				StatusMessage: "Transaction not found",
+				Result:        nil,
+			}
+
+			c.Data["json"] = response
+		}
+
+	}
+
+	c.ServeJSON()
+}

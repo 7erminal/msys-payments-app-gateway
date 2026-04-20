@@ -14,63 +14,67 @@ type PaymentApiRequestDTO struct {
 }
 
 type RequestMoneyApiRequestDTO struct {
-	InitiatedBy     int64
-	Amount          float64
-	Service         string
-	Sender          int64
-	Reciever        int64
-	PhoneNumber     string
-	CustomerName    string
-	CustomerMsisdn  string
-	CustomerEmail   string
-	SenderAccount   string
-	ReceiverAccount string
-	Currency        string
-	PaymentMethod   string
-	TransactionId   string
-	PaymentProofUrl string
-	ReferenceNumber string
-	CallThirdParty  bool
-	Operator        string
-	Network         string
-	ServiceNetwork  string
-	ServicePackage  string
-	ClientId        string
+	InitiatedBy         int64
+	Amount              float64
+	Service             string
+	Sender              int64
+	Reciever            int64
+	PhoneNumber         string
+	CustomerName        string
+	CustomerMsisdn      string
+	CustomerEmail       string
+	SenderAccount       string
+	ReceiverAccount     string
+	Currency            string
+	PaymentMethod       string
+	TransactionId       string
+	PaymentProofUrl     string
+	ReferenceNumber     string
+	CallThirdParty      bool
+	Operator            string
+	Network             string
+	ServiceNetwork      string
+	ServicePackage      string
+	ClientId            string
+	CallbackServiceCode string
 }
 
 type MakePaymentApiRequestDTO struct {
-	InitiatedBy     int64
-	Amount          float64
-	Service         string
-	Sender          int64
-	Reciever        int64
-	SenderAccount   string
-	ReceiverAccount string
-	Currency        string
-	PaymentMethod   string
-	TransactionId   string
-	PaymentProofUrl string
-	ReferenceNumber string
-	CallThirdParty  bool
-	Operator        string
-	Network         string
-	ServiceNetwork  string
-	ServicePackage  string
-	ClientId        string
+	InitiatedBy         int64
+	Amount              float64
+	Service             string
+	ServiceCode         string
+	Sender              int64
+	Reciever            int64
+	SenderAccount       string
+	ReceiverAccount     string
+	Currency            string
+	PaymentMethod       string
+	TransactionId       string
+	PaymentProofUrl     string
+	ReferenceNumber     string
+	CallThirdParty      bool
+	Operator            string
+	Network             string
+	ServiceNetwork      string
+	ServicePackage      string
+	ClientId            string
+	CallbackServiceCode string
 }
 
 type PaymentRequestApiRequestDTO struct {
-	Amount          float64
-	Service         string
-	PaymentMethod   string
-	SenderAccount   string
-	ReceiverAccount string
-	ClientId        string
-	Network         string
-	ServiceNetwork  string
-	ServicePackage  string
-	MobileNumber    string
-	TransactionId   string
+	Amount              float64
+	Service             string
+	PaymentMethod       string
+	SenderAccount       string
+	ReceiverAccount     string
+	ClientId            string
+	Network             string
+	ServiceNetwork      string
+	ServicePackage      string
+	MobileNumber        string
+	TransactionId       string
+	CallbackServiceCode string
 }
 
 type MomoPaymentRequestDTO struct {
