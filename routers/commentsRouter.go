@@ -520,4 +520,13 @@ func init() {
             Filters: nil,
             Params: nil})
 
+    beego.GlobalControllerRouter["msys_payment_app_gateway/controllers:CallbackController"] = append(beego.GlobalControllerRouter["msys_payment_app_gateway/controllers:CallbackController"],
+        beego.ControllerComments{
+            Method: "UserTransactionCallback",
+            Router: `/user-transaction-callback`,
+            AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
 }
