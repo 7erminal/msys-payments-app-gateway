@@ -637,14 +637,14 @@ func (c *Agent_api_requestsController) LoanRepayment() {
 		transactionLog := requests.UserTransactionRequestDTO{
 			SourceChannel:            sourceSystem,
 			RequestId:                requestIdStr,
-			SourceAccountNumber:      v.AccountNumber,
+			SourceAccountNumber:      v.MobileNumber,
 			DestinationAccountNumber: v.AccountNumber,
 			Amount:                   vAmountFloat,
-			ServiceCode:              "DEPOSIT",
+			ServiceCode:              "LOAN_REPAYMENT",
 			ClientReference:          "",
 			ExtraData:                extraData,
 			Package:                  amountString,
-			PhoneNumber:              v.MobileNumber,
+			PhoneNumber:              userData.PhoneNumber,
 			CreatedBy:                strconv.FormatInt(userData.UserId, 10),
 			Status:                   "PENDING",
 		}
