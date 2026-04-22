@@ -759,7 +759,7 @@ func (c *Agent_api_requestsController) LoanRepayment() {
 				req := requests.LoanRepaymentApiRequest{
 					AccountNumber: v.AccountNumber,
 					Amount:        v.Amount,
-					MobileNumber:  v.MobileNumber,
+					MobileNumber:  userData.PhoneNumber,
 					LoanId:        v.LoanId,
 					ClientId:      v.ClientId,
 					PaymentMode:   paymentMethod,
