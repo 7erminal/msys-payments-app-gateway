@@ -10,6 +10,7 @@ type LoanRepaymentApiRequest struct {
 	MobileNumber  string `json:"mobileNumber"`
 	LoanId        string `json:"loanId"`
 	ClientId      string `json:"clientId"`
+	PaymentMode   string `json:"paymentMode"`
 }
 
 type LoanRepaymentRequest struct {

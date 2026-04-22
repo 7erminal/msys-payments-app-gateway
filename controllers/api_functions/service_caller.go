@@ -3351,6 +3351,7 @@ func LoanRepayment(c *beego.Controller, req requests.LoanRepaymentApiRequest) (r
 	request.InterfaceParams["loanId"] = req.LoanId
 	request.InterfaceParams["amount"] = req.Amount
 	request.InterfaceParams["accountNumber"] = req.AccountNumber
+	request.InterfaceParams["paymentMethod"] = req.PaymentMode
 
 	client := api.Client{
 		Request: request,

@@ -591,6 +591,17 @@ func (c *Agent_api_requestsController) LoanRepayment() {
 		c.ServeJSON()
 		return
 	}
+
+	paymentMethod := v.PaymentMethod
+
+	if paymentMethod == "" {
+		paymentMethod = "CASH"
+	}
+
+	if paymentMethod == "MOBILEMONEY" {
+		paymentMethod = "MOMO"
+	}
+
 	var ap models.Api_requests = models.Api_requests{
 		Request:      string(reqText),
 		PhoneNumber:  v.MobileNumber,
@@ -750,6 +761,7 @@ func (c *Agent_api_requestsController) LoanRepayment() {
 					MobileNumber:  v.MobileNumber,
 					LoanId:        v.LoanId,
 					ClientId:      v.ClientId,
+					PaymentMode:   paymentMethod,
 				}
 
 				logs.Info("Loan repayment request: ", func() string { b, _ := json.Marshal(req); return string(b) }())
