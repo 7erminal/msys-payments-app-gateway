@@ -773,7 +773,7 @@ func (c *Agent_api_requestsController) LoanRepayment() {
 				if resp.StatusCode == true {
 					logs.Info("Successfully fetched account statement")
 					status = true
-					statusMessage = "Successfully fetched account loans"
+					statusMessage = "Successfully paid account loan"
 
 				} else {
 					logs.Error("Error fetching account statement")
