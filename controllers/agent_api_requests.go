@@ -699,17 +699,18 @@ func (c *Agent_api_requestsController) LoanRepayment() {
 				if v.PaymentMethod == "MOBILEMONEY" {
 					logs.Info("Payment method is mobile money. About to request ", vAmountFloat, " from customer phone number ", v.MobileNumber)
 					req2 := requests.PaymentRequestApiRequestDTO{
-						ClientId:        v.ClientId,
-						Amount:          vAmountFloat,
-						PaymentMethod:   v.PaymentMethod,
-						Service:         "LOAN_REPAYMENT",
-						SenderAccount:   v.AccountNumber,
-						ReceiverAccount: v.AccountNumber,
-						Network:         network,
-						ServiceNetwork:  v.ClientId,
-						ServicePackage:  strconv.FormatFloat(vAmountFloat, 'f', -1, 64),
-						MobileNumber:    v.MobileNumber,
-						TransactionId:   txn.Result.TransactionId,
+						ClientId:            v.ClientId,
+						Amount:              vAmountFloat,
+						PaymentMethod:       v.PaymentMethod,
+						Service:             "LOAN_REPAYMENT",
+						SenderAccount:       v.AccountNumber,
+						ReceiverAccount:     v.AccountNumber,
+						Network:             network,
+						ServiceNetwork:      v.ClientId,
+						ServicePackage:      strconv.FormatFloat(vAmountFloat, 'f', -1, 64),
+						MobileNumber:        v.MobileNumber,
+						TransactionId:       txn.Result.TransactionId,
+						CallbackServiceCode: "USER_PAYMENT",
 					}
 					//
 
