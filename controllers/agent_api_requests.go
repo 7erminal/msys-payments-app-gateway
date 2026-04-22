@@ -399,7 +399,7 @@ func (c *Agent_api_requestsController) Deposit() {
 					sendDepositRequest := requests.SendDepositRequest{
 						Amount:        req.Amount,
 						AccountNumber: req.Destination,
-						MobileNumber:  destinationPhoneNumber,
+						MobileNumber:  phoneNumber,
 						PaymentMethod: paymentMethod,
 						ClientId:      clientId,
 					}
