@@ -17,7 +17,6 @@ type LoanRepaymentRequest struct {
 	AccountNumber string `json:"accountNumber"`
 	Amount        string `json:"amount"`
 	PaymentMethod string `json:"paymentMethod"`
-	MobileNumber  string `json:"mobileNumber"`
 	LoanId        string `json:"loanId"`
 	ClientId      string `json:"clientId"`
 }
