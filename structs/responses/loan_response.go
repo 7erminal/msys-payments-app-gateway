@@ -35,7 +35,7 @@ type ListLoansResponse struct {
 type RepayLoanApiResponse struct {
 	Result     string `json:"Result,omitempty"`
 	Client     string `json:"Client,omitempty"`
-	StatusCode int    `json:"StatusCode,omitempty"`
+	StatusCode bool   `json:"StatusCode,omitempty"`
 	StatusDesc string `json:"StatusDesc,omitempty"`
 }
 

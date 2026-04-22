@@ -770,7 +770,7 @@ func (c *Agent_api_requestsController) LoanRepayment() {
 
 				logs.Debug("Response is ", resp)
 
-				if resp.StatusCode == 200 {
+				if resp.StatusCode == true {
 					logs.Info("Successfully fetched account statement")
 					status = true
 					statusMessage = "Successfully fetched account loans"
