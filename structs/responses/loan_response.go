@@ -40,7 +40,7 @@ type RepayLoanApiResponse struct {
 }
 
 type RepayLoanResponse struct {
-	Result        DepositData `json:"Result,omitempty"`
-	Success       bool        `json:"StatusCode,omitempty"`
-	StatusMessage string      `json:"StatusDesc,omitempty"`
+	Result        DepositData
+	Success       bool
+	StatusMessage string
 }
