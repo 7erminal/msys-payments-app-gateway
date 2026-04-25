@@ -293,8 +293,8 @@ func (c *Agent_api_requestsController) Deposit() {
 		requestIdStr := fmt.Sprintf("%d", v.Id)
 		amountString := strconv.FormatFloat(req.Amount, 'f', -1, 64)
 		extraData := requests.ExtraData{
-			ExtraData1: amountString,
-			ExtraData2: strconv.FormatFloat(req.Amount, 'f', -1, 64),
+			ExtraData1: req.CustomerName,
+			ExtraData2: req.CustomerNumber,
 			ExtraData3: network,
 		}
 		transactionLog := requests.UserTransactionRequestDTO{
@@ -641,8 +641,8 @@ func (c *Agent_api_requestsController) LoanRepayment() {
 		// }
 
 		extraData := requests.ExtraData{
-			ExtraData1: amountString,
-			ExtraData2: strconv.FormatFloat(vAmountFloat, 'f', -1, 64),
+			ExtraData1: v.CustomerName,
+			ExtraData2: v.CustomerNumber,
 			ExtraData3: network,
 		}
 		transactionLog := requests.UserTransactionRequestDTO{

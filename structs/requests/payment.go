@@ -112,11 +112,13 @@ type DepositAPIRequest struct {
 }
 
 type AgentDepositRequest struct {
-	Amount        float64 `json:"amount" valid:"required~Amount is required"`
-	Destination   string  `json:"destination" valid:"required~Destination is required"`
-	Source        string  `json:"source" valid:"required~Source is required"`
-	PaymentMethod string  `json:"payment_method" valid:"required~Payment method is required"`
-	ClientId      string  `json:"client_id" valid:"required~Client ID is required"`
+	CustomerName   string  `json:"customerName"`
+	CustomerNumber string  `json:"customerNumber"`
+	Amount         float64 `json:"amount" valid:"required~Amount is required"`
+	Destination    string  `json:"destination" valid:"required~Destination is required"`
+	Source         string  `json:"source" valid:"required~Source is required"`
+	PaymentMethod  string  `json:"payment_method" valid:"required~Payment method is required"`
+	ClientId       string  `json:"client_id" valid:"required~Client ID is required"`
 }
 
 type WithdrawalAPIRequest struct {

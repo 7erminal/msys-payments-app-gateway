@@ -14,9 +14,11 @@ type LoanRepaymentApiRequest struct {
 }
 
 type LoanRepaymentRequest struct {
-	AccountNumber string `json:"accountNumber"`
-	Amount        string `json:"amount"`
-	PaymentMethod string `json:"paymentMethod"`
-	LoanId        string `json:"loanId"`
-	ClientId      string `json:"clientId"`
+	CustomerName   string
+	CustomerNumber string
+	AccountNumber  string `json:"accountNumber"`
+	Amount         string `json:"amount"`
+	PaymentMethod  string `json:"paymentMethod"`
+	LoanId         string `json:"loanId"`
+	ClientId       string `json:"clientId"`
 }
