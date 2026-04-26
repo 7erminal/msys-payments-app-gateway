@@ -292,8 +292,8 @@ func (c *Agent_api_requestsController) Deposit() {
 
 		requestIdStr := fmt.Sprintf("%d", v.Id)
 		extraData := requests.ExtraData{
-			ExtraData1: req.CustomerName,
-			ExtraData2: req.CustomerNumber,
+			ExtraData1: strings.Trim(req.CustomerName, " "),
+			ExtraData2: strings.Trim(req.CustomerNumber, " "),
 			ExtraData3: paymentMethod,
 		}
 		transactionLog := requests.UserTransactionRequestDTO{
@@ -639,8 +639,8 @@ func (c *Agent_api_requestsController) LoanRepayment() {
 		// }
 
 		extraData := requests.ExtraData{
-			ExtraData1: v.CustomerName,
-			ExtraData2: v.CustomerNumber,
+			ExtraData1: strings.Trim(v.CustomerName, " "),
+			ExtraData2: strings.Trim(v.CustomerNumber, " "),
 			ExtraData3: paymentMethod,
 		}
 		transactionLog := requests.UserTransactionRequestDTO{
