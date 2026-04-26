@@ -154,9 +154,9 @@ type TransferApiResponseDTO struct {
 }
 
 type UserTransactionsApiResponseDTO struct {
-	StatusCode int                     `json:"success"`
-	StatusDesc string                  `json:"statusDesc"`
-	Result     *[]UserTransactionsData `json:"result"`
+	StatusCode int
+	StatusDesc string
+	Result     *[]UserTransactionsData
 }
 
 type TransactionsApiResponseDTO struct {
