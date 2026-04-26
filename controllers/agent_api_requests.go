@@ -291,11 +291,10 @@ func (c *Agent_api_requestsController) Deposit() {
 		logs.Info("API request logged successfully: ", v)
 
 		requestIdStr := fmt.Sprintf("%d", v.Id)
-		amountString := strconv.FormatFloat(req.Amount, 'f', -1, 64)
 		extraData := requests.ExtraData{
 			ExtraData1: req.CustomerName,
 			ExtraData2: req.CustomerNumber,
-			ExtraData3: network,
+			ExtraData3: paymentMethod,
 		}
 		transactionLog := requests.UserTransactionRequestDTO{
 			SourceChannel:            sourceSystem,
@@ -306,7 +305,7 @@ func (c *Agent_api_requestsController) Deposit() {
 			ServiceCode:              "DEPOSIT",
 			ClientReference:          "",
 			ExtraData:                extraData,
-			Package:                  amountString,
+			Package:                  network,
 			PhoneNumber:              phoneNumber,
 			CreatedBy:                strconv.FormatInt(userData.UserId, 10),
 			Status:                   "PENDING",
@@ -617,7 +616,6 @@ func (c *Agent_api_requestsController) LoanRepayment() {
 		requestIdStr := fmt.Sprintf("%d", apiReq)
 		logs.Info("Amount from request is ", v.Amount)
 		vAmountFloat, _ := strconv.ParseFloat(v.Amount, 64)
-		amountString := strconv.FormatFloat(vAmountFloat, 'f', -1, 64)
 		logs.Info("Float amount is ", vAmountFloat)
 		// transactionLog := requests.LogTransactionRequest{
 		// 	RequestId:                requestIdStr,
@@ -643,7 +641,7 @@ func (c *Agent_api_requestsController) LoanRepayment() {
 		extraData := requests.ExtraData{
 			ExtraData1: v.CustomerName,
 			ExtraData2: v.CustomerNumber,
-			ExtraData3: network,
+			ExtraData3: paymentMethod,
 		}
 		transactionLog := requests.UserTransactionRequestDTO{
 			SourceChannel:            sourceSystem,
@@ -654,7 +652,7 @@ func (c *Agent_api_requestsController) LoanRepayment() {
 			ServiceCode:              "LOAN_REPAYMENT",
 			ClientReference:          "",
 			ExtraData:                extraData,
-			Package:                  amountString,
+			Package:                  network,
 			PhoneNumber:              userData.PhoneNumber,
 			CreatedBy:                strconv.FormatInt(userData.UserId, 10),
 			Status:                   "PENDING",
@@ -827,7 +825,7 @@ func (c *Agent_api_requestsController) GetAgentTransactions() {
 
 	status := false
 	statusMessage := "Error retrieving agent float"
-	result := []responses.Trx_transactions{}
+	result := []responses.TxnResp{}
 
 	reqBody := c.Ctx.Input.RequestBody
 	reqHeaders := c.Ctx.Request.Header
@@ -918,7 +916,7 @@ func (c *Agent_api_requestsController) GetAgentTransactions() {
 				response := responses.AgentTransactionsResponse{
 					Success:    status,
 					StatusDesc: statusMessage,
-					Result:     result,
+					Result:     &result,
 				}
 
 				c.Data["json"] = response
@@ -926,7 +924,7 @@ func (c *Agent_api_requestsController) GetAgentTransactions() {
 				return
 			}
 
-			allTrxns := []responses.Trx_transactions{}
+			allTrxns := []responses.TxnResp{}
 
 			for _, user := range *getUser.Users {
 				logs.Debug("User fetched for agent code ", req.AgentCode, ": ", user.FullName)
@@ -941,7 +939,33 @@ func (c *Agent_api_requestsController) GetAgentTransactions() {
 					status = true
 					statusMessage = "Successfully fetched agent transactions"
 					if resp.Result != nil {
-						allTrxns = append(allTrxns, *resp.Result...)
+						for _, txn := range *resp.Result {
+							txnResp := responses.TxnResp{
+								TransactionRefNumber:    txn.TransactionId,
+								Service:                 txn.Service,
+								BillerCode:              txn.Service,
+								CustomerName:            txn.ExtraDetails1,
+								CustomerNumber:          txn.ExtraDetails2,
+								Amount:                  txn.Amount,
+								TransactingCurrency:     txn.TransactingCurrency,
+								SourceChannel:           txn.SourceChannel,
+								SourceAccount:           txn.Source,
+								DestinationAccount:      txn.Destination,
+								Package:                 txn.Package,
+								Charge:                  txn.Charge,
+								ExternalReferenceNumber: txn.ExternalReferenceNumber,
+								Status:                  txn.Status,
+								CorpId:                  userData.UserDetails.Branch.Branch,
+								ExtraDetails1:           txn.ExtraDetails1,
+								ExtraDetails2:           txn.ExtraDetails2,
+								ExtraDetails3:           txn.ExtraDetails3,
+								TransactionDate:         txn.DateCreated,
+								OfficerName:             user.FullName,
+								OfficerNumber:           user.PhoneNumber,
+								Active:                  1,
+							}
+							allTrxns = append(allTrxns, txnResp)
+						}
 					} else {
 						logs.Info("No transactions found for the agent in the specified date range")
 						statusMessage = "No transactions found for the agent in the specified date range"
@@ -961,7 +985,7 @@ func (c *Agent_api_requestsController) GetAgentTransactions() {
 	response := responses.AgentTransactionsResponse{
 		Success:    status,
 		StatusDesc: statusMessage,
-		Result:     result,
+		Result:     &result,
 	}
 
 	c.Data["json"] = response

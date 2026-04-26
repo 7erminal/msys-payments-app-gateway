@@ -9,6 +9,6 @@ type AgentResponse struct {
 
 type AgentTransactionsResponse struct {
 	Success    bool
-	Result     interface{}
+	Result     *[]TxnResp
 	StatusDesc string
 }

@@ -371,13 +371,13 @@ func OpenAccount(c *beego.Controller, req requests.OpenAccountApiRequest) (resp 
 	return data
 }
 
-func GetAgentTransactions(c *beego.Controller, query string) (resp responses.TransactionsApiResponseDTO) {
-	host, _ := beego.AppConfig.String("transferBaseUrl")
+func GetAgentTransactions(c *beego.Controller, query string) (resp responses.UserTransactionsApiResponseDTO) {
+	host, _ := beego.AppConfig.String("transactionBaseUrl")
 
 	logs.Info("Getting agent transactions with query ", query)
 	request := api.NewRequest(
 		host,
-		"/v1/transfer/transactions",
+		"/v2/transactions/user-transactions",
 		api.GET)
 	// request.Params["username"] = username
 	// request.Params = {"UserId": strconv.Itoa(int(userid))}
@@ -405,7 +405,7 @@ func GetAgentTransactions(c *beego.Controller, query string) (resp responses.Tra
 		logs.Info("Raw response received is \n", prettyJSON.String())
 	}
 	// data := map[string]interface{}{}
-	var data responses.TransactionsApiResponseDTO
+	var data responses.UserTransactionsApiResponseDTO
 	json.Unmarshal(read, &data)
 	c.Data["json"] = data
 

@@ -81,6 +81,12 @@ type LogUserTransactionResponse struct {
 	StatusDesc string
 }
 
+type UserTransactionsResponse struct {
+	Success       bool
+	Result        *[]TxnResp
+	StatusMessage string
+}
+
 type TxnResp struct {
 	TransactionRefNumber    string
 	Service                 string
@@ -145,6 +151,12 @@ type TransferApiResponseDTO struct {
 	StatusCode int               `json:"success"`
 	StatusDesc string            `json:"statusDesc"`
 	Result     *Trx_transactions `json:"result"`
+}
+
+type UserTransactionsApiResponseDTO struct {
+	StatusCode int                     `json:"success"`
+	StatusDesc string                  `json:"statusDesc"`
+	Result     *[]UserTransactionsData `json:"result"`
 }
 
 type TransactionsApiResponseDTO struct {
