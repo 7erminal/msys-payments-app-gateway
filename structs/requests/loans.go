@@ -14,8 +14,8 @@ type LoanRepaymentApiRequest struct {
 }
 
 type LoanRepaymentRequest struct {
-	CustomerName   string
-	CustomerNumber string
+	CustomerName   string `json:"customerName"`
+	CustomerNumber string `json:"customerNumber"`
 	AccountNumber  string `json:"accountNumber"`
 	Amount         string `json:"amount"`
 	PaymentMethod  string `json:"paymentMethod"`
