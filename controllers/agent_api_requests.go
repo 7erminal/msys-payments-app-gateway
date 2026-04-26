@@ -1348,6 +1348,11 @@ func (c *Agent_api_requestsController) GetBilTransactionWithTransactionRef() {
 				TransactionDate:         resp.Result.DateCreated,
 				OfficerName:             resp.Result.CreatedBy,
 				OfficerNumber:           resp.Result.CreatedBy,
+				ExtraDetails1:           resp.Result.ExtraDetails1,
+				ExtraDetails2:           resp.Result.ExtraDetails2,
+				ExtraDetails3:           resp.Result.ExtraDetails3,
+				CorpId:                  "",
+				Active:                  1,
 			}
 		}
 
