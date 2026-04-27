@@ -529,14 +529,36 @@ func (c *CallbackController) RequestMoneyCallback() {
 
 					if resp.Result.Service == "DEPOSIT" {
 						logs.Info("Amount to deposit is ", resp.Result.Amount)
-						helpers.LogAccountActivity(&c.Controller, resp.Result.ReceiverAccount, "Deposit", resp.Result.Amount, resp.Result.ServiceNetwork, "credit")
+						depositReq := requests.AccountActivityRequest{
+							AccountNumber: resp.Result.SenderAccount,
+							ClientId:      clientId,
+							Reference:     resp.Result.ServiceNetwork,
+							Amount:        resp.Result.PaymentAmount,
+							ActivityType:  "Deposit",
+							ActivityBy:    "customer",
+							MobileNumber:  resp.Result.SenderAccount,
+							PaymentMethod: "ACCOUNT",
+						}
+						// helpers.LogAccountActivity(&c.Controller, resp.Result.SenderAccount, "Withdrawal", resp.Result.PaymentAmount, resp.Result.ServiceNetwork, "debit", "customer")
+						helpers.LogAccountActivity(&c.Controller, depositReq)
 						responseStatus = true
 						responseMessage = resp.StatusMessage
 					}
 
 					if resp.Result.Service == "WITHDRAWAL" {
 						logs.Info("Amount to withdraw is ", resp.Result.PaymentAmount)
-						helpers.LogAccountActivity(&c.Controller, resp.Result.SenderAccount, "Withdrawal", resp.Result.PaymentAmount, resp.Result.ServiceNetwork, "debit")
+						withdrawalReq := requests.AccountActivityRequest{
+							AccountNumber: resp.Result.SenderAccount,
+							ClientId:      clientId,
+							Reference:     resp.Result.ServiceNetwork,
+							Amount:        resp.Result.PaymentAmount,
+							ActivityType:  "Withdrawal",
+							ActivityBy:    "customer",
+							MobileNumber:  resp.Result.SenderAccount,
+							PaymentMethod: "ACCOUNT",
+						}
+						// helpers.LogAccountActivity(&c.Controller, resp.Result.SenderAccount, "Withdrawal", resp.Result.PaymentAmount, resp.Result.ServiceNetwork, "debit", "customer")
+						helpers.LogAccountActivity(&c.Controller, withdrawalReq)
 						responseStatus = true
 						responseMessage = resp.StatusMessage
 					}
@@ -987,10 +1009,49 @@ func (c *CallbackController) UserTransactionCallback() {
 					responseMessage = resp.StatusMessage
 
 					if resp.Result.Service == "DEPOSIT" {
-						logs.Info("Amount to deposit is ", resp.Result.Amount)
-						helpers.LogAccountActivity(&c.Controller, resp.Result.ReceiverAccount, "Deposit", resp.Result.Amount, resp.Result.ServiceNetwork, "credit")
+						logs.Info("Amount to deposit is ", transaction.Result.Amount)
+						depositReq := requests.AccountActivityRequest{
+							AccountNumber: transaction.Result.Destination,
+							ClientId:      transaction.Result.ClientReferenceId,
+							Reference:     transaction.Result.Reference,
+							Amount:        transaction.Result.Amount,
+							ActivityType:  "Deposit",
+							ActivityBy:    "user",
+							MobileNumber:  transaction.Result.Source,
+							PaymentMethod: "ACCOUNT",
+						}
+						// helpers.LogAccountActivity(&c.Controller, resp.Result.SenderAccount, "Withdrawal", resp.Result.PaymentAmount, resp.Result.ServiceNetwork, "debit", "customer")
+						helpers.LogAccountActivity(&c.Controller, depositReq)
+						// helpers.LogAccountActivity(&c.Controller, transaction.Result.Destination, "Deposit", transaction.Result.Amount, transaction.Result.ClientReferenceId, "credit", "agent")
 						responseStatus = true
-						responseMessage = resp.StatusMessage
+						responseMessage = transaction.StatusDesc
+					}
+
+					if resp.Result.Service == "LOAN_REPAYMENT" {
+						req := requests.LoanRepaymentApiRequest{
+							AccountNumber: transaction.Result.Destination,
+							Amount:        fmt.Sprintf("%.2f", transaction.Result.Amount),
+							MobileNumber:  transaction.Result.Source,
+							LoanId:        transaction.Result.Reference,
+							ClientId:      transaction.Result.ClientReferenceId,
+							PaymentMode:   transaction.Result.ExtraDetails3,
+						}
+
+						logs.Info("Loan repayment request: ", func() string { b, _ := json.Marshal(req); return string(b) }())
+
+						resp := apifunctions.LoanRepayment(&c.Controller, req)
+
+						logs.Debug("Response is ", resp)
+
+						if resp.StatusCode == true {
+							logs.Info("Successfully fetched account statement")
+							responseStatus = true
+							responseMessage = "Successfully paid account loan"
+
+						} else {
+							logs.Error("Error fetching account statement")
+							responseMessage = resp.StatusDesc
+						}
 					}
 
 					// if resp.Result.Service == "WITHDRAWAL" {

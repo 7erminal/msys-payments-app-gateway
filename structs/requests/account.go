@@ -43,3 +43,14 @@ type CloseAccountRequest struct {
 type GetCorporativesRequest struct {
 	RequestId string `json:"request_id"`
 }
+
+type AccountActivityRequest struct {
+	AccountNumber string
+	ClientId      string
+	Reference     string
+	Amount        float64
+	ActivityType  string
+	ActivityBy    string
+	MobileNumber  string
+	PaymentMethod string
+}

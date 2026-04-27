@@ -89,6 +89,7 @@ type UserTransactionRequestDTO struct {
 	PhoneNumber              string
 	Amount                   float64
 	DestinationAccountNumber string
+	Reference                string
 	ClientReference          string
 	Package                  string
 	ServiceCode              string
@@ -96,6 +97,12 @@ type UserTransactionRequestDTO struct {
 	ExtraData                ExtraData
 	CreatedBy                string
 	Status                   string
+}
+
+type UpdateUserTransactionRequestDTO struct {
+	TransactionId   string
+	ClientReference string
+	Status          string
 }
 
 type SendDepositRequest struct {

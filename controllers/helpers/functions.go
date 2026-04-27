@@ -462,7 +462,7 @@ func LogTransferTransaction(c *beego.Controller, transferRequest requests.Transf
 	return resp, nil
 }
 
-func LogAccountActivity(c *beego.Controller, accountNumber string, reference string, amount float64, clientid string, activityType string) (activityResponse responses.AccountActivityResponse) {
+func LogAccountActivity(c *beego.Controller, acReq requests.AccountActivityRequest) (activityResponse responses.AccountActivityResponse) {
 	// type DebitAccountRequestV2 struct {
 	// 	AccountNumber string
 	// 	Amount        string
@@ -470,7 +470,11 @@ func LogAccountActivity(c *beego.Controller, accountNumber string, reference str
 	// 	Channel       string
 	// }
 
-	logs.Info("Client ID received:: ", clientid)
+	if acReq.ActivityBy == "" {
+		acReq.ActivityBy = "customer"
+	}
+
+	logs.Info("Client ID received:: ", acReq.ClientId)
 	activityResponse = responses.AccountActivityResponse{
 		StatusCode:    false,
 		StatusMessage: "Error processing account activity",
@@ -480,8 +484,8 @@ func LogAccountActivity(c *beego.Controller, accountNumber string, reference str
 	channel := "GHCOOPS"
 
 	req := requests.AccountBalanceApiRequest{
-		AccountNumber: accountNumber,
-		ClientId:      clientid,
+		AccountNumber: acReq.AccountNumber,
+		ClientId:      acReq.ClientId,
 	}
 
 	_, file, line, ok := runtime.Caller(0)
@@ -491,7 +495,7 @@ func LogAccountActivity(c *beego.Controller, accountNumber string, reference str
 		file = "unknown"
 		line = 0
 	}
-	utilManager.Logger(filepath.Base(file), line, reference, "INFO", fmt.Sprintf("Fetching account balance for account number: %s with amount: %f", accountNumber, amount))
+	utilManager.Logger(filepath.Base(file), line, acReq.Reference, "INFO", fmt.Sprintf("Fetching account balance for account number: %s with amount: %f", acReq.AccountNumber, acReq.Amount))
 	resp := GetAccountBalance(c, req)
 
 	response := responses.AccountBalanceResponse{}
@@ -521,14 +525,14 @@ func LogAccountActivity(c *beego.Controller, accountNumber string, reference str
 		}
 
 		// Debit/Credit the account
-		logs.Info("Logging account activity of type ", activityType, " for account number: ", accountNumber, " with amount: ", amount)
+		logs.Info("Logging account activity of type ", acReq.ActivityType, " for account number: ", acReq.AccountNumber, " with amount: ", acReq.Amount)
 
-		if strings.EqualFold(activityType, "debit") {
+		if strings.EqualFold(acReq.ActivityType, "debit") {
 			logs.Info("Debit activity")
 			debitAccReq := requests.DebitAccountRequest{
-				Amount:     amount,
+				Amount:     acReq.Amount,
 				ModifiedBy: 1, // System user
-				Reason:     reference,
+				Reason:     acReq.Reference,
 				AccountId:  resp.CustomerAccount.CustomerAccountId,
 			}
 			debitAccResp := apifunctions.DebitAccount(c, debitAccReq)
@@ -543,13 +547,13 @@ func LogAccountActivity(c *beego.Controller, accountNumber string, reference str
 			} else {
 				logs.Info("Account debited internally successfully: ", debitAccResp.Result)
 
-				logs.Info("Sending client ID to debit:: ", clientid)
+				logs.Info("Sending client ID to debit:: ", acReq.ClientId)
 				debitReq := requests.DebitAccountRequestV2{
-					AccountNumber: accountNumber,
-					Amount:        strconv.FormatFloat(amount, 'f', 2, 64),
-					Reference:     reference,
+					AccountNumber: acReq.AccountNumber,
+					Amount:        strconv.FormatFloat(acReq.Amount, 'f', 2, 64),
+					Reference:     acReq.Reference,
 					Channel:       channel,
-					ClientId:      clientid,
+					ClientId:      acReq.ClientId,
 				}
 				debitResp := apifunctions.DebitAccountPro(c, debitReq)
 				logs.Info("Debit account response: ", debitResp)
@@ -562,12 +566,12 @@ func LogAccountActivity(c *beego.Controller, accountNumber string, reference str
 						file = "unknown"
 						line = 0
 					}
-					utilManager.Logger(filepath.Base(file), line, reference, "ERROR", fmt.Sprintf("Error debiting account: %s. Reversing internal debit...", debitResp.StatusDesc))
+					utilManager.Logger(filepath.Base(file), line, acReq.Reference, "ERROR", fmt.Sprintf("Error debiting account: %s. Reversing internal debit...", debitResp.StatusDesc))
 
 					creditAccReq := requests.CreditAccountRequest{
-						Amount:     amount,
+						Amount:     acReq.Amount,
 						ModifiedBy: 1, // System user
-						Reason:     reference,
+						Reason:     acReq.Reference,
 						AccountId:  resp.CustomerAccount.CustomerAccountId,
 					}
 					creditAccResp := apifunctions.CreditAccount(c, creditAccReq)
@@ -598,50 +602,78 @@ func LogAccountActivity(c *beego.Controller, accountNumber string, reference str
 					}
 				}
 			}
-		} else if strings.EqualFold(activityType, "credit") {
+		} else if strings.EqualFold(acReq.ActivityType, "credit") {
 			logs.Info("Credit activity")
-			creditReq := requests.CreditAccountRequestV2{
-				AccountNumber: accountNumber,
-				Amount:        strconv.FormatFloat(amount, 'f', 2, 64),
-				Reference:     reference,
-				Channel:       channel,
-				ClientId:      clientid,
-			}
-			creditResp := apifunctions.CreditAccountPro(c, creditReq)
-			logs.Info("Credit account response: ", creditResp)
 
-			if creditResp.StatusCode != 200 {
-				logs.Error("Error crediting account: ", creditResp.StatusDesc)
-				activityResponse = responses.AccountActivityResponse{
-					StatusCode:    false,
-					StatusMessage: "Error crediting account: " + creditResp.StatusDesc,
-					Result:        "",
+			if acReq.ActivityBy == "customer" {
+				creditReq := requests.CreditAccountRequestV2{
+					AccountNumber: acReq.AccountNumber,
+					Amount:        strconv.FormatFloat(acReq.Amount, 'f', 2, 64),
+					Reference:     acReq.Reference,
+					Channel:       channel,
+					ClientId:      acReq.ClientId,
 				}
-			} else {
-				logs.Info("Account credit logged successfully: ", creditResp.Result)
-				logs.Info("Credit amount:: ", amount)
-				logs.Info("Proceeding to credit account internally")
-				creditAccReq := requests.CreditAccountRequest{
-					Amount:     amount,
-					ModifiedBy: 1, // System user
-					Reason:     reference,
-					AccountId:  resp.CustomerAccount.CustomerAccountId,
-				}
-				creditAccResp := apifunctions.CreditAccount(c, creditAccReq)
-				logs.Info("Credit account internal response: ", creditAccResp)
-				if creditAccResp.StatusCode != "200" {
-					logs.Error("Error crediting account internally: ", creditAccResp.StatusMessage)
+				creditResp := apifunctions.CreditAccountPro(c, creditReq)
+				logs.Info("Credit account response: ", creditResp)
+
+				if creditResp.StatusCode != 200 {
+					logs.Error("Error crediting account: ", creditResp.StatusDesc)
 					activityResponse = responses.AccountActivityResponse{
 						StatusCode:    false,
-						StatusMessage: "Error crediting account internally: " + creditAccResp.StatusMessage,
+						StatusMessage: "Error crediting account: " + creditResp.StatusDesc,
 						Result:        "",
 					}
 				} else {
-					logs.Info("Account credited internally successfully: ", creditAccResp.Result)
+					logs.Info("Account credit logged successfully: ", creditResp.Result)
+					logs.Info("Credit amount:: ", acReq.Amount)
+					logs.Info("Proceeding to credit account internally")
+					creditAccReq := requests.CreditAccountRequest{
+						Amount:     acReq.Amount,
+						ModifiedBy: 1, // System user
+						Reason:     acReq.Reference,
+						AccountId:  resp.CustomerAccount.CustomerAccountId,
+					}
+					creditAccResp := apifunctions.CreditAccount(c, creditAccReq)
+					logs.Info("Credit account internal response: ", creditAccResp)
+					if creditAccResp.StatusCode != "200" {
+						logs.Error("Error crediting account internally: ", creditAccResp.StatusMessage)
+						activityResponse = responses.AccountActivityResponse{
+							StatusCode:    false,
+							StatusMessage: "Error crediting account internally: " + creditAccResp.StatusMessage,
+							Result:        "",
+						}
+					} else {
+						logs.Info("Account credited internally successfully: ", creditAccResp.Result)
+						activityResponse = responses.AccountActivityResponse{
+							StatusCode:    true,
+							StatusMessage: "Account credited successfully",
+							Result:        creditResp.Result,
+						}
+					}
+				}
+			} else {
+				logs.Info("Proceed to deposit....Client ID is ", acReq.ClientId)
+				sendDepositRequest := requests.SendDepositRequest{
+					Amount:        acReq.Amount,
+					AccountNumber: acReq.AccountNumber,
+					MobileNumber:  acReq.MobileNumber,
+					PaymentMethod: acReq.PaymentMethod,
+					ClientId:      acReq.ClientId,
+				}
+
+				if resp := apifunctions.SendDeposit(c, sendDepositRequest); resp.Data.StatusCode != 200 {
+					logs.Error("Error sending deposit to core banking: ")
+					activityResponse = responses.AccountActivityResponse{
+						StatusCode:    false,
+						StatusMessage: "Error sending deposit to core banking: " + resp.Data.StatusDesc,
+						Result:        "",
+					}
+				} else {
+					logs.Info("Deposit sent to core banking successfully")
 					activityResponse = responses.AccountActivityResponse{
 						StatusCode:    true,
 						StatusMessage: "Account credited successfully",
-						Result:        creditResp.Result,
+						Result:        resp.Data.Result,
 					}
 				}
 			}
@@ -652,8 +684,41 @@ func LogAccountActivity(c *beego.Controller, accountNumber string, reference str
 		logs.Info("Final response for account balance: ", response)
 
 		// Log the activity
+	} else {
+		if acReq.ActivityBy == "user" {
+			logs.Info("Proceed to deposit....Client ID is ", acReq.ClientId)
+			sendDepositRequest := requests.SendDepositRequest{
+				Amount:        acReq.Amount,
+				AccountNumber: acReq.AccountNumber,
+				MobileNumber:  acReq.MobileNumber,
+				PaymentMethod: acReq.PaymentMethod,
+				ClientId:      acReq.ClientId,
+			}
+
+			if resp := apifunctions.SendDeposit(c, sendDepositRequest); resp.Data.StatusCode != 200 {
+				logs.Error("Error sending deposit to core banking: ")
+				activityResponse = responses.AccountActivityResponse{
+					StatusCode:    false,
+					StatusMessage: "Error sending deposit to core banking: " + resp.Data.StatusDesc,
+					Result:        "",
+				}
+			} else {
+				logs.Info("Deposit sent to core banking successfully")
+				activityResponse = responses.AccountActivityResponse{
+					StatusCode:    true,
+					StatusMessage: "Account credited successfully",
+					Result:        resp.Data.Result,
+				}
+			}
+		} else {
+			activityResponse = responses.AccountActivityResponse{
+				StatusCode:    false,
+				StatusMessage: "Please enter a valid account number",
+				Result:        "",
+			}
+		}
 	}
-	logs.Info("Account activity logging completed for account number: ", accountNumber)
+	logs.Info("Account activity logging completed for account number: ", acReq.AccountNumber)
 
 	jsonBytes, err := json.MarshalIndent(activityResponse, "", "  ")
 	if err != nil {

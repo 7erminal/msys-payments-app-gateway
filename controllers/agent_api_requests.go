@@ -391,10 +391,8 @@ func (c *Agent_api_requestsController) Deposit() {
 				} else {
 					isSuccess = true
 					message = "Deposit successful"
-				}
 
-				if isSuccess {
-					logs.Info("Proceed....Client ID is ", clientId)
+					logs.Info("Proceed to deposit....Client ID is ", clientId)
 					sendDepositRequest := requests.SendDepositRequest{
 						Amount:        req.Amount,
 						AccountNumber: req.Destination,
@@ -650,6 +648,7 @@ func (c *Agent_api_requestsController) LoanRepayment() {
 			DestinationAccountNumber: v.AccountNumber,
 			Amount:                   vAmountFloat,
 			ServiceCode:              "LOAN_REPAYMENT",
+			Reference:                v.LoanId,
 			ClientReference:          "",
 			ExtraData:                extraData,
 			Package:                  network,
@@ -738,8 +737,30 @@ func (c *Agent_api_requestsController) LoanRepayment() {
 						}
 					}
 				} else {
-					status = true
-					statusMessage = "Loan repayment successful"
+					req := requests.LoanRepaymentApiRequest{
+						AccountNumber: v.AccountNumber,
+						Amount:        v.Amount,
+						MobileNumber:  userData.PhoneNumber,
+						LoanId:        v.LoanId,
+						ClientId:      v.ClientId,
+						PaymentMode:   paymentMethod,
+					}
+
+					logs.Info("Loan repayment request: ", func() string { b, _ := json.Marshal(req); return string(b) }())
+
+					resp := apifunctions.LoanRepayment(&c.Controller, req)
+
+					logs.Debug("Response is ", resp)
+
+					if resp.StatusCode == true {
+						logs.Info("Successfully fetched account statement")
+						status = true
+						statusMessage = "Successfully paid account loan"
+
+					} else {
+						logs.Error("Error fetching account statement")
+						statusMessage = resp.StatusDesc
+					}
 				}
 
 				txnData.Amount = txn.Result.Amount
@@ -753,32 +774,6 @@ func (c *Agent_api_requestsController) LoanRepayment() {
 				} else {
 					logs.Info("API request updated with response successfully: ", v)
 				}
-
-				req := requests.LoanRepaymentApiRequest{
-					AccountNumber: v.AccountNumber,
-					Amount:        v.Amount,
-					MobileNumber:  userData.PhoneNumber,
-					LoanId:        v.LoanId,
-					ClientId:      v.ClientId,
-					PaymentMode:   paymentMethod,
-				}
-
-				logs.Info("Loan repayment request: ", func() string { b, _ := json.Marshal(req); return string(b) }())
-
-				resp := apifunctions.LoanRepayment(&c.Controller, req)
-
-				logs.Debug("Response is ", resp)
-
-				if resp.StatusCode == true {
-					logs.Info("Successfully fetched account statement")
-					status = true
-					statusMessage = "Successfully paid account loan"
-
-				} else {
-					logs.Error("Error fetching account statement")
-					statusMessage = resp.StatusDesc
-				}
-
 			}
 		}
 	} else {

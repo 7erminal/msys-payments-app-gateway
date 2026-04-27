@@ -2090,7 +2090,17 @@ func (c *Api_requestsController) Withdrawal() {
 
 		} else {
 
-			accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Withdrawal", req.Amount, req.ClientId, "debit")
+			lacReq := requests.AccountActivityRequest{
+				AccountNumber: accountNumber,
+				ClientId:      clientId,
+				Reference:     "Withdrawal",
+				Amount:        req.Amount,
+				ActivityType:  "debit",
+				ActivityBy:    "customer",
+				MobileNumber:  phoneNumber,
+				PaymentMethod: "ACCOUNT",
+			}
+			accountCheckResp := helpers.LogAccountActivity(&c.Controller, lacReq)
 
 			if !accountCheckResp.StatusCode {
 				message = "Withdrawal failed: " + accountCheckResp.StatusMessage
@@ -2412,7 +2422,17 @@ func (c *Api_requestsController) BuyDataBundle() {
 						accountResp := apifunctions.GetCustomerAccount(&c.Controller, accountNumber)
 						proceed := false
 						if accountResp.StatusCode == "200" {
-							accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Data Bundle Purchase", req.Amount, req.ClientId, "debit")
+							lacReq := requests.AccountActivityRequest{
+								AccountNumber: accountNumber,
+								ClientId:      clientId,
+								Reference:     "Data Bundle Purchase",
+								Amount:        req.Amount,
+								ActivityType:  "debit",
+								ActivityBy:    "customer",
+								MobileNumber:  phoneNumber,
+								PaymentMethod: "ACCOUNT",
+							}
+							accountCheckResp := helpers.LogAccountActivity(&c.Controller, lacReq)
 
 							if !accountCheckResp.StatusCode {
 								isSuccess = false
@@ -2701,7 +2721,17 @@ func (c *Api_requestsController) BuyAirtime() {
 
 						proceed := false
 						if accountResp.StatusCode == "200" {
-							accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Airtime Purchase", req.Amount, req.ClientId, "debit")
+							lacReq := requests.AccountActivityRequest{
+								AccountNumber: accountNumber,
+								ClientId:      clientId,
+								Reference:     "Airtime Purchase",
+								Amount:        req.Amount,
+								ActivityType:  "debit",
+								ActivityBy:    "customer",
+								MobileNumber:  phoneNumber,
+								PaymentMethod: "ACCOUNT",
+							}
+							accountCheckResp := helpers.LogAccountActivity(&c.Controller, lacReq)
 
 							if !accountCheckResp.StatusCode {
 								logs.Debug("Error: ", accountCheckResp.StatusMessage)
@@ -3154,7 +3184,17 @@ func (c *Api_requestsController) PayDSTV() {
 
 						proceed := false
 						if accountResp.StatusCode == "200" {
-							accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay DSTV", req.Amount, req.ClientId, "debit")
+							lacReq := requests.AccountActivityRequest{
+								AccountNumber: accountNumber,
+								ClientId:      clientId,
+								Reference:     "Pay DSTV",
+								Amount:        req.Amount,
+								ActivityType:  "debit",
+								ActivityBy:    "customer",
+								MobileNumber:  phoneNumber,
+								PaymentMethod: "ACCOUNT",
+							}
+							accountCheckResp := helpers.LogAccountActivity(&c.Controller, lacReq)
 
 							if !accountCheckResp.StatusCode {
 								response = responses.DSTVBillPaymentResponse{
@@ -3414,7 +3454,17 @@ func (c *Api_requestsController) PayGOTV() {
 							proceed := false
 							if accountResp.StatusCode == "200" {
 								logs.Info("Account number fetched")
-								accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay GOTV", req.Amount, req.ClientId, "debit")
+								lacReq := requests.AccountActivityRequest{
+									AccountNumber: accountNumber,
+									ClientId:      clientId,
+									Reference:     "Pay GOTV",
+									Amount:        req.Amount,
+									ActivityType:  "debit",
+									ActivityBy:    "customer",
+									MobileNumber:  phoneNumber,
+									PaymentMethod: "ACCOUNT",
+								}
+								accountCheckResp := helpers.LogAccountActivity(&c.Controller, lacReq)
 
 								if !accountCheckResp.StatusCode {
 									responseStatus = false
@@ -3652,7 +3702,17 @@ func (c *Api_requestsController) PayECG() {
 
 						proceed := false
 						if accountResp.StatusCode == "200" {
-							accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay ECG", req.Amount, req.ClientId, "debit")
+							lacReq := requests.AccountActivityRequest{
+								AccountNumber: accountNumber,
+								ClientId:      clientId,
+								Reference:     "Pay ECG",
+								Amount:        req.Amount,
+								ActivityType:  "debit",
+								ActivityBy:    "customer",
+								MobileNumber:  phoneNumber,
+								PaymentMethod: "ACCOUNT",
+							}
+							accountCheckResp := helpers.LogAccountActivity(&c.Controller, lacReq)
 
 							if !accountCheckResp.StatusCode {
 								responseStatus = false
@@ -3912,10 +3972,19 @@ func (c *Api_requestsController) PayWaterBill() {
 						proceed := false
 						if accountResp.StatusCode == "200" {
 							logs.Info("Client ID::: ", req.ClientId)
-							accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay Water", req.Amount, req.ClientId, "debit")
+							lacReq := requests.AccountActivityRequest{
+								AccountNumber: accountNumber,
+								ClientId:      clientId,
+								Reference:     "Pay Water",
+								Amount:        req.Amount,
+								ActivityType:  "debit",
+								ActivityBy:    "customer",
+								MobileNumber:  phoneNumber,
+								PaymentMethod: "ACCOUNT",
+							}
 
+							accountCheckResp := helpers.LogAccountActivity(&c.Controller, lacReq)
 							if !accountCheckResp.StatusCode {
-								logs.Error("Error logging account activity for account number: ", accountNumber)
 								responseStatus = false
 								responseMessage = accountCheckResp.StatusMessage
 							} else {
@@ -3940,6 +4009,7 @@ func (c *Api_requestsController) PayWaterBill() {
 
 								proceed = true
 							}
+
 						} else {
 							logs.Error("Error fetching account details for account number: ", accountNumber)
 							logs.Info("Register Customer")
@@ -4150,7 +4220,18 @@ func (c *Api_requestsController) PayStartimesTvBill() {
 
 						proceed := false
 						if accountResp.StatusCode == "200" {
-							accountCheckResp := helpers.LogAccountActivity(&c.Controller, accountNumber, "Pay Startimes", req.Amount, req.ClientId, "debit")
+
+							lacReq := requests.AccountActivityRequest{
+								AccountNumber: accountNumber,
+								ClientId:      clientId,
+								Reference:     "Pay Startimes",
+								Amount:        req.Amount,
+								ActivityType:  "debit",
+								ActivityBy:    "customer",
+								MobileNumber:  phoneNumber,
+								PaymentMethod: "ACCOUNT",
+							}
+							accountCheckResp := helpers.LogAccountActivity(&c.Controller, lacReq)
 
 							if !accountCheckResp.StatusCode {
 								responseStatus = false
@@ -4240,13 +4321,23 @@ func (c *Api_requestsController) PayStartimesTvBill() {
 								}
 
 								if accountNumber != "" {
-									helpers.LogAccountActivity(&c.Controller, accountNumber, "Startimes Purchase", req.Amount, req.ClientId, "debit")
-								}
+									lacReq := requests.AccountActivityRequest{
+										AccountNumber: accountNumber,
+										ClientId:      clientId,
+										Reference:     "Startimes Purchase",
+										Amount:        req.Amount,
+										ActivityType:  "debit",
+										ActivityBy:    "customer",
+										MobileNumber:  phoneNumber,
+										PaymentMethod: "ACCOUNT",
+									}
+									helpers.LogAccountActivity(&c.Controller, lacReq)
 
-								responseStatus = true
-								responseMessage = "Payment is being processed"
-								if resp.Result != nil {
-									result = *resp.Result
+									responseStatus = true
+									responseMessage = "Payment is being processed"
+									if resp.Result != nil {
+										result = *resp.Result
+									}
 								}
 							}
 						}

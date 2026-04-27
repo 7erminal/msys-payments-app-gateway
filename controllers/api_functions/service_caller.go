@@ -1031,6 +1031,53 @@ func LogUserTransaction(c *beego.Controller, req requests.UserTransactionRequest
 	request.InterfaceParams["ClientReference"] = req.ClientReference
 	request.InterfaceParams["CreatedBy"] = req.CreatedBy
 	request.InterfaceParams["Status"] = req.Status
+	request.InterfaceParams["Reference"] = req.Reference
+	client := api.Client{
+		Request: request,
+		Type_:   "body",
+	}
+	res, err := client.SendRequest()
+	if err != nil {
+		logs.Error("client.Error: %v", err)
+		c.Data["json"] = err.Error()
+	}
+	defer res.Body.Close()
+	read, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	}
+
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, read, "", "  "); err != nil {
+		logs.Info("Raw response received is ", string(read))
+	} else {
+		logs.Info("Raw response received is \n", prettyJSON.String())
+	}
+	// data := map[string]interface{}{}
+	var data responses.UserTransactionApiResponse
+	json.Unmarshal(read, &data)
+	c.Data["json"] = data
+
+	logs.Info("Resp is ", data)
+	// logs.Info("Resp is ", data.User)
+
+	return data
+}
+
+func UpdateUserTransaction(c *beego.Controller, req requests.UpdateUserTransactionRequestDTO) (resp responses.UserTransactionApiResponse) {
+	host, _ := beego.AppConfig.String("transactionBaseUrl")
+
+	request := api.NewRequest(
+		host,
+		"/v2/transactions/user-transaction/"+req.TransactionId,
+		api.PUT)
+	// request.Params["username"] = username
+	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+
+	request.Params["ClientReference"] = req.ClientReference
+	request.Params["Status"] = req.Status
+
+	request.InterfaceParams["ClientReference"] = req.ClientReference
 	client := api.Client{
 		Request: request,
 		Type_:   "body",
@@ -1395,6 +1442,10 @@ func UpdateAccountBalance(c *beego.Controller, req requests.UpdateAccountBalance
 	// request.Params["username"] = username
 	// request.Params = {"UserId": strconv.Itoa(int(userid))}
 	// request.HeaderField["clientId"] = req.ClientId
+
+	// request.Params["balance"] = fmt.Sprintf("%v", req.Balance)
+	// request.Params["modified_by"] = fmt.Sprintf("%v", req.ModifiedBy)
+	// request.Params["reason"] = req.Reason
 
 	request.InterfaceParams["balance"] = req.Balance
 	request.InterfaceParams["modified_by"] = req.ModifiedBy
