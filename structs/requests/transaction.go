@@ -112,3 +112,10 @@ type SendDepositRequest struct {
 	PaymentMethod string
 	ClientId      string
 }
+
+type UpdateUserTransactionApiRequest struct {
+	ClientReference    string
+	Status             string
+	ClientResponseCode string
+	TransactionId      string
+}

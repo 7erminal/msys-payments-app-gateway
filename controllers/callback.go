@@ -903,8 +903,11 @@ func (c *CallbackController) UserTransactionCallback() {
 		callbackReq := requests.PaymentCallbackData{}
 		proceed := false
 
+		status := "FAILED"
+
 		if v.ResponseCode == "0000" {
 			logs.Info("Successful payment callback received for transaction: ", v.Data.ClientReference)
+			status = "SUCCESS"
 			callbackReq = requests.PaymentCallbackData{
 				AmountCharged:         v.Data.Amount,
 				TransactionId:         v.Data.TransactionId,
@@ -916,12 +919,13 @@ func (c *CallbackController) UserTransactionCallback() {
 				AmountAfterCharges:    v.Data.AmountAfterCharges,
 				PaymentDate:           v.Data.PaymentDate,
 				OrderId:               v.Data.OrderId,
-				Status:                "SUCCESS",
+				Status:                status,
 			}
 
 			proceed = true
 		} else {
 			logs.Info("Failed payment callback received for transaction: ", v.Data.ClientReference)
+			status = "FAILED"
 			callbackReq = requests.PaymentCallbackData{
 				AmountCharged:         v.Data.Amount,
 				TransactionId:         v.Data.TransactionId,
@@ -934,7 +938,7 @@ func (c *CallbackController) UserTransactionCallback() {
 				AmountAfterCharges:    v.Data.AmountAfterCharges,
 				PaymentDate:           v.Data.PaymentDate,
 				OrderId:               v.Data.OrderId,
-				Status:                "FAILED",
+				Status:                status,
 			}
 		}
 
@@ -1054,34 +1058,43 @@ func (c *CallbackController) UserTransactionCallback() {
 						}
 					}
 
-					// if resp.Result.Service == "WITHDRAWAL" {
-					// 	logs.Info("Amount to withdraw is ", resp.Result.PaymentAmount)
-					// 	helpers.LogAccountActivity(&c.Controller, resp.Result.SenderAccount, "Withdrawal", resp.Result.PaymentAmount, resp.Result.ServiceNetwork, "debit")
-					// 	responseStatus = true
-					// 	responseMessage = resp.StatusMessage
-					// }
 				}
+			}
 
-				response := responses.CallbackResponse{
-					StatusCode:    responseStatus,
-					StatusMessage: responseMessage,
-					Result:        &result,
-				}
+			cbReq := requests.UpdateUserTransactionApiRequest{
+				ClientReference:    v.Data.TransactionId,
+				Status:             status,
+				ClientResponseCode: v.Data.Status,
+				TransactionId:      v.Data.ClientReference,
+			}
 
-				c.Data["json"] = response
+			cbResp := apifunctions.UpdateUserTransaction(&c.Controller, cbReq)
+			logs.Info("Update user transaction response: ", cbResp)
+			if cbResp.StatusCode != 200 {
+				logs.Error("Error updating user transaction status: ", cbResp)
+				responseStatus = true
+				responseMessage = "Error updating transaction status"
+			} else {
+				logs.Info("Successfully updated user transaction")
+				responseStatus = true
+				responseMessage = "Transaction status updated successfully"
 			}
 		} else {
 			logs.Info("Transaction not found for ID: %s", v.Data.ClientReference)
-			response := responses.CallbackResponse{
-				StatusCode:    false,
-				StatusMessage: "Transaction not found",
-				Result:        nil,
-			}
 
-			c.Data["json"] = response
+			responseStatus = false
+			responseMessage = "Transaction not found"
 		}
 
 	}
+
+	response := responses.CallbackResponse{
+		StatusCode:    responseStatus,
+		StatusMessage: responseMessage,
+		Result:        &result,
+	}
+
+	c.Data["json"] = response
 
 	c.ServeJSON()
 }

@@ -1064,7 +1064,7 @@ func LogUserTransaction(c *beego.Controller, req requests.UserTransactionRequest
 	return data
 }
 
-func UpdateUserTransaction(c *beego.Controller, req requests.UpdateUserTransactionRequestDTO) (resp responses.UserTransactionApiResponse) {
+func UpdateUserTransaction(c *beego.Controller, req requests.UpdateUserTransactionApiRequest) (resp responses.UserTransactionApiResponse) {
 	host, _ := beego.AppConfig.String("transactionBaseUrl")
 
 	request := api.NewRequest(
@@ -1076,6 +1076,7 @@ func UpdateUserTransaction(c *beego.Controller, req requests.UpdateUserTransacti
 
 	request.Params["ClientReference"] = req.ClientReference
 	request.Params["Status"] = req.Status
+	request.Params["ClientResponseCode"] = req.ClientResponseCode
 
 	request.InterfaceParams["ClientReference"] = req.ClientReference
 	client := api.Client{
