@@ -1073,10 +1073,11 @@ func UpdateUserTransaction(c *beego.Controller, req requests.UpdateUserTransacti
 		api.PUT)
 	// request.Params["username"] = username
 	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+	logs.Info("Status sent is ", req.Status)
 
-	request.Params["ClientReference"] = req.ClientReference
-	request.Params["Status"] = req.Status
-	request.Params["ClientResponseCode"] = req.ClientResponseCode
+	request.InterfaceParams["ClientReference"] = req.ClientReference
+	request.InterfaceParams["Status"] = req.Status
+	request.InterfaceParams["ClientResponseCode"] = req.ClientResponseCode
 
 	request.InterfaceParams["ClientReference"] = req.ClientReference
 	client := api.Client{
