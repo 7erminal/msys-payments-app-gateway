@@ -273,6 +273,8 @@ func (c *Agent_api_requestsController) Deposit() {
 	message := "Deposit failed"
 	txnData := responses.DepositData{}
 
+	statusCode := "PENDING"
+
 	var response responses.DepositResponse = responses.DepositResponse{
 		Success:       isSuccess,
 		StatusMessage: message,
@@ -296,6 +298,10 @@ func (c *Agent_api_requestsController) Deposit() {
 			ExtraData2: strings.Trim(req.CustomerNumber, " "),
 			ExtraData3: paymentMethod,
 		}
+
+		if req.PaymentMethod == "CASH" {
+			statusCode = "SUCCESS"
+		}
 		transactionLog := requests.UserTransactionRequestDTO{
 			SourceChannel:            sourceSystem,
 			RequestId:                requestIdStr,
@@ -308,7 +314,7 @@ func (c *Agent_api_requestsController) Deposit() {
 			Package:                  network,
 			PhoneNumber:              phoneNumber,
 			CreatedBy:                strconv.FormatInt(userData.UserId, 10),
-			Status:                   "PENDING",
+			Status:                   statusCode,
 		}
 
 		if txn := apifunctions.LogUserTransaction(&c.Controller, transactionLog); txn.StatusCode != 200 {
@@ -329,7 +335,7 @@ func (c *Agent_api_requestsController) Deposit() {
 				TransferCode:           req.PaymentMethod,
 				Description:            "Deposit for transaction " + requestIdStr,
 				RecipientName:          network,
-				Status:                 "PENDING",
+				Status:                 statusCode,
 				ServiceCode:            "DEPOSIT",
 				CreatedBy:              strconv.FormatInt(userData.UserId, 10),
 			}
@@ -571,6 +577,7 @@ func (c *Agent_api_requestsController) LoanRepayment() {
 	statusMessage := "Error retrieving account loans"
 	var response responses.RepayLoanResponse
 	txnData := responses.DepositData{}
+	statusCode := "PENDING"
 
 	// logs.Debug("Request::: ", c.Ctx.Input.RequestBody)
 	reqBody := c.Ctx.Input.RequestBody
@@ -636,6 +643,10 @@ func (c *Agent_api_requestsController) LoanRepayment() {
 		// 	CreatedBy:                strconv.FormatInt(userData.UserId, 10),
 		// }
 
+		if v.PaymentMethod == "CASH" {
+			statusCode = "SUCCESS"
+		}
+
 		extraData := requests.ExtraData{
 			ExtraData1: strings.Trim(v.CustomerName, " "),
 			ExtraData2: strings.Trim(v.CustomerNumber, " "),
@@ -654,7 +665,7 @@ func (c *Agent_api_requestsController) LoanRepayment() {
 			Package:                  network,
 			PhoneNumber:              userData.PhoneNumber,
 			CreatedBy:                strconv.FormatInt(userData.UserId, 10),
-			Status:                   "PENDING",
+			Status:                   statusCode,
 		}
 
 		if txn := apifunctions.LogUserTransaction(&c.Controller, transactionLog); txn.StatusCode != 200 {
@@ -677,7 +688,7 @@ func (c *Agent_api_requestsController) LoanRepayment() {
 				TransferCode:           v.PaymentMethod,
 				Description:            "Loan repayment for transaction " + requestIdStr,
 				RecipientName:          network,
-				Status:                 "PENDING",
+				Status:                 statusCode,
 				ServiceCode:            "LOAN_REPAYMENT",
 				CreatedBy:              strconv.FormatInt(userData.UserId, 10),
 			}
