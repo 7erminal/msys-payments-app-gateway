@@ -1063,11 +1063,15 @@ func (c *CallbackController) UserTransactionCallback() {
 
 			logs.Info("Status going to update transaction is ", status)
 
+			// convert v.Data.Charges(float64) to string
+			chargeStr := fmt.Sprintf("%.2f", v.Data.Charges)
+
 			cbReq := requests.UpdateUserTransactionApiRequest{
 				ClientReference:    v.Data.TransactionId,
 				Status:             status,
 				ClientResponseCode: v.ResponseCode,
 				TransactionId:      v.Data.ClientReference,
+				Charge:             chargeStr,
 			}
 
 			cbResp := apifunctions.UpdateUserTransaction(&c.Controller, cbReq)

@@ -118,4 +118,5 @@ type UpdateUserTransactionApiRequest struct {
 	Status             string
 	ClientResponseCode string
 	TransactionId      string
+	Charge             string
 }

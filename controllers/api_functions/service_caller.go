@@ -1078,6 +1078,7 @@ func UpdateUserTransaction(c *beego.Controller, req requests.UpdateUserTransacti
 	request.InterfaceParams["ClientReference"] = req.ClientReference
 	request.InterfaceParams["Status"] = req.Status
 	request.InterfaceParams["ClientResponseCode"] = req.ClientResponseCode
+	request.InterfaceParams["Charge"] = req.Charge
 
 	request.InterfaceParams["ClientReference"] = req.ClientReference
 	client := api.Client{
