@@ -1061,10 +1061,12 @@ func (c *CallbackController) UserTransactionCallback() {
 				}
 			}
 
+			logs.Info("Status going to update transaction is ", status)
+
 			cbReq := requests.UpdateUserTransactionApiRequest{
 				ClientReference:    v.Data.TransactionId,
 				Status:             status,
-				ClientResponseCode: v.Data.Status,
+				ClientResponseCode: v.ResponseCode,
 				TransactionId:      v.Data.ClientReference,
 			}
 
