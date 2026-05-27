@@ -1231,39 +1231,24 @@ func (c *Agent_api_requestsController) ListAccountDetails() {
 			}
 		} else if len(resp.Data.Result) > 0 {
 
-			customerName := ""
-			accountNumber := ""
-			accountAlias := ""
-			product := ""
+			accountDetails := []responses.AccountDetailsDataResp{}
 
-			for i, acc := range resp.Data.Result {
-				if i == 0 {
-					customerName = acc.AccountName
-					accountNumber = acc.AccountNumber
-					accountAlias = acc.AccountNumber
-					product = acc.Product
-				} else {
-					customerName += ", " + acc.AccountName
-					accountNumber += ", " + acc.AccountNumber
-					accountAlias += ", " + acc.AccountNumber
-					product += ", " + acc.Product
-				}
-			}
-
-			accBal := responses.AccountDetailsDataResp{
-				CustomerName:     customerName,
-				AccountAlias:     accountAlias,
-				AccountNumber:    accountNumber,
-				AccountStatus:    req.AccountId,
-				AvailableBalance: 0.00,
-				ClearBalance:     0.00,
-				LoanBalance:      0.00,
-				SharesBalance:    0.00,
+			for _, acc := range resp.Data.Result {
+				accountDetails = append(accountDetails, responses.AccountDetailsDataResp{
+					CustomerName:     acc.AccountName,
+					AccountAlias:     acc.AccountNumber,
+					AccountNumber:    acc.AccountNumber,
+					AccountStatus:    req.AccountId,
+					AvailableBalance: 0.00,
+					ClearBalance:     0.00,
+					LoanBalance:      0.00,
+					SharesBalance:    0.00,
+				})
 			}
 			response = responses.AccountDetailsResponse{
 				StatusCode:    true,
 				StatusMessage: "Account details fetched successfully",
-				Result:        &accBal,
+				Result:        &accountDetails,
 			}
 		} else {
 			response = responses.AccountDetailsResponse{

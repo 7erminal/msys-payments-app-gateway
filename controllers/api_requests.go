@@ -2081,6 +2081,7 @@ func (c *Api_requestsController) Withdrawal() {
 			PhoneNumber:              phoneNumber,
 			TransactionPackage:       amountString,
 			ExternalReferenceNumber:  "",
+			CorpId:                   clientId,
 		}
 
 		if txn, err := helpers.LogTransaction(&c.Controller, transactionLog); err != nil {
