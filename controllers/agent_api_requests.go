@@ -1077,14 +1077,14 @@ func (c *Agent_api_requestsController) AccountBalance() {
 			resp := apifunctions.GetAccountBalance(&c.Controller, accountBalanceRequest)
 			logs.Info("Response from account balance API: ", resp)
 
-			var response responses.AccountDetailsResponse = responses.AccountDetailsResponse{
+			var response responses.AccountBalResponse = responses.AccountBalResponse{
 				StatusCode:    false,
 				StatusMessage: "Something went wrong",
 				Result:        nil,
 			}
 
 			if resp.StatusCode != 200 {
-				response = responses.AccountDetailsResponse{
+				response = responses.AccountBalResponse{
 					StatusCode:    false,
 					StatusMessage: resp.StatusDesc,
 					Result:        nil,
@@ -1114,9 +1114,9 @@ func (c *Agent_api_requestsController) AccountBalance() {
 					LoanBalance:      *resp.Result.LoanBalance,
 					SharesBalance:    *resp.Result.SharesBalance,
 				}
-				response = responses.AccountDetailsResponse{
+				response = responses.AccountBalResponse{
 					StatusCode:    true,
-					StatusMessage: "Account balance fetched succeefully",
+					StatusMessage: "Account balance fetched successfully",
 					Result:        &accBal,
 				}
 			}

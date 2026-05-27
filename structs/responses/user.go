@@ -352,6 +352,12 @@ type AccountBalanceResponse struct {
 	Result        *AccountBalanceDataResp
 }
 
+type AccountBalResponse struct {
+	StatusCode    bool
+	StatusMessage string
+	Result        *AccountDetailsDataResp
+}
+
 type AccountDetailsResponse struct {
 	StatusCode    bool
 	StatusMessage string
