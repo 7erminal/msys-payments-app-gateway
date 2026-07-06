@@ -28,5 +28,9 @@ func main() {
 
 	logs.SetLogger(logs.AdapterFile, `{"filename":"../logs/msys-app-api-gateway.log"}`)
 
+	if beego.BConfig.RunMode == "dev" {
+		beego.BConfig.WebConfig.DirectoryIndex = true
+		beego.BConfig.WebConfig.StaticDir["/swagger"] = "swagger"
+	}
 	beego.Run()
 }
