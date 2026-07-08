@@ -21,8 +21,8 @@ type Clients struct {
 	CreatedBy    int
 	ModifiedBy   int
 	Active       int
-	HasPOS       int
-	HasApp       int
+	HasPOS       int `orm:"column(has_pos)"`
+	HasApp       int `orm:"column(has_app)"`
 }
 
 func init() {
