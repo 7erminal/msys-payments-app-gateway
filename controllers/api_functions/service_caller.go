@@ -14,7 +14,7 @@ import (
 	beego "github.com/beego/beego/v2/server/web"
 )
 
-func GetCorporatives(c *beego.Controller) (resp responses.CorporativeApiResponse) {
+func GetCorporatives(c *beego.Controller, query string) (resp responses.CorporativeApiResponse) {
 	host, _ := beego.AppConfig.String("clientBaseUrl")
 
 	logs.Info("Getting corporatives")
@@ -24,6 +24,7 @@ func GetCorporatives(c *beego.Controller) (resp responses.CorporativeApiResponse
 		api.GET)
 	// request.Params["username"] = username
 	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+	request.Params["query"] = query
 
 	client := api.Client{
 		Request: request,

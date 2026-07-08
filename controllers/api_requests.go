@@ -115,7 +115,9 @@ func (c *Api_requestsController) GetCorporatives() {
 		logs.Info("API request logged successfully: ", v)
 
 		logs.Info("Formatted request for Corporatives: ")
-		resp := apifunctions.GetCorporatives(&c.Controller)
+		// Set has app to 1 to filter corporatives that have the app
+		query := "HasApp:1"
+		resp := apifunctions.GetCorporatives(&c.Controller, query)
 		_, file, line, ok := runtime.Caller(0)
 		if ok {
 			file = utils.GetFileName(file)
@@ -512,8 +514,9 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 							logs.Info("API request updated with response successfully: ", v)
 						}
 
-						corps := apifunctions.GetCorporatives(&c.Controller)
-						logs.Info("Response from Get corporatives API: ", resp)
+						query := "HasApp:1"
+						corps := apifunctions.GetCorporatives(&c.Controller, query)
+						logs.Info("Response from Get corporatives API: ", corps)
 
 						reference := ""
 						if corps.StatusCode != 200 {

@@ -85,7 +85,8 @@ func (c *Authless_requestsController) GetCorporatives() {
 		logs.Info("API request logged successfully: ", v)
 
 		logs.Info("Formatted request for Corporatives: ")
-		resp := apifunctions.GetCorporatives(&c.Controller)
+		query := "HasPOS:1"
+		resp := apifunctions.GetCorporatives(&c.Controller, query)
 		_, file, line, ok := runtime.Caller(0)
 		if ok {
 			file = utils.GetFileName(file)
