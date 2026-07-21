@@ -687,8 +687,9 @@ func (c *Auth_requestsController) RegisterUser() {
 
 			// Add Branch
 			userIdStr := fmt.Sprintf("%d", resp.User.UserId)
+			branchName := strings.TrimSpace(req.Username) + "_" + userIdStr
 			branchRequest := requests.BranchApiRequestDTO{
-				BranchName:    strings.TrimSpace(req.Username),
+				BranchName:    branchName,
 				Location:      "",
 				PhoneNumber:   strings.TrimSpace(req.MobileNumber),
 				CountryCode:   "GHA",
