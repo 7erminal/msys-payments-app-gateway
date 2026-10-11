@@ -180,6 +180,7 @@ func (c *Api_requestsController) GetCorporatives() {
 // @Description Get Customer Details
 // @Param	Authorization		header 	string true		"header for User"
 // @Param	PhoneNumber		header 	string true		"header for Customer's phone number"
+// @Param	Username		header 	string true		"header for Customer's username"
 // @Param	SourceSystem		header 	string true		"header for Source system"
 // @Success 201 {int} models.Api_requests
 // @Failure 403 body is empty
@@ -187,6 +188,7 @@ func (c *Api_requestsController) GetCorporatives() {
 func (c *Api_requestsController) GetCustomerDetails() {
 	// Extract headers
 	phoneNumber := c.Ctx.Input.Header("PhoneNumber")
+	// username := c.Ctx.Input.Header("Username")
 	// sourceSystem := c.Ctx.Input.Header("SourceSystem")
 	cust := c.Ctx.Input.GetData("customer")
 
@@ -1519,6 +1521,9 @@ func (c *Api_requestsController) AccountBalance() {
 // @Description change password
 // @Param	Authorization		header 	string true		"header for User"
 // @Param	PhoneNumber		header 	string true		"header for Customer's phone number"
+// @Param	Username		header 	string true		"header for Customer's username"
+// @Param	SourceSystem		header 	string true		"header for Source System"
+// @Param	ClientCode		header 	string true		"header for Client Code"
 // @Param	body		body 	models.Auth_requests	true		"body for Auth_requests content"
 // @Success 201 {object} models.Auth_requests
 // @Failure 403 body is empty
@@ -1526,17 +1531,19 @@ func (c *Api_requestsController) AccountBalance() {
 func (c *Auth_requestsController) ChangePassword() {
 	sourceSystem := c.Ctx.Input.Header("SourceSystem")
 	phoneNumber := c.Ctx.Input.Header("PhoneNumber")
+	username := c.Ctx.Input.Header("Username")
+	clientCode := c.Ctx.Input.Header("ClientCode")
 
 	cust := c.Ctx.Input.GetData("customer")
 
 	logs.Info("Customer details: %s", cust)
-	customerData, ok := cust.(*responses.Customer)
-	if !ok {
-		logs.Error("Error asserting customer data")
-		c.Data["json"] = "Invalid customer data"
-		c.ServeJSON()
-		return
-	}
+	// customerData, ok := cust.(*responses.Customer)
+	// if !ok {
+	// 	logs.Error("Error asserting customer data")
+	// 	c.Data["json"] = "Invalid customer data"
+	// 	c.ServeJSON()
+	// 	return
+	// }
 
 	logs.Info("Change Password called with PhoneNumber: %s, SourceSystem: %s", phoneNumber, sourceSystem)
 
@@ -1579,7 +1586,7 @@ func (c *Auth_requestsController) ChangePassword() {
 		}
 
 		logs.Info("Formatted request for change password: ", changePasswordRequest)
-		resp := apifunctions.ChangeCustomerPassword(&c.Controller, strconv.FormatInt(customerData.CustomerId, 10), changePasswordRequest)
+		resp := apifunctions.ChangeCustomerPassword(&c.Controller, username, clientCode, changePasswordRequest)
 
 		logs.Info("Response from change password API: ", resp)
 

@@ -99,6 +99,11 @@ func (c *Auth_requestsController) Login() {
 	if resp.StatusCode != 200 {
 		logs.Error("Error logging in: ", resp.StatusDesc)
 		statusMessage = resp.StatusDesc
+
+		if resp.StatusCode == 213 {
+			isSuccess = true
+			statusMessage = "Account not verified"
+		}
 	} else {
 		// responseText, err := json.Marshal(response.Result)
 		// if err != nil {

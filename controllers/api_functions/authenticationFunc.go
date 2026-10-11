@@ -122,7 +122,7 @@ func ResetPassword(c *beego.Controller, userid string, req requests.ChangePasswo
 	return data
 }
 
-func ChangeCustomerPassword(c *beego.Controller, customerid string, req requests.ChangePassword) (resp responses.StringOriResponseDTO) {
+func ChangeCustomerPassword(c *beego.Controller, username string, clientCode string, req requests.ChangePassword) (resp responses.StringOriResponseDTO) {
 	host, _ := beego.AppConfig.String("authenticationBaseUrl")
 
 	logs.Info("Sending old password ", req.OldPassword)
@@ -130,10 +130,12 @@ func ChangeCustomerPassword(c *beego.Controller, customerid string, req requests
 
 	request := api.NewRequest(
 		host,
-		"/v1/auth/change-customer-password/"+customerid,
+		"/v1/auth/change-customer-password/"+username,
 		api.PUT)
+
 	request.Params["OldPassword"] = req.OldPassword
 	request.Params["NewPassword"] = req.NewPassword
+	request.HeaderField["ClientCode"] = clientCode
 	// request.Params = {"UserId": strconv.Itoa(int(userid))}
 	client := api.Client{
 		Request: request,
