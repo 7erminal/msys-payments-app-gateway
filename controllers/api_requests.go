@@ -1546,7 +1546,7 @@ func (c *Api_requestsController) ChangePassword() {
 	// 	return
 	// }
 
-	logs.Info("Change Password called with PhoneNumber: %s, SourceSystem: %s", phoneNumber, sourceSystem)
+	logs.Info("Change Password called with PhoneNumber: %s, SourceSystem: %s, Username: %s", phoneNumber, sourceSystem, username)
 
 	var req requests.ChangePasswordRequest
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &req); err != nil {
