@@ -127,6 +127,8 @@ func ChangeCustomerPassword(c *beego.Controller, username string, clientCode str
 
 	logs.Info("Sending old password ", req.OldPassword)
 	logs.Info("Sending new password ", req.NewPassword)
+	logs.Info("Sending username ", username)
+	logs.Info("Sending client code ", clientCode)
 
 	request := api.NewRequest(
 		host,
