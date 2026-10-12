@@ -162,7 +162,7 @@ func Login(c *beego.Controller, req requests.LoginApiRequest) (resp responses.Cu
 		api.POST)
 	// request.Params["username"] = username
 	// request.Params = {"UserId": strconv.Itoa(int(userid))}
-	request.HeaderField["clientId"] = req.ClientId
+	request.HeaderField["clientCode"] = req.ClientId
 
 	request.InterfaceParams["Username"] = req.PhoneNumber
 	request.InterfaceParams["Password"] = req.Password
