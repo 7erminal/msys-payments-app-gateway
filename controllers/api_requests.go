@@ -55,6 +55,7 @@ func (c *Api_requestsController) URLMapping() {
 	c.Mapping("PayWaterBill", c.PayWaterBill)
 	c.Mapping("CloseAccount", c.CloseAccount)
 	// c.Mapping("TransferFunds", c.TransferFunds)
+	c.Mapping("ChangePassword", c.ChangePassword)
 }
 
 // GetCorporatives ...
@@ -1528,7 +1529,7 @@ func (c *Api_requestsController) AccountBalance() {
 // @Success 201 {object} models.Auth_requests
 // @Failure 403 body is empty
 // @router /change-password [post]
-func (c *Auth_requestsController) ChangePassword() {
+func (c *Api_requestsController) ChangePassword() {
 	sourceSystem := c.Ctx.Input.Header("SourceSystem")
 	phoneNumber := c.Ctx.Input.Header("PhoneNumber")
 	username := c.Ctx.Input.Header("Username")

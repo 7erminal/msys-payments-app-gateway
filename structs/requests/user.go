@@ -94,10 +94,8 @@ type ResetPassword struct {
 }
 
 type ChangePasswordRequest struct {
-	Username    string `validate:"required"`
 	OldPassword string `validate:"required"`
 	NewPassword string `validate:"required"`
-	ClientId    string `validate:"required"`
 }
 
 type OpenAccountApiRequest struct {

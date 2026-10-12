@@ -494,10 +494,12 @@ func (c *Auth_requestsController) ResetPassword() {
 		c.ServeJSON()
 		return
 	}
+
+	username := c.Ctx.Input.Header("Username")
 	logs.Info("Request text: ", string(reqText))
 	var v models.Api_requests = models.Api_requests{
-		Request:      req.Username,
-		PhoneNumber:  req.Username,
+		Request:      username,
+		PhoneNumber:  username,
 		RequestType:  "Reset Password",
 		RequestDate:  time.Now(),
 		DateCreated:  time.Now(),
@@ -507,7 +509,7 @@ func (c *Auth_requestsController) ResetPassword() {
 		logs.Info("API request logged successfully: ", v)
 
 		logs.Info("Get Customer")
-		customerData := apifunctions.GetCustomerByUsername(&c.Controller, requests.UsernameRequest{Username: req.Username})
+		customerData := apifunctions.GetCustomerByUsername(&c.Controller, requests.UsernameRequest{Username: username})
 		if customerData.StatusCode != 200 || customerData.Customer == nil {
 			logs.Error("Customer not found: ", customerData.StatusDesc)
 			var response responses.StringOriResponseDTO = responses.StringOriResponseDTO{
