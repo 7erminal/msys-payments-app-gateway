@@ -135,13 +135,13 @@ func ChangeCustomerPassword(c *beego.Controller, username string, clientCode str
 		"/v1/auth/change-customer-password/"+username,
 		api.PUT)
 
-	request.Params["OldPassword"] = req.OldPassword
-	request.Params["NewPassword"] = req.NewPassword
+	request.InterfaceParams["OldPassword"] = req.OldPassword
+	request.InterfaceParams["NewPassword"] = req.NewPassword
 	request.HeaderField["ClientCode"] = clientCode
 	// request.Params = {"UserId": strconv.Itoa(int(userid))}
 	client := api.Client{
 		Request: request,
-		Type_:   "params",
+		Type_:   "body",
 	}
 	res, err := client.SendRequest()
 	if err != nil {
