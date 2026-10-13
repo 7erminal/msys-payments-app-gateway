@@ -130,7 +130,7 @@ func (c *Auth_requestsController) Login() {
 	}
 
 	var response responses.CustomerLoginResponse = responses.CustomerLoginResponse{
-		StatusCode:    isSuccess,
+		Success:       isSuccess,
 		StatusMessage: statusMessage,
 		Result:        &result,
 	}
@@ -194,7 +194,7 @@ func (c *Auth_requestsController) RefreshAccessToken() {
 	}
 
 	var response responses.CustomerLoginResponse = responses.CustomerLoginResponse{
-		StatusCode:    isSuccess,
+		Success:       isSuccess,
 		StatusMessage: statusMessage,
 		Result:        &result,
 	}
@@ -868,7 +868,7 @@ func (c *Auth_requestsController) LoginUser() {
 	}
 
 	var response responses.CustomerLoginResponse = responses.CustomerLoginResponse{
-		StatusCode:    isSuccess,
+		Success:       isSuccess,
 		StatusMessage: statusMessage,
 		Result:        &result,
 	}
@@ -932,7 +932,7 @@ func (c *Auth_requestsController) RefreshUserAccessToken() {
 	}
 
 	var response responses.CustomerLoginResponse = responses.CustomerLoginResponse{
-		StatusCode:    isSuccess,
+		Success:       isSuccess,
 		StatusMessage: statusMessage,
 		Result:        &result,
 	}

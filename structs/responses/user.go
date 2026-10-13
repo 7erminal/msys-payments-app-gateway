@@ -520,7 +520,7 @@ type CustomerLoginDataResponseDTO struct {
 }
 
 type CustomerLoginResponse struct {
-	StatusCode    bool
+	Success       bool
 	StatusMessage string
 	Result        *CustomerLoginDataResponseDTO
 }
