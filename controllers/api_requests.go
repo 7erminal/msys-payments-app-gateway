@@ -1579,6 +1579,13 @@ func (c *Api_requestsController) ChangePassword() {
 		DateCreated:  time.Now(),
 		DateModified: time.Now(),
 	}
+
+	var response responses.StringResponseDTO = responses.StringResponseDTO{
+		Success:    false,
+		StatusDesc: "Something went wrong",
+		Result:     nil,
+	}
+
 	if _, err := models.AddApi_requests(&v); err == nil {
 		logs.Info("API request logged successfully: ", v)
 		changePasswordRequest := requests.ChangePassword{
@@ -1591,11 +1598,6 @@ func (c *Api_requestsController) ChangePassword() {
 
 		logs.Info("Response from change password API: ", resp)
 
-		var response responses.StringResponseDTO = responses.StringResponseDTO{
-			Success:    false,
-			StatusDesc: "Something went wrong",
-			Result:     nil,
-		}
 		if resp.StatusCode != 200 {
 			response = responses.StringResponseDTO{
 				Success:    false,
@@ -1624,6 +1626,8 @@ func (c *Api_requestsController) ChangePassword() {
 		}
 	}
 
+	c.Data["json"] = response
+	c.ServeJSON()
 }
 
 // ResetPin ...
