@@ -342,7 +342,7 @@ func (c *Auth_requestsController) Register() {
 				Pin:        "1234", // Default pin, can be changed later
 			}
 			logs.Info("Formatted request for AddCustomerCredential: ", saveCustomerCredential)
-			credentialResp := apifunctions.AddCustomerCredential(&c.Controller, saveCustomerCredential, clientId)
+			credentialResp := apifunctions.AddCustomerCredential(&c.Controller, saveCustomerCredential)
 			logs.Info("Response from AddCustomerCredential API: ", credentialResp)
 			if credentialResp.StatusCode != 200 {
 				logs.Error("Error saving customer credentials: ", credentialResp.StatusDesc)
@@ -358,8 +358,8 @@ func (c *Auth_requestsController) Register() {
 			}
 			logs.Info("Customer credentials saved successfully: ", credentialResp)
 			// Add customer corporative
-			logs.Info("Getting client by ID ", req.ClientId)
-			if client, err := models.GetClientsById(req.ClientId); err != nil {
+			logs.Info("Getting client by ID ", clientId)
+			if client, err := models.GetClientsByCode(clientId); err != nil {
 				logs.Error("Error getting client by ID: ", err)
 				response = responses.RegisterResponse{
 					Success:       false,
