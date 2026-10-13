@@ -262,7 +262,7 @@ func (c *Auth_requestsController) Register() {
 		if checkCustomer.StatusCode == 200 && checkCustomer.Customer != nil {
 			logs.Info("Customer already exists: ", checkCustomer.Customer)
 			var response responses.RegisterResponse = responses.RegisterResponse{
-				StatusCode:    false,
+				Success:       false,
 				StatusMessage: "Customer already exists",
 				Result:        nil,
 			}
@@ -281,7 +281,7 @@ func (c *Auth_requestsController) Register() {
 		if checkCustomerUsername.StatusCode == 200 && checkCustomerUsername.Customer != nil {
 			logs.Info("Customer already exists: ", checkCustomerUsername.Customer)
 			var response responses.RegisterResponse = responses.RegisterResponse{
-				StatusCode:    false,
+				Success:       false,
 				StatusMessage: "Username already exists",
 				Result:        nil,
 			}
@@ -320,14 +320,14 @@ func (c *Auth_requestsController) Register() {
 		logs.Info("Response from Register API: ", resp)
 
 		var response responses.RegisterResponse = responses.RegisterResponse{
-			StatusCode:    false,
+			Success:       false,
 			StatusMessage: "Something went wrong",
 			Result:        nil,
 		}
 
 		if resp.StatusCode != 200 {
 			response = responses.RegisterResponse{
-				StatusCode:    false,
+				Success:       false,
 				StatusMessage: resp.StatusDesc,
 				Result:        nil,
 			}
@@ -345,7 +345,7 @@ func (c *Auth_requestsController) Register() {
 			if credentialResp.StatusCode != 200 {
 				logs.Error("Error saving customer credentials: ", credentialResp.StatusDesc)
 				response = responses.RegisterResponse{
-					StatusCode:    false,
+					Success:       false,
 					StatusMessage: "Error saving customer credentials: " + credentialResp.StatusDesc,
 					Result:        nil,
 				}
@@ -360,7 +360,7 @@ func (c *Auth_requestsController) Register() {
 			if client, err := models.GetClientsById(req.ClientId); err != nil {
 				logs.Error("Error getting client by ID: ", err)
 				response = responses.RegisterResponse{
-					StatusCode:    false,
+					Success:       false,
 					StatusMessage: "Error getting client by ID: " + err.Error(),
 					Result:        nil,
 				}
@@ -379,7 +379,7 @@ func (c *Auth_requestsController) Register() {
 				if _, err := models.AddCustomer_corporatives(&customerCorporative); err != nil {
 					logs.Error("An error occurred adding customer corporative ", err.Error())
 					response = responses.RegisterResponse{
-						StatusCode:    false,
+						Success:       false,
 						StatusMessage: "An error occurred adding customer corporative. " + err.Error(),
 						Result:        nil,
 					}
@@ -432,7 +432,7 @@ func (c *Auth_requestsController) Register() {
 						Status:               resp.Customer.Active,
 					}
 					response = responses.RegisterResponse{
-						StatusCode:    true,
+						Success:       true,
 						StatusMessage: "Registration successful",
 						Result:        &cust,
 					}
@@ -445,7 +445,7 @@ func (c *Auth_requestsController) Register() {
 
 	} else {
 		var response responses.RegisterResponse = responses.RegisterResponse{
-			StatusCode:    false,
+			Success:       false,
 			StatusMessage: "Something went wrong:: " + err.Error(),
 			Result:        nil,
 		}

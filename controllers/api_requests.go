@@ -731,7 +731,7 @@ func (c *Api_requestsController) RegisterAccount() {
 		if client, err := models.GetClientsById(req.ClientId); err != nil {
 			logs.Error("Error getting client by ID: ", err)
 			response = responses.RegisterAccountResponse{
-				StatusCode:    false,
+				Success:       false,
 				StatusMessage: "Error getting client by ID: " + err.Error(),
 				Result:        nil,
 			}
@@ -776,7 +776,7 @@ func (c *Api_requestsController) RegisterAccount() {
 			if txn, err := helpers.LogTransaction(&c.Controller, transactionLog); err != nil {
 				logs.Error("Error logging account opening fee transaction: ", err)
 				response = responses.RegisterAccountResponse{
-					StatusCode:    false,
+					Success:       false,
 					StatusMessage: "Error processing request. Please try again later.",
 					Result:        nil,
 				}
@@ -806,7 +806,7 @@ func (c *Api_requestsController) RegisterAccount() {
 				if err != nil {
 					logs.Error("Error processing account opening fee payment: ", err)
 					response = responses.RegisterAccountResponse{
-						StatusCode:    false,
+						Success:       false,
 						StatusMessage: "Error processing account opening fee payment: " + err.Error(),
 						Result:        nil,
 					}
@@ -814,7 +814,7 @@ func (c *Api_requestsController) RegisterAccount() {
 					logs.Info("Account opening fee payment response: ", resp)
 					if !resp.Success {
 						response = responses.RegisterAccountResponse{
-							StatusCode:    false,
+							Success:       false,
 							StatusMessage: "Account opening fee payment failed: " + resp.StatusMessage,
 							Result:        nil,
 						}
@@ -822,7 +822,7 @@ func (c *Api_requestsController) RegisterAccount() {
 						// Payment successful, proceed with account registration
 						result_ := true
 						response = responses.RegisterAccountResponse{
-							StatusCode:    true,
+							Success:       true,
 							StatusMessage: "Account opening is being processed. You will receive a request to make a payment an amount. Please proceed to make the payment to continue creation of your account. Note that this amount will be deposited in your account after account creation.",
 							Result:        &result_,
 						}
@@ -837,7 +837,7 @@ func (c *Api_requestsController) RegisterAccount() {
 
 	} else {
 		var response responses.RegisterAccountResponse = responses.RegisterAccountResponse{
-			StatusCode:    false,
+			Success:       false,
 			StatusMessage: "Something went wrong:: " + err.Error(),
 			Result:        nil,
 		}

@@ -615,7 +615,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 
 							logs.Info("Response from Account opening API: ", resp)
 
-							if !resp_.StatusCode {
+							if !resp_.Success {
 								responseStatus = false
 								responseMessage = resp_.StatusMessage
 							} else {

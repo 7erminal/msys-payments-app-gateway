@@ -200,13 +200,13 @@ type RegisterApiResponse struct {
 }
 
 type RegisterResponse struct {
-	StatusCode    bool
+	Success       bool
 	StatusMessage string
 	Result        *CustomerGateway
 }
 
 type RegisterAccountResponse struct {
-	StatusCode    bool
+	Success       bool
 	StatusMessage string
 	Result        *bool
 }
@@ -218,7 +218,7 @@ type VerifyCustomerApiResponse struct {
 }
 
 type VerifyCustomerResponse struct {
-	StatusCode    bool
+	Success       bool
 	StatusMessage string
 	Result        *CustomerGateway
 }
@@ -230,7 +230,7 @@ type FetchApprovedCustomersApiResponse struct {
 }
 
 type FetchApprovedCustomersResponse struct {
-	StatusCode    bool
+	Success       bool
 	StatusMessage string
 	Result        *CustomerGateway
 }
@@ -242,7 +242,7 @@ type VerifyApprovedCustomerApiResponse struct {
 }
 
 type VerifyApprovedCustomerResponse struct {
-	StatusCode    bool
+	Success       bool
 	StatusMessage string
 	Result        *CustomerGateway
 }
@@ -299,7 +299,7 @@ type AccountInfoApiResponse struct {
 }
 
 type AccountInfoResponse struct {
-	StatusCode    bool
+	Success       bool
 	StatusMessage string
 	Result        string
 }

@@ -78,7 +78,7 @@ func OpenAccount(c *beego.Controller, openAccountRequest requests.OpenAccountApi
 	}
 
 	response = responses.RegisterAccountResponse{
-		StatusCode:    status,
+		Success:       status,
 		StatusMessage: message,
 		Result:        &result,
 	}
