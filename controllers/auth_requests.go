@@ -209,6 +209,7 @@ func (c *Auth_requestsController) RefreshAccessToken() {
 // @Title Register
 // @Description Register customer
 // @Param	SourceSystem		header 	string true		"header for Source system"
+// @Param	ClientId		header 	string true		"header for Client ID"
 // @Param	body		body 	requests.RegisterRequest	true		"body for Request content"
 // @Success 201 {int} models.Api_requests
 // @Failure 403 body is empty
@@ -217,6 +218,7 @@ func (c *Auth_requestsController) Register() {
 	// Extract headers
 	// phoneNumber := c.Ctx.Input.Header("PhoneNumber")
 	sourceSystem := c.Ctx.Input.Header("SourceSystem")
+	clientId := c.Ctx.Input.Header("ClientId")
 
 	var req requests.RegisterRequest
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &req); err != nil {
@@ -340,7 +342,7 @@ func (c *Auth_requestsController) Register() {
 				Pin:        "1234", // Default pin, can be changed later
 			}
 			logs.Info("Formatted request for AddCustomerCredential: ", saveCustomerCredential)
-			credentialResp := apifunctions.AddCustomerCredential(&c.Controller, saveCustomerCredential)
+			credentialResp := apifunctions.AddCustomerCredential(&c.Controller, saveCustomerCredential, clientId)
 			logs.Info("Response from AddCustomerCredential API: ", credentialResp)
 			if credentialResp.StatusCode != 200 {
 				logs.Error("Error saving customer credentials: ", credentialResp.StatusDesc)

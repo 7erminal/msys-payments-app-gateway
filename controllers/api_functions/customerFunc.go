@@ -86,7 +86,7 @@ func AddCustomer(c *beego.Controller, req requests.AddCustomer) (resp responses.
 	return data
 }
 
-func AddCustomerCredential(c *beego.Controller, req requests.AddCustomerCredential) (resp responses.StringResponseCodeDTO) {
+func AddCustomerCredential(c *beego.Controller, req requests.AddCustomerCredential, clientId string) (resp responses.StringResponseCodeDTO) {
 	host, _ := beego.AppConfig.String("customerBaseUrl")
 
 	// branchid := strconv.FormatInt(branch, 10)
@@ -99,6 +99,8 @@ func AddCustomerCredential(c *beego.Controller, req requests.AddCustomerCredenti
 	request.InterfaceParams["Username"] = req.Username
 	request.InterfaceParams["Password"] = req.Password
 	request.InterfaceParams["Pin"] = req.Pin
+
+	request.HeaderField["ClientCode"] = clientId
 	// request.Params["Branch"] = branchid
 	client := api.Client{
 		Request: request,
