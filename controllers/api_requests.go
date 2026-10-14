@@ -383,6 +383,7 @@ func (c *Api_requestsController) GetCustomerDetails() {
 // @Param	Authorization		header 	string true		"header for User"
 // @Param	PhoneNumber		header 	string true		"header for Customer's phone number"
 // @Param	SourceSystem		header 	string true		"header for Source system"
+// @Param	ClientId		header 	string true		"header for Client ID"
 // @Param	body		body 	requests.NumberExistsApiRequest	true		"body for Request content"
 // @Success 201 {int} models.Api_requests
 // @Failure 403 body is empty
@@ -391,6 +392,7 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 	// Extract headers
 	// phoneNumber := c.Ctx.Input.Header("PhoneNumber")
 	sourceSystem := c.Ctx.Input.Header("SourceSystem")
+	clientId := c.Ctx.Input.Header("ClientId")
 
 	cust := c.Ctx.Input.GetData("customer")
 
@@ -471,6 +473,8 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 					}
 				}
 				logs.Debug("Query for customer corporatives is ", query)
+
+				query["ClientId"] = clientId
 
 				if customerCorporatives, err := models.GetAllCustomer_corporatives(query, fields, sortby, order, offset, limit); err == nil {
 					for _, v := range customerCorporatives {
