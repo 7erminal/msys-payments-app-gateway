@@ -96,7 +96,7 @@ func CheckProfileCompletion(c *beego.Controller, customerData *responses.Custome
 									logs.Error("Error authorizing account: ", authorizeAccountResp.StatusDesc)
 								} else {
 									logs.Info("Account authorized successfully: ", authorizeAccountResp.Result)
-									FetchCustomerAccounts(c, customerData, corpDTO, acc.MobileNumber)
+									AddCustomerAccounts(c, customerData, corpDTO, acc.MobileNumber)
 								}
 								break
 							}

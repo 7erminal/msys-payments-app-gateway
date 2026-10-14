@@ -706,7 +706,7 @@ func GetCustomerAccounts(c *beego.Controller, customerId string, client_id strin
 		api.GET)
 	// request.Params["username"] = username
 	// request.Params = {"UserId": strconv.Itoa(int(userid))}
-	request.Params["query"] = "Client__ClientId:" + client_id + ",Customer__CustomerId:" + customerId
+	request.Params["query"] = "Reference:" + client_id + ",Customer__CustomerId:" + customerId
 
 	client := api.Client{
 		Request: request,

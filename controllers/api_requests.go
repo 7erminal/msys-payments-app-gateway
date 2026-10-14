@@ -505,7 +505,7 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 							}
 						}
 
-						resp := apifunctions.GetCustomerAccounts(&c.Controller, strconv.FormatInt(customerData.CustomerId, 10))
+						resp := apifunctions.GetCustomerAccounts(&c.Controller, strconv.FormatInt(customerData.CustomerId, 10), strconv.FormatInt(client.Id, 10))
 						logs.Info("Response from customer accounts API: ", resp)
 
 						if resp.StatusCode != "200" {
@@ -515,7 +515,7 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 								Result:        nil,
 							}
 						} else {
-							responseText, err := json.Marshal(response.Result)
+							responseText, err := json.Marshal(resp.Result)
 							if err != nil {
 								logs.Error("Error marshalling response result: ", err)
 								responseText = []byte("[]")
