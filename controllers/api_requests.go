@@ -474,108 +474,108 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 				}
 				logs.Debug("Query for customer corporatives is ", query)
 
-				query["ClientId"] = clientId
+				query["CorpId__ClientCode"] = clientId
 
-				if customerCorporatives, err := models.GetAllCustomer_corporatives(query, fields, sortby, order, offset, limit); err == nil {
-					for _, v := range customerCorporatives {
-						logs.Debug("Returned customer corporative data is ", v)
-						// Convert to DTO
-						var corpDTO models.Customer_corporatives
-						corpBytes, err := json.Marshal(v)
-						if err != nil {
-							logs.Error("Error marshalling customer corporative data: ", err)
-							continue
-						}
-						if err := json.Unmarshal(corpBytes, &corpDTO); err != nil {
-							logs.Error("Error unmarshalling customer corporative data: ", err)
-						}
-						logs.Info("Customer corporative DTO: ", corpDTO)
-
-						if corpDTO.IsActive == 0 {
-							logs.Info("Customer corporative is inactive, fetching accounts skipped")
-							helpers.FetchCustomerAccounts(&c.Controller, customerData, corpDTO, phoneNumber)
-						}
+				if client, err := models.GetClientsByCode(clientId); err != nil {
+					logs.Error("Error getting client by Code: ", err)
+					response = responses.CustomerAccountsResponse{
+						StatusCode:    false,
+						StatusMessage: "Error getting client by Code: " + err.Error(),
+						Result:        nil,
 					}
+				} else {
+					if customerCorporatives, err := models.GetAllCustomer_corporatives(query, fields, sortby, order, offset, limit); err == nil {
+						for _, v := range customerCorporatives {
+							logs.Debug("Returned customer corporative data is ", v)
+							// Convert to DTO
+							var corpDTO models.Customer_corporatives
+							corpBytes, err := json.Marshal(v)
+							if err != nil {
+								logs.Error("Error marshalling customer corporative data: ", err)
+								continue
+							}
+							if err := json.Unmarshal(corpBytes, &corpDTO); err != nil {
+								logs.Error("Error unmarshalling customer corporative data: ", err)
+							}
+							logs.Info("Customer corporative DTO: ", corpDTO)
 
-					resp := apifunctions.GetCustomerAccounts(&c.Controller, strconv.FormatInt(customerData.CustomerId, 10))
-					logs.Info("Response from customer accounts API: ", resp)
+							if corpDTO.IsActive == 0 {
+								logs.Info("Customer corporative is inactive, fetching accounts skipped")
+								helpers.AddCustomerAccounts(&c.Controller, customerData, corpDTO, phoneNumber)
+							}
+						}
 
-					if resp.StatusCode != "200" {
-						response = responses.CustomerAccountsResponse{
-							StatusCode:    false,
-							StatusMessage: resp.StatusMessage,
-							Result:        nil,
-						}
-					} else {
-						responseText, err := json.Marshal(response.Result)
-						if err != nil {
-							logs.Error("Error marshalling response result: ", err)
-							responseText = []byte("[]")
-						}
-						v.RequestResponse = string(responseText)
-						v.DateModified = time.Now()
-						v.ResponseDate = time.Now()
-						if err := models.UpdateApi_requestsById(&v); err != nil {
-							logs.Error("Error updating API request with response: ", err)
+						resp := apifunctions.GetCustomerAccounts(&c.Controller, strconv.FormatInt(customerData.CustomerId, 10))
+						logs.Info("Response from customer accounts API: ", resp)
+
+						if resp.StatusCode != "200" {
+							response = responses.CustomerAccountsResponse{
+								StatusCode:    false,
+								StatusMessage: resp.StatusMessage,
+								Result:        nil,
+							}
 						} else {
-							logs.Info("API request updated with response successfully: ", v)
-						}
-
-						query := "HasApp:1"
-						corps := apifunctions.GetCorporatives(&c.Controller, query)
-						logs.Info("Response from Get corporatives API: ", corps)
-
-						reference := ""
-						if corps.StatusCode != 200 {
-							logs.Error("Error fetching corporatives: ", corps.StatusMessage)
-						} else {
-							logs.Info("Corporatives fetched successfully: ", corps.Result)
-
-							if corps.Result == nil || len(*corps.Result) == 0 {
-								logs.Error("No corporatives found")
+							responseText, err := json.Marshal(response.Result)
+							if err != nil {
+								logs.Error("Error marshalling response result: ", err)
+								responseText = []byte("[]")
+							}
+							v.RequestResponse = string(responseText)
+							v.DateModified = time.Now()
+							v.ResponseDate = time.Now()
+							if err := models.UpdateApi_requestsById(&v); err != nil {
+								logs.Error("Error updating API request with response: ", err)
+							} else {
+								logs.Info("API request updated with response successfully: ", v)
 							}
 
-							custAccounts := make([]responses.CustomerAccountResponse, 0)
-							for _, acc := range resp.Result {
-								logs.Info("Account reference: ", acc.Reference)
-								// Map each account to the response object
-								reference = acc.Reference
+							query := "HasApp:1"
+							corps := apifunctions.GetCorporatives(&c.Controller, query)
+							logs.Info("Response from Get corporatives API: ", corps)
 
-								// Find the matching corporate for the customer
-								for _, corp := range *corps.Result {
-									corpIdStr := strings.TrimSpace(strconv.FormatInt(corp.Id, 10))
-									if corpIdStr == acc.Reference {
-										reference = corp.ClientCode
-										break
-									}
+							reference := ""
+							if corps.StatusCode != 200 {
+								logs.Error("Error fetching corporatives: ", corps.StatusMessage)
+							} else {
+								logs.Info("Corporatives fetched successfully: ", corps.Result)
+
+								if corps.Result == nil || len(*corps.Result) == 0 {
+									logs.Error("No corporatives found")
 								}
 
-								logs.Info("Account reference mapped to corporate code: ", reference)
+								custAccounts := make([]responses.CustomerAccountResponse, 0)
+								for _, acc := range resp.Result {
+									logs.Info("Account reference: ", acc.Reference)
+									// Map each account to the response object
+									reference = acc.Reference
 
-								sharesBalance := 0.0
-								loanBalance := 0.0
-								clearBalance := 0.0
-								// Convert reference to int64 for client lookup
-								clientRef := strings.TrimSpace(acc.Reference)
-								clientID, parseErr := strconv.ParseInt(clientRef, 10, 64)
-								if parseErr != nil {
-									logs.Error("failed to convert acc.Reference to int64: ", parseErr)
-									response = responses.CustomerAccountsResponse{
-										StatusCode:    false,
-										StatusMessage: "Invalid account reference: " + parseErr.Error(),
-										Result:        nil,
+									// Find the matching corporate for the customer
+									for _, corp := range *corps.Result {
+										corpIdStr := strings.TrimSpace(strconv.FormatInt(corp.Id, 10))
+										if corpIdStr == acc.Reference {
+											reference = corp.ClientCode
+											break
+										}
 									}
-									continue
-								}
 
-								if client, err := models.GetClientsById(clientID); err != nil {
-									logs.Error("Error getting client by ID: ", err)
-									response = responses.CustomerAccountsResponse{
-										StatusCode:    false,
-										StatusMessage: "Error getting client by ID: " + err.Error(),
-										Result:        nil,
-									}
-								} else {
+									logs.Info("Account reference mapped to corporate code: ", reference)
+
+									sharesBalance := 0.0
+									loanBalance := 0.0
+									clearBalance := 0.0
+									// Convert reference to int64 for client lookup
+									// clientRef := strings.TrimSpace(acc.Reference)
+									// clientID, parseErr := strconv.ParseInt(clientRef, 10, 64)
+									// if parseErr != nil {
+									// 	logs.Error("failed to convert acc.Reference to int64: ", parseErr)
+									// 	response = responses.CustomerAccountsResponse{
+									// 		StatusCode:    false,
+									// 		StatusMessage: "Invalid account reference: " + parseErr.Error(),
+									// 		Result:        nil,
+									// 	}
+									// 	continue
+									// }
+
 									// Convert client
 									checkAndUpdateAccountBalance := requests.UpdateAccountBalanceApiRequest{
 										AccountNumber: acc.AccountNumber,
@@ -605,30 +605,30 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 
 									// keep using client (from GetClientsById) as needed below
 									_ = client
-								}
 
-								custAccount := responses.CustomerAccountResponse{
-									CustomerAccountId: acc.CustomerAccountId,
-									AccountNumber:     acc.AccountNumber,
-									AccountAlias:      acc.AccountAlias,
-									AccountType:       acc.AccountType,
-									Reference:         reference,
-									ClientId:          acc.Reference,
-									Balance:           acc.Balance,
-									SharesBalance:     sharesBalance,
-									LoanBalance:       loanBalance,
-									CLearBalance:      clearBalance,
-									FrozenAmount:      acc.FrozenAmount,
-									BalanceBefore:     acc.BalanceBefore,
-									DateCreated:       acc.DateCreated,
-									Active:            acc.Active,
+									custAccount := responses.CustomerAccountResponse{
+										CustomerAccountId: acc.CustomerAccountId,
+										AccountNumber:     acc.AccountNumber,
+										AccountAlias:      acc.AccountAlias,
+										AccountType:       acc.AccountType,
+										Reference:         reference,
+										ClientId:          acc.Reference,
+										Balance:           acc.Balance,
+										SharesBalance:     sharesBalance,
+										LoanBalance:       loanBalance,
+										CLearBalance:      clearBalance,
+										FrozenAmount:      acc.FrozenAmount,
+										BalanceBefore:     acc.BalanceBefore,
+										DateCreated:       acc.DateCreated,
+										Active:            acc.Active,
+									}
+									custAccounts = append(custAccounts, custAccount)
 								}
-								custAccounts = append(custAccounts, custAccount)
-							}
-							response = responses.CustomerAccountsResponse{
-								StatusCode:    true,
-								StatusMessage: "Accounts fetched successfully",
-								Result:        &custAccounts,
+								response = responses.CustomerAccountsResponse{
+									StatusCode:    true,
+									StatusMessage: "Accounts fetched successfully",
+									Result:        &custAccounts,
+								}
 							}
 						}
 					}

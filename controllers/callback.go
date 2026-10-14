@@ -613,7 +613,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 
 							resp_ := services.OpenAccount(&c.Controller, registerAccountRequest, *client, *customerData.Customer)
 
-							logs.Info("Response from Account opening API: ", resp)
+							logs.Info("Response from Account opening API: ", resp_)
 
 							if !resp_.Success {
 								responseStatus = false
