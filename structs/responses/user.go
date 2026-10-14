@@ -519,10 +519,21 @@ type CustomerLoginDataResponseDTO struct {
 	Token    *TokenResponseDTO
 }
 
+type UserLoginDataResponseDTO struct {
+	UserType string
+	Token    *TokenResponseDTO
+}
+
 type CustomerLoginResponse struct {
 	Success       bool
 	StatusMessage string
 	Result        *CustomerLoginDataResponseDTO
+}
+
+type UserLoginResponse struct {
+	StatusCode    bool
+	StatusMessage string
+	Result        *UserLoginDataResponseDTO
 }
 
 type UserOriResponseDTO struct {

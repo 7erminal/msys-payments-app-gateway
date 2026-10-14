@@ -844,7 +844,7 @@ func (c *Auth_requestsController) LoginUser() {
 
 	isSuccess := false
 	statusMessage := "Something went wrong"
-	result := responses.CustomerLoginDataResponseDTO{}
+	result := responses.UserLoginDataResponseDTO{}
 
 	loginRequest := requests.LoginUserApiRequest{
 		Username:     req.Username,
@@ -863,14 +863,14 @@ func (c *Auth_requestsController) LoginUser() {
 	} else {
 		isSuccess = true
 		statusMessage = "Login successful"
-		result = responses.CustomerLoginDataResponseDTO{
+		result = responses.UserLoginDataResponseDTO{
 			UserType: resp.Result.UserType,
 			Token:    resp.Result.Token,
 		}
 	}
 
-	var response responses.CustomerLoginResponse = responses.CustomerLoginResponse{
-		Success:       isSuccess,
+	var response responses.UserLoginResponse = responses.UserLoginResponse{
+		StatusCode:    isSuccess,
 		StatusMessage: statusMessage,
 		Result:        &result,
 	}
@@ -911,7 +911,7 @@ func (c *Auth_requestsController) RefreshUserAccessToken() {
 	logs.Info("RefreshAccessToken called with PhoneNumber: %s, SourceSystem: %s, ClientId: %s", phoneNumber, sourceSystem, clientId)
 	isSuccess := false
 	statusMessage := "Something went wrong"
-	result := responses.CustomerLoginDataResponseDTO{}
+	result := responses.UserLoginDataResponseDTO{}
 
 	refreshToken := requests.RefreshTokenApiRequest{
 		RefreshToken: req.RefreshToken,
@@ -927,14 +927,14 @@ func (c *Auth_requestsController) RefreshUserAccessToken() {
 
 		isSuccess = true
 		statusMessage = "Refreshed Token successfully"
-		result = responses.CustomerLoginDataResponseDTO{
+		result = responses.UserLoginDataResponseDTO{
 			UserType: resp.Result.UserType,
 			Token:    resp.Result.Token,
 		}
 	}
 
-	var response responses.CustomerLoginResponse = responses.CustomerLoginResponse{
-		Success:       isSuccess,
+	var response responses.UserLoginResponse = responses.UserLoginResponse{
+		StatusCode:    isSuccess,
 		StatusMessage: statusMessage,
 		Result:        &result,
 	}
