@@ -141,5 +141,6 @@ func (c *Authless_requestsController) GetCorporatives() {
 
 		c.Data["json"] = response
 	}
+
 	c.ServeJSON()
 }
