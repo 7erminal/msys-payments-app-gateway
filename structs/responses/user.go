@@ -402,7 +402,7 @@ type CorporativeApiResponse struct {
 }
 
 type CorporativeResponse struct {
-	Success       bool
+	StatusCode    bool
 	StatusMessage string
 	Result        *[]CorporativeData
 }

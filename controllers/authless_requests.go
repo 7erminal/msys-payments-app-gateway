@@ -97,14 +97,14 @@ func (c *Authless_requestsController) GetCorporatives() {
 		utilManager.Logger(filepath.Base(file), line, req.RequestId, "INFO", fmt.Sprintf("Response from Get corporatives API: %s", func() string { b, _ := json.Marshal(resp); return string(b) }()))
 
 		var response responses.CorporativeResponse = responses.CorporativeResponse{
-			Success:       false,
+			StatusCode:    false,
 			StatusMessage: "Something went wrong",
 			Result:        nil,
 		}
 
 		if resp.StatusCode != 200 {
 			response = responses.CorporativeResponse{
-				Success:       false,
+				StatusCode:    false,
 				StatusMessage: resp.StatusMessage,
 				Result:        resp.Result,
 			}
@@ -123,7 +123,7 @@ func (c *Authless_requestsController) GetCorporatives() {
 				logs.Info("API request updated with response successfully: ", v)
 			}
 			response = responses.CorporativeResponse{
-				Success:       true,
+				StatusCode:    true,
 				StatusMessage: "Corporatives fetched successfully",
 				Result:        resp.Result,
 			}
@@ -134,13 +134,12 @@ func (c *Authless_requestsController) GetCorporatives() {
 
 	} else {
 		var response responses.CorporativeResponse = responses.CorporativeResponse{
-			Success:       false,
+			StatusCode:    false,
 			StatusMessage: "Something went wrong:: " + err.Error(),
 			Result:        nil,
 		}
 
 		c.Data["json"] = response
 	}
-
 	c.ServeJSON()
 }
