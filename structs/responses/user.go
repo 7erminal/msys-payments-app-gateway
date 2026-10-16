@@ -402,7 +402,7 @@ type CorporativeApiResponse struct {
 }
 
 type CorporativeResponse struct {
-	StatusCode    bool
+	Success       bool
 	StatusMessage string
 	Result        *[]CorporativeData
 }
@@ -419,7 +419,7 @@ type ResetPinApiResponse struct {
 }
 
 type ResetPinResponse struct {
-	StatusCode    bool
+	Success       bool
 	StatusMessage string
 	Result        string
 }
@@ -436,7 +436,7 @@ type NameInquiryApiResponse struct {
 }
 
 type NameInquiryResponse struct {
-	StatusCode    bool
+	Success       bool
 	StatusMessage string
 	Result        string
 }

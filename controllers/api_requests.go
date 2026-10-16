@@ -129,14 +129,14 @@ func (c *Api_requestsController) GetCorporatives() {
 		utilManager.Logger(filepath.Base(file), line, req.RequestId, "INFO", fmt.Sprintf("Response from Get corporatives API: %s", func() string { b, _ := json.Marshal(resp); return string(b) }()))
 
 		var response responses.CorporativeResponse = responses.CorporativeResponse{
-			StatusCode:    false,
+			Success:       false,
 			StatusMessage: "Something went wrong",
 			Result:        nil,
 		}
 
 		if resp.StatusCode != 200 {
 			response = responses.CorporativeResponse{
-				StatusCode:    false,
+				Success:       false,
 				StatusMessage: resp.StatusMessage,
 				Result:        resp.Result,
 			}
@@ -155,7 +155,7 @@ func (c *Api_requestsController) GetCorporatives() {
 				logs.Info("API request updated with response successfully: ", v)
 			}
 			response = responses.CorporativeResponse{
-				StatusCode:    true,
+				Success:       true,
 				StatusMessage: "Corporatives fetched successfully",
 				Result:        resp.Result,
 			}
@@ -166,7 +166,7 @@ func (c *Api_requestsController) GetCorporatives() {
 
 	} else {
 		var response responses.CorporativeResponse = responses.CorporativeResponse{
-			StatusCode:    false,
+			Success:       false,
 			StatusMessage: "Something went wrong:: " + err.Error(),
 			Result:        nil,
 		}
@@ -1351,14 +1351,14 @@ func (c *Api_requestsController) NameInquiry() {
 		logs.Info("Response from name inquiry API: ", resp)
 
 		var response responses.NameInquiryResponse = responses.NameInquiryResponse{
-			StatusCode:    false,
+			Success:       false,
 			StatusMessage: "Something went wrong",
 			Result:        "",
 		}
 
 		if resp.Data.StatusCode != 200 {
 			response = responses.NameInquiryResponse{
-				StatusCode:    false,
+				Success:       false,
 				StatusMessage: resp.Data.StatusMessage,
 				Result:        "",
 			}
@@ -1377,7 +1377,7 @@ func (c *Api_requestsController) NameInquiry() {
 				logs.Info("API request updated with response successfully: ", v)
 			}
 			response = responses.NameInquiryResponse{
-				StatusCode:    true,
+				Success:       true,
 				StatusMessage: "Name inquiry successful",
 				Result:        resp.Data.Result,
 			}
@@ -1388,7 +1388,7 @@ func (c *Api_requestsController) NameInquiry() {
 
 	} else {
 		var response responses.NameInquiryResponse = responses.NameInquiryResponse{
-			StatusCode:    false,
+			Success:       false,
 			StatusMessage: "Something went wrong:: " + err.Error(),
 			Result:        "",
 		}
@@ -1691,14 +1691,14 @@ func (c *Api_requestsController) ResetPin() {
 		logs.Info("Response from pin reset API: ", resp)
 
 		var response responses.ResetPinResponse = responses.ResetPinResponse{
-			StatusCode:    false,
+			Success:       false,
 			StatusMessage: "Something went wrong",
 			Result:        "",
 		}
 
 		if resp.Data.StatusCode != 200 {
 			response = responses.ResetPinResponse{
-				StatusCode:    false,
+				Success:       false,
 				StatusMessage: resp.Data.StatusMessage,
 				Result:        "",
 			}
@@ -1717,7 +1717,7 @@ func (c *Api_requestsController) ResetPin() {
 				logs.Info("API request updated with response successfully: ", v)
 			}
 			response = responses.ResetPinResponse{
-				StatusCode:    true,
+				Success:       true,
 				StatusMessage: "Login successful",
 				Result:        resp.Data.Client,
 			}
@@ -1728,7 +1728,7 @@ func (c *Api_requestsController) ResetPin() {
 
 	} else {
 		var response responses.ResetPinResponse = responses.ResetPinResponse{
-			StatusCode:    false,
+			Success:       false,
 			StatusMessage: "Something went wrong:: " + err.Error(),
 			Result:        "",
 		}
