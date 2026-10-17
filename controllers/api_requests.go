@@ -392,7 +392,9 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 	// Extract headers
 	// phoneNumber := c.Ctx.Input.Header("PhoneNumber")
 	sourceSystem := c.Ctx.Input.Header("SourceSystem")
-	clientId := c.Ctx.Input.Header("ClientId")
+	clientCode := c.Ctx.Input.Header("ClientCode")
+
+	logs.Info("Client code retrieved is ", clientCode)
 
 	cust := c.Ctx.Input.GetData("customer")
 
@@ -474,9 +476,9 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 				}
 				logs.Debug("Query for customer corporatives is ", query)
 
-				query["CorpId__ClientCode"] = clientId
+				query["CorpId__ClientCode"] = clientCode
 
-				if client, err := models.GetClientsByCode(clientId); err != nil {
+				if client, err := models.GetClientsByCode(clientCode); err != nil {
 					logs.Error("Error getting client by Code: ", err)
 					response = responses.CustomerAccountsResponse{
 						StatusCode:    false,
