@@ -963,6 +963,7 @@ func LogTransaction(c *beego.Controller, req requests.LogTransactionApiRequest) 
 	request.InterfaceParams["Package"] = req.TransactionPackage
 	request.InterfaceParams["CorpId"] = req.CorpId
 	request.InterfaceParams["CreatedBy"] = req.CreatedBy
+	request.InterfaceParams["TransactionType"] = req.TransactionType
 	client := api.Client{
 		Request: request,
 		Type_:   "body",

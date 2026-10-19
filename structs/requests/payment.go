@@ -109,6 +109,7 @@ type DepositAPIRequest struct {
 	Source      string  `json:"source" valid:"required~Source is required"`
 	ClientId    string  `json:"client_id" valid:"required~Client ID is required"`
 	CreatedBy   string  `json:"created_by" valid:"required~Created By is required"`
+	DepositType string  `json:"deposit_type" valid:"required~Deposit Type is required"`
 }
 
 type AgentDepositRequest struct {

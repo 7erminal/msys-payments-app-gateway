@@ -1928,7 +1928,7 @@ func (c *Api_requestsController) Deposit() {
 			DestinationAccountNumber: req.Destination,
 			Amount:                   req.Amount,
 			Charge:                   0.0,
-			TransactionType:          "DEPOSIT",
+			TransactionType:          req.DepositType,
 			ServiceCode:              "DEPOSIT",
 			TransactionReference:     "SYSTEM",
 			StatusCode:               "PENDING",
