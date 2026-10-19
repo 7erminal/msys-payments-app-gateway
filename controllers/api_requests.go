@@ -438,7 +438,7 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 	}
 
 	var response responses.CustomerAccountsResponse = responses.CustomerAccountsResponse{
-		StatusCode:    false,
+		Success:       false,
 		StatusMessage: "Something went wrong",
 		Result:        nil,
 	}
@@ -481,7 +481,7 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 				if client, err := models.GetClientsByCode(clientCode); err != nil {
 					logs.Error("Error getting client by Code: ", err)
 					response = responses.CustomerAccountsResponse{
-						StatusCode:    false,
+						Success:       false,
 						StatusMessage: "Error getting client by Code: " + err.Error(),
 						Result:        nil,
 					}
@@ -512,7 +512,7 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 
 						if resp.StatusCode != "200" {
 							response = responses.CustomerAccountsResponse{
-								StatusCode:    false,
+								Success:       false,
 								StatusMessage: resp.StatusMessage,
 								Result:        nil,
 							}
@@ -627,7 +627,7 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 									custAccounts = append(custAccounts, custAccount)
 								}
 								response = responses.CustomerAccountsResponse{
-									StatusCode:    true,
+									Success:       true,
 									StatusMessage: "Accounts fetched successfully",
 									Result:        &custAccounts,
 								}
@@ -637,7 +637,7 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 				}
 			default:
 				response = responses.CustomerAccountsResponse{
-					StatusCode:    false,
+					Success:       false,
 					StatusMessage: "Customer is not active",
 					Result:        nil,
 				}
@@ -646,7 +646,7 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 			// go helpers.CheckAccountsStatus(&c.Controller, customerData)
 		} else {
 			response = responses.CustomerAccountsResponse{
-				StatusCode:    false,
+				Success:       false,
 				StatusMessage: "Invalid customer data",
 				Result:        nil,
 			}
@@ -655,7 +655,7 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 		c.Ctx.Output.SetStatus(200)
 	} else {
 		response = responses.CustomerAccountsResponse{
-			StatusCode:    false,
+			Success:       false,
 			StatusMessage: "Something went wrong:: " + err.Error(),
 			Result:        nil,
 		}

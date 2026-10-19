@@ -276,7 +276,7 @@ type CustomerAccountResponse struct {
 }
 
 type CustomerAccountsResponse struct {
-	StatusCode    bool
+	Success       bool
 	StatusMessage string
 	Result        *[]CustomerAccountResponse
 }
