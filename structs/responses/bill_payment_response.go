@@ -27,7 +27,7 @@ type PaymentResponse struct {
 	DateCreated     time.Time `orm:"type(datetime)"`
 	DateModified    time.Time `orm:"type(datetime)"`
 	ProcessedDate   time.Time `orm:"type(datetime);null"`
-
+	TransactionType string
 	Active          int
 	CallbackUrl     string
 	ClientReference string
