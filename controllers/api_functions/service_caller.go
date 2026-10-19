@@ -1602,6 +1602,7 @@ func CreditAccountPro(c *beego.Controller, req requests.CreditAccountRequestV2) 
 	request.InterfaceParams["Amount"] = req.Amount
 	request.InterfaceParams["Reference"] = req.Reference
 	request.InterfaceParams["Channel"] = req.Channel
+	request.InterfaceParams["DepositType"] = req.DepositType
 
 	client := api.Client{
 		Request: request,

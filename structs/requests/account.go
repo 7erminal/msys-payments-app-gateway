@@ -14,6 +14,7 @@ type CreditAccountRequestV2 struct {
 	Reference     string
 	Channel       string
 	ClientId      string
+	DepositType   string
 }
 
 type DebitAccountRequest struct {
