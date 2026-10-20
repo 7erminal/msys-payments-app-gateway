@@ -345,6 +345,7 @@ func (c *Agent_api_requestsController) Deposit() {
 				sendCommission = true
 			}
 
+			logs.Info("About to log transfer transaction: ", transferRequest)
 			if _, err := helpers.LogTransferTransaction(&c.Controller, transferRequest, sendCommission); err != nil {
 				logs.Error("Error logging transfer transaction: ", err)
 				isSuccess = false
