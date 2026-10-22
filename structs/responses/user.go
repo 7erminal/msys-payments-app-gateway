@@ -822,9 +822,9 @@ type CreateCustomerAccountApiResponse struct {
 }
 
 type CustomerApprovalAccountsResponse struct {
-	StatusCode    string                        `json:"statusCode"`
-	StatusMessage string                        `json:"statusMessage"`
-	Result        []*CustomerAccountResponseObj `json:"result,omitempty"`
+	StatusCode    string                       `json:"statusCode"`
+	StatusMessage string                       `json:"statusMessage"`
+	Result        []CustomerAccountResponseObj `json:"result,omitempty"`
 }
 
 type CustomerAccountHistoryData struct {

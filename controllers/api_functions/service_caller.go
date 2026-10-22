@@ -699,7 +699,7 @@ func ListAccounts(c *beego.Controller, req requests.AccountIdApiRequest) (resp r
 func GetCustomerAccounts(c *beego.Controller, customerId string, client_id string) (resp responses.CustomerApprovalAccountsResponse) {
 	host, _ := beego.AppConfig.String("accountBaseUrl")
 
-	logs.Info("Getting customer accounts for customer ID ", customerId)
+	logs.Info("Getting customer accounts for customer ID ", customerId, " and client ID ", client_id)
 	request := api.NewRequest(
 		host,
 		"/v1/customer-accounts/",
