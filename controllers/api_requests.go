@@ -1936,10 +1936,11 @@ func (c *Api_requestsController) Deposit() {
 			ExtraDetails2:            strconv.FormatFloat(req.Amount, 'f', -1, 64),
 			ExtraDetails3:            network,
 			Reference:                amountString,
-			ClientID:                 req.ClientId,
+			ClientID:                 clientId,
 			PhoneNumber:              phoneNumber,
 			TransactionPackage:       amountString,
 			ExternalReferenceNumber:  "",
+			CorpId:                   clientId,
 		}
 
 		if txn, err := helpers.LogTransaction(&c.Controller, transactionLog); err != nil {
