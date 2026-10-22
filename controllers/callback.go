@@ -532,9 +532,9 @@ func (c *CallbackController) RequestMoneyCallback() {
 						depositReq := requests.AccountActivityRequest{
 							AccountNumber: resp.Result.SenderAccount,
 							ClientId:      clientId,
-							Reference:     resp.Result.ServiceNetwork,
+							Reference:     resp.Result.Service,
 							Amount:        resp.Result.PaymentAmount,
-							ActivityType:  resp.Result.TransactionType,
+							ActivityType:  resp.Result.ServicePackage,
 							ActivityBy:    "customer",
 							MobileNumber:  resp.Result.SenderAccount,
 							PaymentMethod: "ACCOUNT",
