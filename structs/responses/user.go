@@ -278,13 +278,13 @@ type CustomerAccountResponse struct {
 type CustomerAccountsResponse struct {
 	Success       bool
 	StatusMessage string
-	Result        *[]CustomerAccountResponse
+	Result        []CustomerAccountResponse
 }
 
 type CustomerCorporativeAccountsResponse struct {
 	StatusCode    bool
 	StatusMessage string
-	Result        *[]CustomerAccountsApiResponse
+	Result        []CustomerAccountsApiResponse
 }
 
 type AccountInfoDataResponseResult struct {

@@ -1392,7 +1392,7 @@ func ReportAccountAnomaly(c *beego.Controller, req requests.CustomerAccountAnoma
 func GetAccountBalance(c *beego.Controller, req requests.AccountBalanceApiRequest) (resp responses.AccountBalanceApiResponse) {
 	host, _ := beego.AppConfig.String("clientBaseUrl")
 
-	logs.Info("Getting account balance for ", req.AccountNumber)
+	logs.Info("Getting account balance for ", req.AccountNumber, " and client ID ", req.ClientId)
 	request := api.NewRequest(
 		host,
 		"/v2/api/v2/account-balance",

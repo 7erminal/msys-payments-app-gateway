@@ -629,7 +629,7 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 								response = responses.CustomerAccountsResponse{
 									Success:       true,
 									StatusMessage: "Accounts fetched successfully",
-									Result:        &custAccounts,
+									Result:        custAccounts,
 								}
 							}
 						}
