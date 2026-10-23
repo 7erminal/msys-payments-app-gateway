@@ -56,6 +56,7 @@ func (c *Api_requestsController) URLMapping() {
 	c.Mapping("CloseAccount", c.CloseAccount)
 	// c.Mapping("TransferFunds", c.TransferFunds)
 	c.Mapping("ChangePassword", c.ChangePassword)
+	c.Mapping("ResetCustomerPin", c.ResetCustomerPin)
 }
 
 // GetCorporatives ...
@@ -1690,6 +1691,109 @@ func (c *Api_requestsController) ResetPin() {
 
 		logs.Info("Formatted request for pin reset: ", resetPinRequest)
 		resp := apifunctions.ResetPin(&c.Controller, resetPinRequest)
+		logs.Info("Response from pin reset API: ", resp)
+
+		var response responses.ResetPinResponse = responses.ResetPinResponse{
+			Success:       false,
+			StatusMessage: "Something went wrong",
+			Result:        "",
+		}
+
+		if resp.Data.StatusCode != 200 {
+			response = responses.ResetPinResponse{
+				Success:       false,
+				StatusMessage: resp.Data.StatusMessage,
+				Result:        "",
+			}
+		} else {
+			responseText, err := json.Marshal(response.Result)
+			if err != nil {
+				logs.Error("Error marshalling response result: ", err)
+				responseText = []byte("[]")
+			}
+			v.RequestResponse = string(responseText)
+			v.DateModified = time.Now()
+			v.ResponseDate = time.Now()
+			if err := models.UpdateApi_requestsById(&v); err != nil {
+				logs.Error("Error updating API request with response: ", err)
+			} else {
+				logs.Info("API request updated with response successfully: ", v)
+			}
+			response = responses.ResetPinResponse{
+				Success:       true,
+				StatusMessage: "Login successful",
+				Result:        resp.Data.Client,
+			}
+		}
+
+		c.Ctx.Output.SetStatus(200)
+		c.Data["json"] = response
+
+	} else {
+		var response responses.ResetPinResponse = responses.ResetPinResponse{
+			Success:       false,
+			StatusMessage: "Something went wrong:: " + err.Error(),
+			Result:        "",
+		}
+
+		c.Data["json"] = response
+	}
+	c.ServeJSON()
+}
+
+// ResetCustomerPin ...
+// @Title Reset Customer Pin
+// @Description Reset Customer Pin for the authenticated user
+// @Param	Authorization		header 	string true		"header for User"
+// @Param	PhoneNumber		header 	string true		"header for Customer's phone number"
+// @Param	SourceSystem		header 	string true		"header for Source system"
+// @Param	body		body 	requests.ResetPinRequest	true		"body for Request content"
+// @Success 201 {int} models.Api_requests
+// @Failure 403 body is empty
+// @router /reset-customer-pin [post]
+func (c *Api_requestsController) ResetCustomerPin() {
+	// Extract headers
+	// phoneNumber := c.Ctx.Input.Header("PhoneNumber")
+	sourceSystem := c.Ctx.Input.Header("SourceSystem")
+	phoneNumber := c.Ctx.Input.Header("PhoneNumber")
+
+	var req requests.ResetCustomerPinRequest
+	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
+
+	logs.Info("Reset Pin called with PhoneNumber: %s, SourceSystem: %s", phoneNumber, sourceSystem)
+	reqBody := c.Ctx.Input.RequestBody
+	reqHeaders := c.Ctx.Request.Header
+
+	requestMap := map[string]interface{}{
+		"headers": reqHeaders,
+		"body":    string(reqBody),
+	}
+
+	reqText, err := json.Marshal(requestMap)
+	if err != nil {
+		logs.Error("Error marshalling request input: ", err)
+		c.Data["json"] = err.Error()
+		c.ServeJSON()
+		return
+	}
+	var v models.Api_requests = models.Api_requests{
+		Request:      string(reqText),
+		PhoneNumber:  phoneNumber,
+		RequestType:  "Reset Pin",
+		RequestDate:  time.Now(),
+		DateCreated:  time.Now(),
+		DateModified: time.Now(),
+	}
+	if _, err := models.AddApi_requests(&v); err == nil {
+		logs.Info("API request logged successfully: ", v)
+		resetPinRequest := requests.ResetCustomerPinApiRequest{
+			Username: req.Username,
+			Password: req.Password,
+			Pin:      req.Pin,
+		}
+
+		logs.Info("Formatted request for pin reset: ", resetPinRequest)
+		resp := apifunctions.ResetCustomerPin(&c.Controller, resetPinRequest, req.CustomerId)
 		logs.Info("Response from pin reset API: ", resp)
 
 		var response responses.ResetPinResponse = responses.ResetPinResponse{

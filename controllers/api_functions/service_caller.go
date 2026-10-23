@@ -2165,6 +2165,53 @@ func ResetPin(c *beego.Controller, req requests.ResetPinApiRequest) (resp respon
 	return data
 }
 
+func ResetCustomerPin(c *beego.Controller, req requests.ResetCustomerPinApiRequest, customerid string) (resp responses.ResetPinApiResponse) {
+	host, _ := beego.AppConfig.String("customerBaseUrl")
+
+	logs.Info("Resetting pin for username ", req.Username)
+	request := api.NewRequest(
+		host,
+		"/v1/customer-credentials/update-customer-credential/"+customerid,
+		api.PUT)
+	// request.Params["username"] = username
+	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+	// request.HeaderField["clientId"] = req.ClientId
+	request.InterfaceParams["Username"] = req.Username
+	request.InterfaceParams["Password"] = req.Password
+	request.InterfaceParams["Pin"] = req.Pin
+
+	client := api.Client{
+		Request: request,
+		Type_:   "body",
+	}
+	res, err := client.SendRequest()
+	if err != nil {
+		logs.Error("client.Error: %v", err)
+		c.Data["json"] = err.Error()
+	}
+	defer res.Body.Close()
+	read, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	}
+
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, read, "", "  "); err != nil {
+		logs.Info("Raw response received is ", string(read))
+	} else {
+		logs.Info("Raw response received is \n", prettyJSON.String())
+	}
+	// data := map[string]interface{}{}
+	var data responses.ResetPinApiResponse
+	json.Unmarshal(read, &data)
+	c.Data["json"] = data
+
+	logs.Info("Resp is ", data)
+	// logs.Info("Resp is ", data.User)
+
+	return data
+}
+
 func GetBundles(c *beego.Controller, req requests.DataBundlesListFormulatedRequest) (resp responses.DataBundlesListResponse) {
 	host, _ := beego.AppConfig.String("airtimeBaseUrl")
 

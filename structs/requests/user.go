@@ -207,6 +207,19 @@ type ResetPinApiRequest struct {
 	ClientId    string
 }
 
+type ResetCustomerPinRequest struct {
+	CustomerId string
+	Username   string
+	Password   string
+	Pin        string
+}
+
+type ResetCustomerPinApiRequest struct {
+	Username string
+	Password string
+	Pin      string
+}
+
 type SignIn struct {
 	Email    string
 	Password string
