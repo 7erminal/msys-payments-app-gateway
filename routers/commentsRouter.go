@@ -333,6 +333,15 @@ func init() {
 
     beego.GlobalControllerRouter["msys_payment_app_gateway/controllers:Api_requestsController"] = append(beego.GlobalControllerRouter["msys_payment_app_gateway/controllers:Api_requestsController"],
         beego.ControllerComments{
+            Method: "ResetCustomerPin",
+            Router: `/reset-customer-pin`,
+            AllowHTTPMethods: []string{"post"},
+            MethodParams: param.Make(),
+            Filters: nil,
+            Params: nil})
+
+    beego.GlobalControllerRouter["msys_payment_app_gateway/controllers:Api_requestsController"] = append(beego.GlobalControllerRouter["msys_payment_app_gateway/controllers:Api_requestsController"],
+        beego.ControllerComments{
             Method: "ResetPin",
             Router: `/reset-pin`,
             AllowHTTPMethods: []string{"post"},
