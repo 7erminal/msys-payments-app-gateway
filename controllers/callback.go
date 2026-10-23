@@ -529,12 +529,13 @@ func (c *CallbackController) RequestMoneyCallback() {
 
 					if resp.Result.Service == "DEPOSIT" {
 						logs.Info("Amount to deposit is ", resp.Result.Amount)
+						activityType := "credit"
 						depositReq := requests.AccountActivityRequest{
 							AccountNumber: resp.Result.SenderAccount,
 							ClientId:      clientId,
 							Reference:     resp.Result.ServiceNetwork,
 							Amount:        resp.Result.PaymentAmount,
-							ActivityType:  resp.Result.Service,
+							ActivityType:  activityType,
 							ActivityBy:    "customer",
 							MobileNumber:  resp.Result.SenderAccount,
 							PaymentMethod: "ACCOUNT",
@@ -547,12 +548,13 @@ func (c *CallbackController) RequestMoneyCallback() {
 
 					if resp.Result.Service == "WITHDRAWAL" {
 						logs.Info("Amount to withdraw is ", resp.Result.PaymentAmount)
+						activityType := "debit"
 						withdrawalReq := requests.AccountActivityRequest{
 							AccountNumber: resp.Result.SenderAccount,
 							ClientId:      clientId,
 							Reference:     resp.Result.ServiceNetwork,
 							Amount:        resp.Result.PaymentAmount,
-							ActivityType:  resp.Result.TransactionType,
+							ActivityType:  activityType,
 							ActivityBy:    "customer",
 							MobileNumber:  resp.Result.SenderAccount,
 							PaymentMethod: "ACCOUNT",
