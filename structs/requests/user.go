@@ -15,7 +15,7 @@ type LoginUserApiRequest struct {
 }
 
 type RefreshTokenRequest struct {
-	RefreshToken string
+	RefreshToken string `json:"token"`
 }
 
 type RefreshTokenApiRequest struct {
