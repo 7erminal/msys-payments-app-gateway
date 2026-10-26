@@ -351,7 +351,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 						// 	}
 						// }
 						airtimeReq := requests.BuyAirtimeFormulatedRequest{
-							Amount:        resp.Result.PaymentAmount,
+							Amount:        resp.Result.Amount,
 							PhoneNumber:   resp.Result.SenderAccount,
 							Network:       resp.Result.ServiceNetwork,
 							Destination:   resp.Result.ReceiverAccount,
@@ -384,7 +384,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 						// 	}
 						// }
 						dataBundleReq := requests.BuyDataBundleFormulatedRequest{
-							Amount:        resp.Result.PaymentAmount,
+							Amount:        resp.Result.Amount,
 							PhoneNumber:   resp.Result.SenderAccount,
 							Network:       resp.Result.ServiceNetwork,
 							Destination:   resp.Result.ReceiverAccount,
@@ -410,7 +410,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 						logs.Info("Service network is ", resp.Result.ServiceNetwork)
 						if resp.Result.ServiceNetwork == "DSTV" {
 							dstvReq := requests.DSTVPaymentRequest{
-								Amount:             resp.Result.PaymentAmount,
+								Amount:             resp.Result.Amount,
 								PhoneNumber:        resp.Result.SenderAccount,
 								DestinationAccount: resp.Result.ReceiverAccount,
 								PackageType:        resp.Result.ServicePackage,
@@ -433,7 +433,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 
 						if resp.Result.ServiceNetwork == "GOTV" {
 							gotvReq := requests.GoTvPaymentApiRequest{
-								Amount:             resp.Result.PaymentAmount,
+								Amount:             resp.Result.Amount,
 								PhoneNumber:        resp.Result.SenderAccount,
 								DestinationAccount: resp.Result.ReceiverAccount,
 								PackageType:        resp.Result.ServicePackage,
@@ -456,7 +456,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 
 						if resp.Result.ServiceNetwork == "STARTIMES" {
 							dstvReq := requests.DSTVPaymentRequest{
-								Amount:             resp.Result.PaymentAmount,
+								Amount:             resp.Result.Amount,
 								PhoneNumber:        resp.Result.SenderAccount,
 								DestinationAccount: resp.Result.ReceiverAccount,
 								PackageType:        resp.Result.ServicePackage,
@@ -505,7 +505,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 
 						if resp.Result.ServiceNetwork == "ECG" {
 							ecgbillReq := requests.ECGPaymentApiRequest{
-								Amount:             resp.Result.PaymentAmount,
+								Amount:             resp.Result.Amount,
 								PhoneNumber:        resp.Result.SenderAccount,
 								DestinationAccount: resp.Result.ReceiverAccount,
 								PackageType:        resp.Result.ServicePackage,
@@ -534,7 +534,7 @@ func (c *CallbackController) RequestMoneyCallback() {
 							AccountNumber: resp.Result.SenderAccount,
 							ClientId:      clientId,
 							Reference:     resp.Result.ServiceNetwork,
-							Amount:        resp.Result.PaymentAmount,
+							Amount:        resp.Result.Amount,
 							ActivityType:  activityType,
 							ActivityBy:    "customer",
 							MobileNumber:  resp.Result.SenderAccount,
@@ -547,13 +547,13 @@ func (c *CallbackController) RequestMoneyCallback() {
 					}
 
 					if resp.Result.Service == "WITHDRAWAL" {
-						logs.Info("Amount to withdraw is ", resp.Result.PaymentAmount)
+						logs.Info("Amount to withdraw is ", resp.Result.Amount)
 						activityType := "debit"
 						withdrawalReq := requests.AccountActivityRequest{
 							AccountNumber: resp.Result.SenderAccount,
 							ClientId:      clientId,
 							Reference:     resp.Result.ServiceNetwork,
-							Amount:        resp.Result.PaymentAmount,
+							Amount:        resp.Result.Amount,
 							ActivityType:  activityType,
 							ActivityBy:    "customer",
 							MobileNumber:  resp.Result.SenderAccount,
