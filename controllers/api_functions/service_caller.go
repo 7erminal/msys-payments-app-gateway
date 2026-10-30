@@ -199,6 +199,54 @@ func Login(c *beego.Controller, req requests.LoginApiRequest) (resp responses.Cu
 	return data
 }
 
+func ValidateCustomerCredentials(c *beego.Controller, req requests.LoginApiRequest) (resp responses.StringOriResponseDTO) {
+	host, _ := beego.AppConfig.String("authenticationBaseUrl")
+
+	logs.Info("Verify pin ", req.PhoneNumber, " for ", req.Password)
+
+	request := api.NewRequest(
+		host,
+		"/v1/auth/customer-pin-validation",
+		api.POST)
+	// request.Params["username"] = username
+	// request.Params = {"UserId": strconv.Itoa(int(userid))}
+	request.HeaderField["clientCode"] = req.ClientId
+
+	request.InterfaceParams["Username"] = req.PhoneNumber
+	request.InterfaceParams["Password"] = req.Password
+
+	client := api.Client{
+		Request: request,
+		Type_:   "body",
+	}
+	res, err := client.SendRequest()
+	if err != nil {
+		logs.Error("client.Error: %v", err)
+		c.Data["json"] = err.Error()
+	}
+	defer res.Body.Close()
+	read, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.Data["json"] = err.Error()
+	}
+
+	var prettyJSON bytes.Buffer
+	if err := json.Indent(&prettyJSON, read, "", "  "); err != nil {
+		logs.Info("Raw response received is ", string(read))
+	} else {
+		logs.Info("Raw response received is \n", prettyJSON.String())
+	}
+	// data := map[string]interface{}{}
+	var data responses.StringOriResponseDTO
+	json.Unmarshal(read, &data)
+	c.Data["json"] = data
+
+	logs.Info("Resp is ", data)
+	// logs.Info("Resp is ", data.User)
+
+	return data
+}
+
 func RefreshCustomerToken(c *beego.Controller, req requests.RefreshTokenApiRequest) (resp responses.CustomerLoginApiResponseDTO) {
 	host, _ := beego.AppConfig.String("authenticationBaseUrl")
 
