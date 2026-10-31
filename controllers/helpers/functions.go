@@ -327,11 +327,11 @@ func CheckAccountsStatus(c *beego.Controller, customerData *responses.Customer) 
 							Name:        customerData.FullName,
 							Email:       customerData.Email,
 							PhoneNumber: customerData.PhoneNumber,
-							IdNumber:    customerData.IdentificationNumber,
-							Location:    customerData.Location,
-							Branch:      1, // Assuming default branch
-							UserId:      1, // Assuming system user
-							CustomerId:  customerData.CustomerId,
+							// IdNumber:    customerData.IdentificationNumber,
+							Location:   customerData.Location,
+							Branch:     1, // Assuming default branch
+							UserId:     1, // Assuming system user
+							CustomerId: customerData.CustomerId,
 						}
 						updateCustomerResp := apifunctions.UpdateCustomer(c, updatedcustmer)
 						logs.Info("Update customer response: ", updateCustomerResp)

@@ -238,7 +238,7 @@ func VerifyToken(c *beego.Controller, token string) (resp responses.UserOriRespo
 	return data
 }
 
-func VerifyTokenNew(token string) (resp responses.CustomerResponseDTO2) {
+func VerifyTokenNew(token string) (resp responses.CustomerAccessTokenApiResponseDTO) {
 	host, _ := beego.AppConfig.String("authenticationBaseUrl")
 
 	logs.Info("About to verify token ", token)
@@ -271,7 +271,7 @@ func VerifyTokenNew(token string) (resp responses.CustomerResponseDTO2) {
 		logs.Info("Raw response received is \n", prettyJSON.String())
 	}
 	// data := map[string]interface{}{}
-	var data responses.CustomerResponseDTO2
+	var data responses.CustomerAccessTokenApiResponseDTO
 	json.Unmarshal(read, &data)
 
 	return data

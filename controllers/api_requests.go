@@ -196,7 +196,7 @@ func (c *Api_requestsController) GetCustomerDetails() {
 	cust := c.Ctx.Input.GetData("customer")
 
 	logs.Info("Customer details: %s", cust)
-	customerData, ok := cust.(*responses.Customer)
+	customerData, ok := cust.(*responses.CustomerAccessTokenData)
 	if !ok {
 		logs.Error("Error asserting customer data")
 		c.Data["json"] = "Invalid customer data"
@@ -260,99 +260,112 @@ func (c *Api_requestsController) GetCustomerDetails() {
 
 		logs.Debug("Query for customer corporatives is ", query)
 
-		if customerCorps, err := models.GetAllCustomer_corporatives(query, fields, sortby, order, offset, limit); err == nil {
+		if customerResp := apifunctions.GetCustomerDetails(&c.Controller, customerData.CustomerID); customerResp.StatusCode == 200 {
+			logs.Debug("Returned customer data is ", customerResp)
 
-			logs.Debug("Returned customer corporatives data is ", customerCorps)
-			var customerCorpsDTO []responses.CustomerCorporativesResponseDTO
-			for _, v := range customerCorps {
-				logs.Debug("Processing customer corporative: ", v)
-				var corpDTO responses.CustomerCorporativesResponseDTO
-				corpBytes, err := json.Marshal(v)
+			customer := customerResp.Customer
+			if customerCorps, err := models.GetAllCustomer_corporatives(query, fields, sortby, order, offset, limit); err == nil {
+
+				logs.Debug("Returned customer corporatives data is ", customerCorps)
+				var customerCorpsDTO []responses.CustomerCorporativesResponseDTO
+				for _, v := range customerCorps {
+					logs.Debug("Processing customer corporative: ", v)
+					var corpDTO responses.CustomerCorporativesResponseDTO
+					corpBytes, err := json.Marshal(v)
+					if err != nil {
+						logs.Error("Error marshalling customer corporative data: ", err)
+						continue
+					}
+					if err := json.Unmarshal(corpBytes, &corpDTO); err != nil {
+						logs.Error("Error unmarshalling customer corporative data: ", err)
+						continue
+					}
+					customerCorpsDTO = append(customerCorpsDTO, corpDTO)
+				}
+
+				// Log customer corporatives data as readable JSON
+				corpsJSON, err := json.MarshalIndent(customerCorpsDTO, "", "  ")
 				if err != nil {
-					logs.Error("Error marshalling customer corporative data: ", err)
-					continue
+					logs.Error("Error marshalling customer corporatives to JSON: ", err)
+				} else {
+					logs.Debug("Formatted customer corporatives data is: %s", string(corpsJSON))
 				}
-				if err := json.Unmarshal(corpBytes, &corpDTO); err != nil {
-					logs.Error("Error unmarshalling customer corporative data: ", err)
-					continue
-				}
-				customerCorpsDTO = append(customerCorpsDTO, corpDTO)
-			}
 
-			// Log customer corporatives data as readable JSON
-			corpsJSON, err := json.MarshalIndent(customerCorpsDTO, "", "  ")
-			if err != nil {
-				logs.Error("Error marshalling customer corporatives to JSON: ", err)
+				customerResp := responses.CustomerGateway{
+					Username:             customer.Username,
+					CustomerId:           customer.CustomerId,
+					FullName:             customer.FullName,
+					ImagePath:            customer.ImagePath,
+					Email:                customer.Email,
+					PhoneNumber:          customer.PhoneNumber,
+					Location:             customer.Location,
+					Gender:               customer.Gender,
+					IdentificationType:   customer.IdentificationType,
+					IdentificationNumber: customer.IdentificationNumber,
+					DateCreated:          customer.DateCreated,
+					Status:               customer.Active,
+					CustomerCorporatives: &customerCorpsDTO,
+				}
+
+				logs.Info("Formatted request for customer: ")
+
+				response = responses.CustomerGatewayResponseDTO{
+					StatusCode:    true,
+					StatusMessage: "Customer fetched successfully",
+					Result:        &customerResp,
+				}
+
+				if customer.Active == 2 {
+					logs.Info("Customer is pending activation, checking accounts and profile completion")
+					// Fetch customer corporatives
+
+					logs.Info("Before update, Customer was created on ", customer.DateCreated)
+					helpers.CheckProfileCompletion(&c.Controller, customer)
+
+					logs.Info("Is customer completed? ", customer.Active)
+					logs.Info("Date customer was created is ", customer.DateCreated)
+
+					if customer.Active == 2 && customer.DateCreated != (time.Time{}) && time.Since(customer.DateCreated) > 20*time.Minute {
+						logs.Info("Date created is ", customer.DateCreated)
+						logs.Info("Time since customer was created is more than 20 minutes::: ", time.Since(customer.DateCreated).Minutes(), " minutes. Its is over ", 20*time.Minute, " minutes")
+						// Do your logic here
+						logs.Info("Customer was created over 20 minutes ago")
+
+						status := 1
+
+						updatedcustmer := requests.UpdateCustomer{
+							Name:        customer.FullName,
+							Email:       customer.Email,
+							PhoneNumber: customer.PhoneNumber,
+							IdNumber:    customer.IdentificationNumber,
+							Location:    customer.Location,
+							Branch:      1, // Assuming default branch
+							UserId:      1, // Assuming system user
+							CustomerId:  customer.CustomerId,
+							Status:      status,
+						}
+
+						logs.Info("About to update customer status to active")
+
+						updateCustomerResp := apifunctions.UpdateCustomer(&c.Controller, updatedcustmer)
+						logs.Info("Update customer response: ", updateCustomerResp)
+						logs.Info("After update, Customer was created on ", customer.DateCreated)
+						if updateCustomerResp.StatusCode != 200 {
+							logs.Error("Error updating customer status: ", updateCustomerResp.StatusDesc)
+						} else {
+							logs.Info("Customer status updated successfully: ", updateCustomerResp.Customer)
+						}
+					}
+
+				}
 			} else {
-				logs.Debug("Formatted customer corporatives data is: %s", string(corpsJSON))
-			}
-
-			customerResp := responses.CustomerGateway{
-				Username:             customerData.Username,
-				CustomerId:           customerData.CustomerId,
-				FullName:             customerData.FullName,
-				ImagePath:            customerData.ImagePath,
-				Email:                customerData.Email,
-				PhoneNumber:          customerData.PhoneNumber,
-				Location:             customerData.Location,
-				Gender:               customerData.Gender,
-				IdentificationType:   customerData.IdentificationType,
-				IdentificationNumber: customerData.IdentificationNumber,
-				DateCreated:          customerData.DateCreated,
-				Status:               customerData.Active,
-				CustomerCorporatives: &customerCorpsDTO,
-			}
-
-			logs.Info("Formatted request for customer: ")
-
-			response = responses.CustomerGatewayResponseDTO{
-				StatusCode:    true,
-				StatusMessage: "Customer fetched successfully",
-				Result:        &customerResp,
-			}
-
-			if customerData.Active == 2 {
-				logs.Info("Customer is pending activation, checking accounts and profile completion")
-				// Fetch customer corporatives
-
-				logs.Info("Before update, Customer was created on ", customerData.DateCreated)
-				helpers.CheckProfileCompletion(&c.Controller, customerData)
-
-				logs.Info("Is customer completed? ", customerData.Active)
-				logs.Info("Date customer was created is ", customerData.DateCreated)
-
-				if customerData.Active == 2 && customerData.DateCreated != (time.Time{}) && time.Since(customerData.DateCreated) > 20*time.Minute {
-					logs.Info("Date created is ", customerData.DateCreated)
-					logs.Info("Time since customer was created is more than 20 minutes::: ", time.Since(customerData.DateCreated).Minutes(), " minutes. Its is over ", 20*time.Minute, " minutes")
-					// Do your logic here
-					logs.Info("Customer was created over 20 minutes ago")
-
-					status := 1
-
-					updatedcustmer := requests.UpdateCustomer{
-						Name:        customerData.FullName,
-						Email:       customerData.Email,
-						PhoneNumber: customerData.PhoneNumber,
-						IdNumber:    customerData.IdentificationNumber,
-						Location:    customerData.Location,
-						Branch:      1, // Assuming default branch
-						UserId:      1, // Assuming system user
-						CustomerId:  customerData.CustomerId,
-						Status:      status,
-					}
-
-					logs.Info("About to update customer status to active")
-
-					updateCustomerResp := apifunctions.UpdateCustomer(&c.Controller, updatedcustmer)
-					logs.Info("Update customer response: ", updateCustomerResp)
-					logs.Info("After update, Customer was created on ", customerData.DateCreated)
-					if updateCustomerResp.StatusCode != 200 {
-						logs.Error("Error updating customer status: ", updateCustomerResp.StatusDesc)
-					} else {
-						logs.Info("Customer status updated successfully: ", updateCustomerResp.Customer)
-					}
+				logs.Error("Error fetching customer data: ", err)
+				response = responses.CustomerGatewayResponseDTO{
+					StatusCode:    false,
+					StatusMessage: "Something went wrong:: " + err.Error(),
+					Result:        nil,
 				}
-
+				c.Data["json"] = response
 			}
 		} else {
 			logs.Error("Error fetching customer corporatives: ", err)
@@ -402,7 +415,7 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 	cust := c.Ctx.Input.GetData("customer")
 
 	logs.Info("Customer details: %s", cust)
-	customerData, ok := cust.(*responses.Customer)
+	customerData, ok := cust.(*responses.CustomerAccessTokenData)
 	if !ok {
 		logs.Error("Error asserting customer data")
 		c.Data["json"] = "Invalid customer data"
@@ -458,9 +471,8 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 			var limit int64 = 10
 			var offset int64
 
-			logs.Info("Customer status is ", customerData.Active)
-			switch customerData.Active {
-			case 1, 2:
+			// logs.Info("Customer status is ", customerData.Active)
+			if customerData.Active == 1 || customerData.Active == 2 {
 				logs.Info("Customer is active or pending activation, fetching accounts")
 				customerNumberSearch := "CustomerNumber:" + customerData.CustomerNumber
 
@@ -489,163 +501,176 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 						Result:        nil,
 					}
 				} else {
-					if customerCorporatives, err := models.GetAllCustomer_corporatives(query, fields, sortby, order, offset, limit); err == nil {
-						for _, v := range customerCorporatives {
-							logs.Debug("Returned customer corporative data is ", v)
-							// Convert to DTO
-							var corpDTO models.Customer_corporatives
-							corpBytes, err := json.Marshal(v)
-							if err != nil {
-								logs.Error("Error marshalling customer corporative data: ", err)
-								continue
-							}
-							if err := json.Unmarshal(corpBytes, &corpDTO); err != nil {
-								logs.Error("Error unmarshalling customer corporative data: ", err)
-							}
-							logs.Info("Customer corporative DTO: ", corpDTO)
+					if customerResp := apifunctions.GetCustomerDetails(&c.Controller, customerData.CustomerID); customerResp.StatusCode == 200 {
+						logs.Debug("Returned customer data is ", customerResp)
 
-							if corpDTO.IsActive == 0 {
-								logs.Info("Customer corporative is inactive, fetching accounts skipped")
-								helpers.AddCustomerAccounts(&c.Controller, customerData, corpDTO, phoneNumber)
+						customer := customerResp.Customer
+						logs.Debug("Customer details fetched: ", customer)
+						if customerCorporatives, err := models.GetAllCustomer_corporatives(query, fields, sortby, order, offset, limit); err == nil {
+							for _, v := range customerCorporatives {
+								logs.Debug("Returned customer corporative data is ", v)
+								// Convert to DTO
+								var corpDTO models.Customer_corporatives
+								corpBytes, err := json.Marshal(v)
+								if err != nil {
+									logs.Error("Error marshalling customer corporative data: ", err)
+									continue
+								}
+								if err := json.Unmarshal(corpBytes, &corpDTO); err != nil {
+									logs.Error("Error unmarshalling customer corporative data: ", err)
+								}
+								logs.Info("Customer corporative DTO: ", corpDTO)
+
+								if corpDTO.IsActive == 0 {
+									logs.Info("Customer corporative is inactive, fetching accounts skipped")
+									helpers.AddCustomerAccounts(&c.Controller, customer, corpDTO, phoneNumber)
+								}
 							}
-						}
 
-						resp := apifunctions.GetCustomerAccounts(&c.Controller, strconv.FormatInt(customerData.CustomerId, 10), strconv.FormatInt(client.Id, 10))
-						logs.Info("Response from customer accounts API: ", resp)
+							resp := apifunctions.GetCustomerAccounts(&c.Controller, customerData.CustomerID, strconv.FormatInt(client.Id, 10))
+							logs.Info("Response from customer accounts API: ", resp)
 
-						if resp.StatusCode != "200" {
-							response = responses.CustomerAccountsResponse{
-								Success:       false,
-								StatusMessage: resp.StatusMessage,
-								Result:        nil,
+							if resp.StatusCode != "200" {
+								response = responses.CustomerAccountsResponse{
+									Success:       false,
+									StatusMessage: resp.StatusMessage,
+									Result:        nil,
+								}
+							} else {
+								responseText, err := json.Marshal(resp.Result)
+								if err != nil {
+									logs.Error("Error marshalling response result: ", err)
+									responseText = []byte("[]")
+								}
+								v.RequestResponse = string(responseText)
+								v.DateModified = time.Now()
+								v.ResponseDate = time.Now()
+								if err := models.UpdateApi_requestsById(&v); err != nil {
+									logs.Error("Error updating API request with response: ", err)
+								} else {
+									logs.Info("API request updated with response successfully: ", v)
+								}
+
+								query := "HasApp:1"
+								corps := apifunctions.GetCorporatives(&c.Controller, query)
+								logs.Info("Response from Get corporatives API: ", corps)
+
+								reference := ""
+								if corps.StatusCode != 200 {
+									logs.Error("Error fetching corporatives: ", corps.StatusMessage)
+								} else {
+									logs.Info("Corporatives fetched successfully: ", corps.Result)
+
+									if corps.Result == nil || len(*corps.Result) == 0 {
+										logs.Error("No corporatives found")
+									}
+
+									custAccounts := make([]responses.CustomerAccountResponse, 0)
+									for _, acc := range resp.Result {
+										logs.Info("Account reference: ", acc.Reference)
+										// Map each account to the response object
+										reference = acc.Reference
+
+										// Find the matching corporate for the customer
+										for _, corp := range *corps.Result {
+											corpIdStr := strings.TrimSpace(strconv.FormatInt(corp.Id, 10))
+											if corpIdStr == acc.Reference {
+												reference = corp.ClientCode
+												break
+											}
+										}
+
+										logs.Info("Account reference mapped to corporate code: ", reference)
+
+										sharesBalance := 0.0
+										loanBalance := 0.0
+										clearBalance := 0.0
+										// Convert reference to int64 for client lookup
+										// clientRef := strings.TrimSpace(acc.Reference)
+										// clientID, parseErr := strconv.ParseInt(clientRef, 10, 64)
+										// if parseErr != nil {
+										// 	logs.Error("failed to convert acc.Reference to int64: ", parseErr)
+										// 	response = responses.CustomerAccountsResponse{
+										// 		StatusCode:    false,
+										// 		StatusMessage: "Invalid account reference: " + parseErr.Error(),
+										// 		Result:        nil,
+										// 	}
+										// 	continue
+										// }
+
+										// Convert client
+										checkAndUpdateAccountBalance := requests.UpdateAccountBalanceApiRequest{
+											AccountNumber: acc.AccountNumber,
+											AccountId:     acc.CustomerAccountId,
+											Balance:       acc.Balance,
+											ModifiedBy:    int(customer.CustomerId),
+											Reason:        "Fetch latest balance",
+											ClientId:      client.ClientCode,
+										}
+
+										balanceResp := helpers.UpdateAccountBalance(&c.Controller, checkAndUpdateAccountBalance)
+										logs.Info("Account balance update response: ", balanceResp)
+
+										if !balanceResp.StatusCode {
+											logs.Error("Error fetching and updating account balance: ", balanceResp.StatusMessage)
+										}
+
+										if balanceResp.Result.SharesBalance != nil {
+											sharesBalance = *balanceResp.Result.SharesBalance
+										}
+										if balanceResp.Result.LoanBalance != nil {
+											loanBalance = *balanceResp.Result.LoanBalance
+										}
+										if balanceResp.Result.ClearBalance != nil {
+											clearBalance = *balanceResp.Result.ClearBalance
+										}
+
+										// keep using client (from GetClientsById) as needed below
+										_ = client
+
+										custAccount := responses.CustomerAccountResponse{
+											CustomerAccountId: acc.CustomerAccountId,
+											AccountNumber:     acc.AccountNumber,
+											AccountAlias:      acc.AccountAlias,
+											AccountType:       acc.AccountType,
+											Reference:         reference,
+											ClientId:          acc.Reference,
+											Balance:           acc.Balance,
+											SharesBalance:     sharesBalance,
+											LoanBalance:       loanBalance,
+											CLearBalance:      clearBalance,
+											FrozenAmount:      acc.FrozenAmount,
+											BalanceBefore:     acc.BalanceBefore,
+											DateCreated:       acc.DateCreated,
+											Active:            acc.Active,
+										}
+										custAccounts = append(custAccounts, custAccount)
+									}
+									response = responses.CustomerAccountsResponse{
+										Success:       true,
+										StatusMessage: "Accounts fetched successfully",
+										Result:        custAccounts,
+									}
+								}
 							}
 						} else {
-							responseText, err := json.Marshal(resp.Result)
-							if err != nil {
-								logs.Error("Error marshalling response result: ", err)
-								responseText = []byte("[]")
-							}
-							v.RequestResponse = string(responseText)
-							v.DateModified = time.Now()
-							v.ResponseDate = time.Now()
-							if err := models.UpdateApi_requestsById(&v); err != nil {
-								logs.Error("Error updating API request with response: ", err)
-							} else {
-								logs.Info("API request updated with response successfully: ", v)
-							}
-
-							query := "HasApp:1"
-							corps := apifunctions.GetCorporatives(&c.Controller, query)
-							logs.Info("Response from Get corporatives API: ", corps)
-
-							reference := ""
-							if corps.StatusCode != 200 {
-								logs.Error("Error fetching corporatives: ", corps.StatusMessage)
-							} else {
-								logs.Info("Corporatives fetched successfully: ", corps.Result)
-
-								if corps.Result == nil || len(*corps.Result) == 0 {
-									logs.Error("No corporatives found")
-								}
-
-								custAccounts := make([]responses.CustomerAccountResponse, 0)
-								for _, acc := range resp.Result {
-									logs.Info("Account reference: ", acc.Reference)
-									// Map each account to the response object
-									reference = acc.Reference
-
-									// Find the matching corporate for the customer
-									for _, corp := range *corps.Result {
-										corpIdStr := strings.TrimSpace(strconv.FormatInt(corp.Id, 10))
-										if corpIdStr == acc.Reference {
-											reference = corp.ClientCode
-											break
-										}
-									}
-
-									logs.Info("Account reference mapped to corporate code: ", reference)
-
-									sharesBalance := 0.0
-									loanBalance := 0.0
-									clearBalance := 0.0
-									// Convert reference to int64 for client lookup
-									// clientRef := strings.TrimSpace(acc.Reference)
-									// clientID, parseErr := strconv.ParseInt(clientRef, 10, 64)
-									// if parseErr != nil {
-									// 	logs.Error("failed to convert acc.Reference to int64: ", parseErr)
-									// 	response = responses.CustomerAccountsResponse{
-									// 		StatusCode:    false,
-									// 		StatusMessage: "Invalid account reference: " + parseErr.Error(),
-									// 		Result:        nil,
-									// 	}
-									// 	continue
-									// }
-
-									// Convert client
-									checkAndUpdateAccountBalance := requests.UpdateAccountBalanceApiRequest{
-										AccountNumber: acc.AccountNumber,
-										AccountId:     acc.CustomerAccountId,
-										Balance:       acc.Balance,
-										ModifiedBy:    int(customerData.CustomerId),
-										Reason:        "Fetch latest balance",
-										ClientId:      client.ClientCode,
-									}
-
-									balanceResp := helpers.UpdateAccountBalance(&c.Controller, checkAndUpdateAccountBalance)
-									logs.Info("Account balance update response: ", balanceResp)
-
-									if !balanceResp.StatusCode {
-										logs.Error("Error fetching and updating account balance: ", balanceResp.StatusMessage)
-									}
-
-									if balanceResp.Result.SharesBalance != nil {
-										sharesBalance = *balanceResp.Result.SharesBalance
-									}
-									if balanceResp.Result.LoanBalance != nil {
-										loanBalance = *balanceResp.Result.LoanBalance
-									}
-									if balanceResp.Result.ClearBalance != nil {
-										clearBalance = *balanceResp.Result.ClearBalance
-									}
-
-									// keep using client (from GetClientsById) as needed below
-									_ = client
-
-									custAccount := responses.CustomerAccountResponse{
-										CustomerAccountId: acc.CustomerAccountId,
-										AccountNumber:     acc.AccountNumber,
-										AccountAlias:      acc.AccountAlias,
-										AccountType:       acc.AccountType,
-										Reference:         reference,
-										ClientId:          acc.Reference,
-										Balance:           acc.Balance,
-										SharesBalance:     sharesBalance,
-										LoanBalance:       loanBalance,
-										CLearBalance:      clearBalance,
-										FrozenAmount:      acc.FrozenAmount,
-										BalanceBefore:     acc.BalanceBefore,
-										DateCreated:       acc.DateCreated,
-										Active:            acc.Active,
-									}
-									custAccounts = append(custAccounts, custAccount)
-								}
-								response = responses.CustomerAccountsResponse{
-									Success:       true,
-									StatusMessage: "Accounts fetched successfully",
-									Result:        custAccounts,
-								}
+							logs.Error("Customer has no accounts")
+							response = responses.CustomerAccountsResponse{
+								Success:       false,
+								StatusMessage: "Customer has no accounts",
+								Result:        nil,
 							}
 						}
 					} else {
-						logs.Error("Customer has no accounts")
+						logs.Error("Error fetching customer details")
 						response = responses.CustomerAccountsResponse{
 							Success:       false,
-							StatusMessage: "Customer has no accounts",
+							StatusMessage: "Error fetching customer details",
 							Result:        nil,
 						}
 					}
 				}
-			default:
+			} else {
 				response = responses.CustomerAccountsResponse{
 					Success:       false,
 					StatusMessage: "Customer is not active",
@@ -695,7 +720,7 @@ func (c *Api_requestsController) RegisterAccount() {
 	cust := c.Ctx.Input.GetData("customer")
 
 	logs.Info("Customer details: %s", cust)
-	customerData, ok := cust.(*responses.Customer)
+	customerData, ok := cust.(*responses.CustomerAccessTokenData)
 	if !ok {
 		logs.Error("Error asserting customer data")
 		c.Data["json"] = "Invalid customer data"
@@ -740,7 +765,7 @@ func (c *Api_requestsController) RegisterAccount() {
 	if _, err := models.AddApi_requests(&v); err == nil {
 		logs.Info("API request logged successfully: ", v)
 
-		logs.Info("Customer exists: ", customerData.CustomerNumber)
+		// logs.Info("Customer exists: ", customerData.CustomerNumber)
 
 		accountOpeningFee := 1.00 // This can be fetched from config or database as needed
 
@@ -881,7 +906,7 @@ func (c *Api_requestsController) GetCustomerAccountHistory() {
 	cust := c.Ctx.Input.GetData("customer")
 
 	logs.Info("Customer details: %s", cust)
-	// customerData, ok := cust.(*responses.Customer)
+	// customerData, ok := cust.(*responses.CustomerAccessTokenData)
 	// if !ok {
 	// 	logs.Error("Error asserting customer data")
 	// 	c.Data["json"] = "Invalid customer data"
@@ -1008,7 +1033,7 @@ func (c *Api_requestsController) GetBilTransactions() {
 	cust := c.Ctx.Input.GetData("customer")
 
 	logs.Info("Customer details: %s", cust)
-	// customerData, ok := cust.(*responses.Customer)
+	// customerData, ok := cust.(*responses.CustomerAccessTokenData)
 	// if !ok {
 	// 	logs.Error("Error asserting customer data")
 	// 	c.Data["json"] = "Invalid customer data"
@@ -1142,7 +1167,7 @@ func (c *Api_requestsController) GetCustomerAccountStatement() {
 	cust := c.Ctx.Input.GetData("customer")
 
 	logs.Info("Customer details: %s", cust)
-	// customerData, ok := cust.(*responses.Customer)
+	// customerData, ok := cust.(*responses.CustomerAccessTokenData)
 	// if !ok {
 	// 	logs.Error("Error asserting customer data")
 	// 	c.Data["json"] = "Invalid customer data"
@@ -1554,7 +1579,7 @@ func (c *Api_requestsController) ChangePassword() {
 	cust := c.Ctx.Input.GetData("customer")
 
 	logs.Info("Customer details: %s", cust)
-	// customerData, ok := cust.(*responses.Customer)
+	// customerData, ok := cust.(*responses.CustomerAccessTokenData)
 	// if !ok {
 	// 	logs.Error("Error asserting customer data")
 	// 	c.Data["json"] = "Invalid customer data"
@@ -1770,7 +1795,7 @@ func (c *Api_requestsController) ResetCustomerPin() {
 	cust := c.Ctx.Input.GetData("customer")
 
 	logs.Info("Customer details: %s", cust)
-	customerData, ok := cust.(*responses.Customer)
+	customerData, ok := cust.(*responses.CustomerAccessTokenData)
 	if !ok {
 		logs.Error("Error asserting customer data")
 		c.Data["json"] = "Invalid customer data"
@@ -1816,7 +1841,7 @@ func (c *Api_requestsController) ResetCustomerPin() {
 
 		logs.Info("Formatted request for pin reset: ", resetPinRequest)
 
-		resp := apifunctions.ResetCustomerPin(&c.Controller, resetPinRequest, fmt.Sprint(customerData.CustomerId))
+		resp := apifunctions.ResetCustomerPin(&c.Controller, resetPinRequest, customerData.CustomerID)
 		logs.Info("Response from pin reset API: ", resp)
 
 		var response responses.ResetPinResponse = responses.ResetPinResponse{
@@ -4053,7 +4078,7 @@ func (c *Api_requestsController) PayWaterBill() {
 			responseMessage = "Error getting client: " + err.Error()
 		} else {
 			customerEmail := req.CustomerEmail
-			customerData, ok := cust.(*responses.Customer)
+			customerData, ok := cust.(*responses.CustomerAccessTokenData)
 			logs.Info("Customer email is ", customerEmail)
 			if customerEmail == "" {
 				logs.Info("Fetching customer email from context")

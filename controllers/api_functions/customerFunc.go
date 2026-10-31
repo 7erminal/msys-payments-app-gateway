@@ -137,14 +137,14 @@ func AddCustomerCredential(c *beego.Controller, req requests.AddCustomerCredenti
 	return data
 }
 
-func GetCustomerDetails(c *beego.Controller, userid int64) (resp responses.CustomerResponseDTO) {
+func GetCustomerDetails(c *beego.Controller, userid string) (resp responses.CustomerResponseDTO) {
 	host, _ := beego.AppConfig.String("customerBaseUrl")
 
 	logs.Info("Getting user details ", userid)
 
 	request := api.NewRequest(
 		host,
-		"/v1/customers/"+strconv.FormatInt(userid, 10),
+		"/v1/customers/"+userid,
 		api.GET)
 	// request.Params["username"] = username
 	// request.Params = {"UserId": strconv.Itoa(int(userid))}
