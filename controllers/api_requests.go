@@ -57,6 +57,7 @@ func (c *Api_requestsController) URLMapping() {
 	// c.Mapping("TransferFunds", c.TransferFunds)
 	c.Mapping("ChangePassword", c.ChangePassword)
 	c.Mapping("ResetCustomerPin", c.ResetCustomerPin)
+	c.Mapping("CustomerPinValidation", c.CustomerPinValidation)
 }
 
 // GetCorporatives ...
@@ -4731,6 +4732,63 @@ func (c *Api_requestsController) GetBilTransactionWithTransactionRef() {
 		Result:        &result,
 	}
 	c.Data["json"] = response
+	c.ServeJSON()
+}
+
+// CustomerPinValidation ...
+// @Title CustomerPinValidation
+// @Description CustomerPinValidation
+// @Param	PhoneNumber		header 	string true		"header for Customer's phone number"
+// @Param	SourceSystem		header 	string true		"header for Source system"
+// @Param	body		body 	requests.LoginRequest	true		"body for Request content"
+// @Success 200 {int} responses.StringResponseDTO
+// @Failure 403 body is empty
+// @router /verify-pin [post]
+func (c *Api_requestsController) CustomerPinValidation() {
+	// Extract headers
+	// phoneNumber := c.Ctx.Input.Header("PhoneNumber")
+	logs.Info("CustomerPinValidation called with headers")
+	sourceSystem := c.Ctx.Input.Header("SourceSystem")
+	phoneNumber := c.Ctx.Input.Header("PhoneNumber")
+
+	var req requests.CustomerPinValidationRequest
+	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
+
+	logs.Info("CustomerPinValidation called with PhoneNumber: %s, SourceSystem: %s", phoneNumber, sourceSystem)
+
+	isSuccess := false
+	statusMessage := "Something went wrong"
+	result := ""
+
+	loginRequest := requests.CustomerPinValidationApiRequest{
+		PhoneNumber:  strings.TrimSpace(req.PhoneNumber),
+		SourceSystem: strings.TrimSpace(sourceSystem),
+		Pin:          strings.TrimSpace(req.Pin),
+		ClientId:     strings.TrimSpace(req.ClientId),
+	}
+
+	logs.Info("Formatted request for CustomerPinValidation: ", loginRequest)
+	resp := apifunctions.ValidateCustomerCredentials(&c.Controller, loginRequest)
+	logs.Info("Response from CustomerPinValidation API: ", resp)
+
+	if resp.StatusCode != 200 {
+		logs.Error("Error validating customer pin: ", resp.StatusDesc)
+		statusMessage = resp.StatusDesc
+	} else {
+		isSuccess = true
+		statusMessage = "Pin validated successful"
+		result = "Pin validated successfully"
+	}
+
+	var response responses.StringResponseDTO = responses.StringResponseDTO{
+		Success:    isSuccess,
+		StatusDesc: statusMessage,
+		Result:     &result,
+	}
+
+	c.Ctx.Output.SetStatus(200)
+	c.Data["json"] = response
+
 	c.ServeJSON()
 }
 

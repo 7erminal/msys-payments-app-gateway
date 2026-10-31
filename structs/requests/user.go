@@ -14,6 +14,19 @@ type LoginUserApiRequest struct {
 	ClientId     string
 }
 
+type CustomerPinValidationApiRequest struct {
+	PhoneNumber  string
+	Pin          string
+	SourceSystem string
+	ClientId     string
+}
+
+type CustomerPinValidationRequest struct {
+	PhoneNumber string
+	Pin         string
+	ClientId    string
+}
+
 type RefreshTokenRequest struct {
 	RefreshToken string `json:"token"`
 }

@@ -199,10 +199,10 @@ func Login(c *beego.Controller, req requests.LoginApiRequest) (resp responses.Cu
 	return data
 }
 
-func ValidateCustomerCredentials(c *beego.Controller, req requests.LoginApiRequest) (resp responses.StringOriResponseDTO) {
+func ValidateCustomerCredentials(c *beego.Controller, req requests.CustomerPinValidationApiRequest) (resp responses.StringOriResponseDTO) {
 	host, _ := beego.AppConfig.String("authenticationBaseUrl")
 
-	logs.Info("Verify pin ", req.PhoneNumber, " for ", req.Password)
+	logs.Info("Verify pin ", req.PhoneNumber, " for ", req.Pin)
 
 	request := api.NewRequest(
 		host,
@@ -213,7 +213,7 @@ func ValidateCustomerCredentials(c *beego.Controller, req requests.LoginApiReque
 	request.HeaderField["clientCode"] = req.ClientId
 
 	request.InterfaceParams["Username"] = req.PhoneNumber
-	request.InterfaceParams["Password"] = req.Password
+	request.InterfaceParams["Pin"] = req.Pin
 
 	client := api.Client{
 		Request: request,

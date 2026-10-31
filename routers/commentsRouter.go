@@ -369,18 +369,18 @@ func init() {
 
     beego.GlobalControllerRouter["msys_payment_app_gateway/controllers:Api_requestsController"] = append(beego.GlobalControllerRouter["msys_payment_app_gateway/controllers:Api_requestsController"],
         beego.ControllerComments{
-            Method: "Withdrawal",
-            Router: `/withdrawal`,
+            Method: "CustomerPinValidation",
+            Router: `/verify-pin`,
             AllowHTTPMethods: []string{"post"},
             MethodParams: param.Make(),
             Filters: nil,
             Params: nil})
 
-    beego.GlobalControllerRouter["msys_payment_app_gateway/controllers:Auth_requestsController"] = append(beego.GlobalControllerRouter["msys_payment_app_gateway/controllers:Auth_requestsController"],
+    beego.GlobalControllerRouter["msys_payment_app_gateway/controllers:Api_requestsController"] = append(beego.GlobalControllerRouter["msys_payment_app_gateway/controllers:Api_requestsController"],
         beego.ControllerComments{
-            Method: "GetAll",
-            Router: `/`,
-            AllowHTTPMethods: []string{"get"},
+            Method: "Withdrawal",
+            Router: `/withdrawal`,
+            AllowHTTPMethods: []string{"post"},
             MethodParams: param.Make(),
             Filters: nil,
             Params: nil})
@@ -396,8 +396,8 @@ func init() {
 
     beego.GlobalControllerRouter["msys_payment_app_gateway/controllers:Auth_requestsController"] = append(beego.GlobalControllerRouter["msys_payment_app_gateway/controllers:Auth_requestsController"],
         beego.ControllerComments{
-            Method: "GetOne",
-            Router: `/:id`,
+            Method: "GetAll",
+            Router: `/`,
             AllowHTTPMethods: []string{"get"},
             MethodParams: param.Make(),
             Filters: nil,
@@ -405,9 +405,9 @@ func init() {
 
     beego.GlobalControllerRouter["msys_payment_app_gateway/controllers:Auth_requestsController"] = append(beego.GlobalControllerRouter["msys_payment_app_gateway/controllers:Auth_requestsController"],
         beego.ControllerComments{
-            Method: "Delete",
+            Method: "GetOne",
             Router: `/:id`,
-            AllowHTTPMethods: []string{"delete"},
+            AllowHTTPMethods: []string{"get"},
             MethodParams: param.Make(),
             Filters: nil,
             Params: nil})
@@ -423,17 +423,17 @@ func init() {
 
     beego.GlobalControllerRouter["msys_payment_app_gateway/controllers:Auth_requestsController"] = append(beego.GlobalControllerRouter["msys_payment_app_gateway/controllers:Auth_requestsController"],
         beego.ControllerComments{
-            Method: "Login",
-            Router: `/login`,
-            AllowHTTPMethods: []string{"post"},
+            Method: "Delete",
+            Router: `/:id`,
+            AllowHTTPMethods: []string{"delete"},
             MethodParams: param.Make(),
             Filters: nil,
             Params: nil})
 
     beego.GlobalControllerRouter["msys_payment_app_gateway/controllers:Auth_requestsController"] = append(beego.GlobalControllerRouter["msys_payment_app_gateway/controllers:Auth_requestsController"],
         beego.ControllerComments{
-            Method: "CustomerPinValidation",
-            Router: `/pin-validation`,
+            Method: "Login",
+            Router: `/login`,
             AllowHTTPMethods: []string{"post"},
             MethodParams: param.Make(),
             Filters: nil,
