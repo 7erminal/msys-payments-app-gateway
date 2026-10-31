@@ -495,6 +495,7 @@ type TokenResponseDTO struct {
 	RefreshToken string
 	TokenType    string
 	ExpiresIn    int64
+	PinSet       bool
 }
 
 type LoginDataResponseDTO struct {

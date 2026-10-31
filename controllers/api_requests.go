@@ -634,6 +634,13 @@ func (c *Api_requestsController) GetCustomerAccounts() {
 								}
 							}
 						}
+					} else {
+						logs.Error("Customer has no accounts")
+						response = responses.CustomerAccountsResponse{
+							Success:       false,
+							StatusMessage: "Customer has no accounts",
+							Result:        nil,
+						}
 					}
 				}
 			default:
