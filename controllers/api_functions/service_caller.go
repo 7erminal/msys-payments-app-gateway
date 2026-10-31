@@ -2216,6 +2216,7 @@ func ResetPin(c *beego.Controller, req requests.ResetPinApiRequest) (resp respon
 func ResetCustomerPin(c *beego.Controller, req requests.ResetCustomerPinApiRequest, customerid string) (resp responses.ResetPinApiResponse) {
 	host, _ := beego.AppConfig.String("customerBaseUrl")
 
+	logs.Info("Customer ID for pin reset: ", customerid)
 	logs.Info("Resetting pin for username ", req.Username)
 	request := api.NewRequest(
 		host,
