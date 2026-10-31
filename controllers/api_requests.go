@@ -1653,7 +1653,7 @@ func (c *Api_requestsController) ChangePassword() {
 // @Param	body		body 	requests.NumberExistsApiRequest	true		"body for Request content"
 // @Success 201 {int} models.Api_requests
 // @Failure 403 body is empty
-// @router /reset-pin [post]
+// @router /reset-customer-pin [post]
 func (c *Api_requestsController) ResetPin() {
 	// Extract headers
 	// phoneNumber := c.Ctx.Input.Header("PhoneNumber")
