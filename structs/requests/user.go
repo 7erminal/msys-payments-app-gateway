@@ -22,7 +22,6 @@ type CustomerPinValidationApiRequest struct {
 }
 
 type CustomerPinValidationRequest struct {
-	Username string
 	Pin      string
 	ClientId string
 }
@@ -221,10 +220,8 @@ type ResetPinApiRequest struct {
 }
 
 type ResetCustomerPinRequest struct {
-	CustomerId string
-	Username   string
-	Password   string
-	Pin        string
+	Password string
+	Pin      string
 }
 
 type ResetCustomerPinApiRequest struct {

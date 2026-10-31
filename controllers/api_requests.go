@@ -1833,7 +1833,7 @@ func (c *Api_requestsController) ResetCustomerPin() {
 	if _, err := models.AddApi_requests(&v); err == nil {
 		logs.Info("API request logged successfully: ", v)
 		resetPinRequest := requests.ResetCustomerPinApiRequest{
-			Username:   req.Username,
+			Username:   customerData.Username,
 			Password:   req.Password,
 			Pin:        req.Pin,
 			ClientCode: clientCode,
@@ -4021,10 +4021,24 @@ func (c *Api_requestsController) PayWaterBill() {
 	sourceSystem := c.Ctx.Input.Header("SourceSystem")
 	network := c.Ctx.Input.Header("Network")
 
-	cust := c.Ctx.Input.GetData("customer")
-
 	var req requests.GhanaWaterPaymentRequest
 	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
+
+	cust := c.Ctx.Input.GetData("customer")
+	customerData, ok := cust.(*responses.CustomerAccessTokenData)
+
+	customerEmail := req.CustomerEmail
+	logs.Info("Customer email is ", customerEmail)
+	if customerEmail == "" {
+		logs.Info("Fetching customer email from context")
+		if ok {
+			logs.Info("Customer email from context is ", customerData.Email)
+			customerEmail = customerData.Email
+		} else {
+			logs.Info("No customer data in context")
+			customerEmail = "customer@gmail.com"
+		}
+	}
 
 	destinationAccount := req.DestinationAccount
 	clientId := req.ClientId
@@ -4077,19 +4091,6 @@ func (c *Api_requestsController) PayWaterBill() {
 
 			responseMessage = "Error getting client: " + err.Error()
 		} else {
-			customerEmail := req.CustomerEmail
-			customerData, ok := cust.(*responses.CustomerAccessTokenData)
-			logs.Info("Customer email is ", customerEmail)
-			if customerEmail == "" {
-				logs.Info("Fetching customer email from context")
-				if ok {
-					logs.Info("Customer email from context is ", customerData.Email)
-					customerEmail = customerData.Email
-				} else {
-					logs.Info("No customer data in context")
-					customerEmail = "customer@gmail.com"
-				}
-			}
 
 			requestIdStr := fmt.Sprintf("%d", v.Id)
 			transactionLog := requests.LogTransactionRequest{
@@ -4780,6 +4781,17 @@ func (c *Api_requestsController) CustomerPinValidation() {
 	var req requests.CustomerPinValidationRequest
 	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
 
+	cust := c.Ctx.Input.GetData("customer")
+	customerData, ok := cust.(*responses.CustomerAccessTokenData)
+
+	if ok {
+		logs.Info("Customer email from context is ", customerData.Email)
+
+	} else {
+		logs.Info("No customer data in context")
+		// customerEmail = "customer@gmail.com"
+	}
+
 	logs.Info("CustomerPinValidation called with PhoneNumber: %s, SourceSystem: %s", phoneNumber, sourceSystem)
 
 	isSuccess := false
@@ -4787,7 +4799,7 @@ func (c *Api_requestsController) CustomerPinValidation() {
 	result := ""
 
 	loginRequest := requests.CustomerPinValidationApiRequest{
-		Username:     strings.TrimSpace(req.Username),
+		Username:     strings.TrimSpace(customerData.Username),
 		SourceSystem: strings.TrimSpace(sourceSystem),
 		Pin:          strings.TrimSpace(req.Pin),
 		ClientId:     strings.TrimSpace(req.ClientId),
