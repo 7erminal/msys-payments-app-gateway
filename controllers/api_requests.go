@@ -1765,6 +1765,17 @@ func (c *Api_requestsController) ResetCustomerPin() {
 	phoneNumber := c.Ctx.Input.Header("PhoneNumber")
 	clientCode := c.Ctx.Input.Header("ClientCode")
 
+	cust := c.Ctx.Input.GetData("customer")
+
+	logs.Info("Customer details: %s", cust)
+	customerData, ok := cust.(*responses.Customer)
+	if !ok {
+		logs.Error("Error asserting customer data")
+		c.Data["json"] = "Invalid customer data"
+		c.ServeJSON()
+		return
+	}
+
 	var req requests.ResetCustomerPinRequest
 	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
 
@@ -1802,7 +1813,8 @@ func (c *Api_requestsController) ResetCustomerPin() {
 		}
 
 		logs.Info("Formatted request for pin reset: ", resetPinRequest)
-		resp := apifunctions.ResetCustomerPin(&c.Controller, resetPinRequest, req.CustomerId)
+
+		resp := apifunctions.ResetCustomerPin(&c.Controller, resetPinRequest, fmt.Sprint(customerData.CustomerId))
 		logs.Info("Response from pin reset API: ", resp)
 
 		var response responses.ResetPinResponse = responses.ResetPinResponse{
