@@ -1823,14 +1823,14 @@ func (c *Api_requestsController) ResetCustomerPin() {
 			Result:        "",
 		}
 
-		if resp.Data.StatusCode != 200 {
+		if resp.StatusCode != 200 {
 			response = responses.ResetPinResponse{
 				Success:       false,
-				StatusMessage: resp.Data.StatusMessage,
+				StatusMessage: resp.StatusMessage,
 				Result:        "",
 			}
 		} else {
-			responseText, err := json.Marshal(response.Result)
+			responseText, err := json.Marshal(resp.Result)
 			if err != nil {
 				logs.Error("Error marshalling response result: ", err)
 				responseText = []byte("[]")
@@ -1846,7 +1846,7 @@ func (c *Api_requestsController) ResetCustomerPin() {
 			response = responses.ResetPinResponse{
 				Success:       true,
 				StatusMessage: "Login successful",
-				Result:        resp.Data.Client,
+				Result:        resp.Result,
 			}
 		}
 

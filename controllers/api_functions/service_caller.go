@@ -2213,7 +2213,7 @@ func ResetPin(c *beego.Controller, req requests.ResetPinApiRequest) (resp respon
 	return data
 }
 
-func ResetCustomerPin(c *beego.Controller, req requests.ResetCustomerPinApiRequest, customerid string) (resp responses.ResetPinApiResponse) {
+func ResetCustomerPin(c *beego.Controller, req requests.ResetCustomerPinApiRequest, customerid string) (resp responses.ResetPinApiResponseResult) {
 	host, _ := beego.AppConfig.String("customerBaseUrl")
 
 	logs.Info("Customer ID for pin reset: ", customerid)
@@ -2251,7 +2251,7 @@ func ResetCustomerPin(c *beego.Controller, req requests.ResetCustomerPinApiReque
 		logs.Info("Raw response received is \n", prettyJSON.String())
 	}
 	// data := map[string]interface{}{}
-	var data responses.ResetPinApiResponse
+	var data responses.ResetPinApiResponseResult
 	json.Unmarshal(read, &data)
 	c.Data["json"] = data
 

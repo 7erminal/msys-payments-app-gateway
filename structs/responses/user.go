@@ -407,6 +407,12 @@ type CorporativeResponse struct {
 	Result        *[]CorporativeData
 }
 
+type ResetPinApiResponseResult struct {
+	StatusCode    int
+	StatusMessage string
+	Result        string
+}
+
 type ResetPinDataResponseResult struct {
 	StatusCode    int
 	StatusMessage string
