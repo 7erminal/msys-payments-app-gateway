@@ -15,16 +15,16 @@ type LoginUserApiRequest struct {
 }
 
 type CustomerPinValidationApiRequest struct {
-	PhoneNumber  string
+	Username     string
 	Pin          string
 	SourceSystem string
 	ClientId     string
 }
 
 type CustomerPinValidationRequest struct {
-	PhoneNumber string
-	Pin         string
-	ClientId    string
+	Username string
+	Pin      string
+	ClientId string
 }
 
 type RefreshTokenRequest struct {

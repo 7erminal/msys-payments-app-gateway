@@ -288,6 +288,7 @@ func (c *Api_requestsController) GetCustomerDetails() {
 			}
 
 			customerResp := responses.CustomerGateway{
+				Username:             customerData.Username,
 				CustomerId:           customerData.CustomerId,
 				FullName:             customerData.FullName,
 				ImagePath:            customerData.ImagePath,
@@ -4761,7 +4762,7 @@ func (c *Api_requestsController) CustomerPinValidation() {
 	result := ""
 
 	loginRequest := requests.CustomerPinValidationApiRequest{
-		PhoneNumber:  strings.TrimSpace(req.PhoneNumber),
+		Username:     strings.TrimSpace(req.Username),
 		SourceSystem: strings.TrimSpace(sourceSystem),
 		Pin:          strings.TrimSpace(req.Pin),
 		ClientId:     strings.TrimSpace(req.ClientId),

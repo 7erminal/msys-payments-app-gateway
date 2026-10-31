@@ -90,6 +90,7 @@ type Customer_categories struct {
 
 type Customer struct {
 	CustomerId           int64
+	Username             string
 	CustomerNumber       string
 	FullName             string
 	Email                string
@@ -167,6 +168,7 @@ type UserCorporativesResponseDTO struct {
 
 type CustomerGateway struct {
 	CustomerId           int64
+	Username             string
 	FullName             string
 	ImagePath            string
 	Email                string
