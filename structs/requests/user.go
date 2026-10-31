@@ -215,9 +215,10 @@ type ResetCustomerPinRequest struct {
 }
 
 type ResetCustomerPinApiRequest struct {
-	Username string
-	Password string
-	Pin      string
+	Username   string
+	Password   string
+	Pin        string
+	ClientCode string
 }
 
 type SignIn struct {

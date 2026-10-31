@@ -1763,11 +1763,12 @@ func (c *Api_requestsController) ResetCustomerPin() {
 	// phoneNumber := c.Ctx.Input.Header("PhoneNumber")
 	sourceSystem := c.Ctx.Input.Header("SourceSystem")
 	phoneNumber := c.Ctx.Input.Header("PhoneNumber")
+	clientCode := c.Ctx.Input.Header("ClientCode")
 
 	var req requests.ResetCustomerPinRequest
 	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
 
-	logs.Info("Reset Pin called with PhoneNumber: %s, SourceSystem: %s", phoneNumber, sourceSystem)
+	logs.Info("Reset Pin called with PhoneNumber: %s, SourceSystem: %s, ClientCode: %s", phoneNumber, sourceSystem, clientCode)
 	reqBody := c.Ctx.Input.RequestBody
 	reqHeaders := c.Ctx.Request.Header
 
@@ -1794,9 +1795,10 @@ func (c *Api_requestsController) ResetCustomerPin() {
 	if _, err := models.AddApi_requests(&v); err == nil {
 		logs.Info("API request logged successfully: ", v)
 		resetPinRequest := requests.ResetCustomerPinApiRequest{
-			Username: req.Username,
-			Password: req.Password,
-			Pin:      req.Pin,
+			Username:   req.Username,
+			Password:   req.Password,
+			Pin:        req.Pin,
+			ClientCode: clientCode,
 		}
 
 		logs.Info("Formatted request for pin reset: ", resetPinRequest)
