@@ -2268,7 +2268,7 @@ func UpdateCustomerPin(c *beego.Controller, req requests.UpdateCustomerPinApiReq
 	logs.Info("Resetting pin for username ", req.Username)
 	request := api.NewRequest(
 		host,
-		"/v1/customer-credentials/update-customer-credential/"+customerid,
+		"/v1/customer-credentials/update-customer-pin/"+customerid,
 		api.PUT)
 	// request.Params["username"] = username
 	// request.Params = {"UserId": strconv.Itoa(int(userid))}
