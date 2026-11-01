@@ -451,6 +451,30 @@ type ResetPinResponse struct {
 	Result        string
 }
 
+type UpdatePinApiResponse struct {
+	StatusCode    int
+	StatusMessage string
+	Result        string
+}
+
+type UpdatePinResponse struct {
+	Success       bool
+	StatusMessage string
+	Result        string
+}
+
+type ChangePinApiResponse struct {
+	StatusCode    int
+	StatusMessage string
+	Result        string
+}
+
+type ChangePinResponse struct {
+	Success       bool
+	StatusMessage string
+	Result        string
+}
+
 type NameInquiryDataResponseResult struct {
 	StatusCode    int
 	StatusMessage string

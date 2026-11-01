@@ -224,9 +224,33 @@ type ResetCustomerPinRequest struct {
 	Pin      string
 }
 
+type UpdateCustomerPinRequest struct {
+	Password string
+	Pin      string
+}
+
+type ChangeCustomerPinRequest struct {
+	Password string
+	OldPin   string
+	NewPin   string
+}
+
+type ChangeCustomerPinApiRequest struct {
+	Username   string
+	OldPin     string
+	NewPin     string
+	ClientCode string
+}
+
 type ResetCustomerPinApiRequest struct {
 	Username   string
 	Password   string
+	Pin        string
+	ClientCode string
+}
+
+type UpdateCustomerPinApiRequest struct {
+	Username   string
 	Pin        string
 	ClientCode string
 }

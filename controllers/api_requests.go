@@ -58,6 +58,8 @@ func (c *Api_requestsController) URLMapping() {
 	c.Mapping("ChangePassword", c.ChangePassword)
 	c.Mapping("ResetCustomerPin", c.ResetCustomerPin)
 	c.Mapping("CustomerPinValidation", c.CustomerPinValidation)
+	c.Mapping("ChangeCustomerPin", c.ChangeCustomerPin)
+	c.Mapping("UpdateCustomerPin", c.UpdateCustomerPin)
 }
 
 // GetCorporatives ...
@@ -1839,10 +1841,10 @@ func (c *Api_requestsController) ResetCustomerPin() {
 			ClientCode: clientCode,
 		}
 
-		logs.Info("Formatted request for pin reset: ", resetPinRequest)
+		logs.Info("Formatted request for pin change: ", resetPinRequest)
 
 		resp := apifunctions.ResetCustomerPin(&c.Controller, resetPinRequest, customerData.CustomerID)
-		logs.Info("Response from pin reset API: ", resp)
+		logs.Info("Response from pin change API: ", resp)
 
 		var response responses.ResetPinResponse = responses.ResetPinResponse{
 			Success:       false,
@@ -1872,7 +1874,7 @@ func (c *Api_requestsController) ResetCustomerPin() {
 			}
 			response = responses.ResetPinResponse{
 				Success:       true,
-				StatusMessage: "Login successful",
+				StatusMessage: "Pin changed successfully",
 				Result:        resp.Result,
 			}
 		}
@@ -1889,6 +1891,299 @@ func (c *Api_requestsController) ResetCustomerPin() {
 
 		c.Data["json"] = response
 	}
+	c.ServeJSON()
+}
+
+// UpdateCustomerPin ...
+// @Title Update Customer Pin
+// @Description Update Customer Pin for the authenticated user
+// @Param	Authorization		header 	string true		"header for User"
+// @Param	PhoneNumber		header 	string true		"header for Customer's phone number"
+// @Param	SourceSystem		header 	string true		"header for Source system"
+// @Param	body		body 	requests.UpdateCustomerPinRequest	true		"body for Request content"
+// @Success 201 {int} models.Api_requests
+// @Failure 403 body is empty
+// @router /update-customer-pin [post]
+func (c *Api_requestsController) UpdateCustomerPin() {
+	// Extract headers
+	// phoneNumber := c.Ctx.Input.Header("PhoneNumber")
+	sourceSystem := c.Ctx.Input.Header("SourceSystem")
+	phoneNumber := c.Ctx.Input.Header("PhoneNumber")
+	clientCode := c.Ctx.Input.Header("ClientCode")
+
+	cust := c.Ctx.Input.GetData("customer")
+
+	logs.Info("Customer details: %s", cust)
+	customerData, ok := cust.(*responses.CustomerAccessTokenData)
+	if !ok {
+		logs.Error("Error asserting customer data")
+		c.Data["json"] = "Invalid customer data"
+		c.ServeJSON()
+		return
+	}
+
+	var req requests.UpdateCustomerPinRequest
+	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
+
+	logs.Info("Reset Pin called with PhoneNumber: %s, SourceSystem: %s, ClientCode: %s", phoneNumber, sourceSystem, clientCode)
+	reqBody := c.Ctx.Input.RequestBody
+	reqHeaders := c.Ctx.Request.Header
+
+	requestMap := map[string]interface{}{
+		"headers": reqHeaders,
+		"body":    string(reqBody),
+	}
+
+	reqText, err := json.Marshal(requestMap)
+	if err != nil {
+		logs.Error("Error marshalling request input: ", err)
+		c.Data["json"] = err.Error()
+		c.ServeJSON()
+		return
+	}
+
+	var response responses.UpdatePinResponse = responses.UpdatePinResponse{
+		Success:       false,
+		StatusMessage: "Something went wrong",
+		Result:        "",
+	}
+	var v models.Api_requests = models.Api_requests{
+		Request:      string(reqText),
+		PhoneNumber:  phoneNumber,
+		RequestType:  "Update Pin",
+		RequestDate:  time.Now(),
+		DateCreated:  time.Now(),
+		DateModified: time.Now(),
+	}
+	if _, err := models.AddApi_requests(&v); err == nil {
+		logs.Info("API request logged successfully: ", v)
+
+		loginRequest := requests.LoginApiRequest{
+			PhoneNumber:  strings.TrimSpace(phoneNumber),
+			SourceSystem: strings.TrimSpace(sourceSystem),
+			Password:     strings.TrimSpace(req.Password),
+			ClientId:     strings.TrimSpace(clientCode),
+		}
+
+		resp := apifunctions.Login(&c.Controller, loginRequest)
+
+		if resp.StatusCode != 200 {
+			logs.Error("Error logging in: ", resp.StatusDesc)
+			response = responses.UpdatePinResponse{
+				Success:       false,
+				StatusMessage: "You are not authorized to perform this action",
+				Result:        "",
+			}
+		} else {
+			updatePinRequest := requests.UpdateCustomerPinApiRequest{
+				Username:   customerData.Username,
+				Pin:        req.Pin,
+				ClientCode: clientCode,
+			}
+
+			logs.Info("Formatted request for pin change: ", updatePinRequest)
+
+			resp := apifunctions.UpdateCustomerPin(&c.Controller, updatePinRequest, customerData.CustomerID)
+			logs.Info("Response from pin change API: ", resp)
+
+			if resp.StatusCode != 200 {
+				response = responses.UpdatePinResponse{
+					Success:       false,
+					StatusMessage: resp.StatusMessage,
+					Result:        "",
+				}
+			} else {
+				responseText, err := json.Marshal(resp.Result)
+				if err != nil {
+					logs.Error("Error marshalling response result: ", err)
+					responseText = []byte("[]")
+				}
+				v.RequestResponse = string(responseText)
+				v.DateModified = time.Now()
+				v.ResponseDate = time.Now()
+				if err := models.UpdateApi_requestsById(&v); err != nil {
+					logs.Error("Error updating API request with response: ", err)
+				} else {
+					logs.Info("API request updated with response successfully: ", v)
+				}
+				response = responses.UpdatePinResponse{
+					Success:       true,
+					StatusMessage: "Pin changed successfully",
+					Result:        resp.Result,
+				}
+			}
+		}
+
+		c.Ctx.Output.SetStatus(200)
+		c.Data["json"] = response
+
+	} else {
+		var response responses.UpdatePinResponse = responses.UpdatePinResponse{
+			Success:       false,
+			StatusMessage: "Something went wrong:: " + err.Error(),
+			Result:        "",
+		}
+
+		c.Data["json"] = response
+	}
+	c.ServeJSON()
+}
+
+// ChangeCustomerPin ...
+// @Title Change Customer Pin
+// @Description Change Customer Pin for the authenticated user
+// @Param	Authorization		header 	string true		"header for User"
+// @Param	PhoneNumber		header 	string true		"header for Customer's phone number"
+// @Param	SourceSystem		header 	string true		"header for Source system"
+// @Param	body		body 	requests.ChangeCustomerPinRequest	true		"body for Request content"
+// @Success 201 {int} models.Api_requests
+// @Failure 403 body is empty
+// @router /change-customer-pin [post]
+func (c *Api_requestsController) ChangeCustomerPin() {
+	// Extract headers
+	// phoneNumber := c.Ctx.Input.Header("PhoneNumber")
+	sourceSystem := c.Ctx.Input.Header("SourceSystem")
+	phoneNumber := c.Ctx.Input.Header("PhoneNumber")
+	clientCode := c.Ctx.Input.Header("ClientCode")
+
+	cust := c.Ctx.Input.GetData("customer")
+
+	logs.Info("Customer details: %s", cust)
+	customerData, ok := cust.(*responses.CustomerAccessTokenData)
+	if !ok {
+		logs.Error("Error asserting customer data")
+		c.Data["json"] = "Invalid customer data"
+		c.ServeJSON()
+		return
+	}
+
+	var req requests.ChangeCustomerPinRequest
+	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
+
+	logs.Info("Change Customer Pin called with PhoneNumber: %s, SourceSystem: %s, ClientCode: %s", phoneNumber, sourceSystem, clientCode)
+	reqBody := c.Ctx.Input.RequestBody
+	reqHeaders := c.Ctx.Request.Header
+
+	requestMap := map[string]interface{}{
+		"headers": reqHeaders,
+		"body":    string(reqBody),
+	}
+
+	reqText, err := json.Marshal(requestMap)
+	if err != nil {
+		logs.Error("Error marshalling request input: ", err)
+		c.Data["json"] = err.Error()
+		c.ServeJSON()
+		return
+	}
+
+	var response responses.ChangePinResponse = responses.ChangePinResponse{
+		Success:       false,
+		StatusMessage: "Something went wrong",
+		Result:        "",
+	}
+
+	var v models.Api_requests = models.Api_requests{
+		Request:      string(reqText),
+		PhoneNumber:  phoneNumber,
+		RequestType:  "Change Pin",
+		RequestDate:  time.Now(),
+		DateCreated:  time.Now(),
+		DateModified: time.Now(),
+	}
+	if _, err := models.AddApi_requests(&v); err == nil {
+		logs.Info("API request logged successfully: ", v)
+
+		loginRequest := requests.LoginApiRequest{
+			PhoneNumber:  strings.TrimSpace(phoneNumber),
+			SourceSystem: strings.TrimSpace(sourceSystem),
+			Password:     strings.TrimSpace(req.Password),
+			ClientId:     strings.TrimSpace(clientCode),
+		}
+
+		resp := apifunctions.Login(&c.Controller, loginRequest)
+
+		if resp.StatusCode != 200 {
+			logs.Error("Error logging in: ", resp.StatusDesc)
+			response = responses.ChangePinResponse{
+				Success:       false,
+				StatusMessage: "You are not authorized to perform this action",
+				Result:        "",
+			}
+		} else {
+
+			loginRequest := requests.CustomerPinValidationApiRequest{
+				Username:     strings.TrimSpace(customerData.Username),
+				SourceSystem: strings.TrimSpace(sourceSystem),
+				Pin:          strings.TrimSpace(req.OldPin),
+				ClientId:     strings.TrimSpace(clientCode),
+			}
+
+			logs.Info("Formatted request for CustomerPinValidation: ", loginRequest)
+			resp := apifunctions.ValidateCustomerCredentials(&c.Controller, loginRequest)
+			logs.Info("Response from CustomerPinValidation API: ", resp)
+
+			if resp.StatusCode != 200 {
+				logs.Error("Error validating customer pin: ", resp.StatusDesc)
+				response = responses.ChangePinResponse{
+					Success:       false,
+					StatusMessage: resp.StatusDesc,
+					Result:        "",
+				}
+			} else {
+
+				updatePinRequest := requests.UpdateCustomerPinApiRequest{
+					Username:   customerData.Username,
+					Pin:        req.NewPin,
+					ClientCode: clientCode,
+				}
+
+				logs.Info("Formatted request for pin change: ", updatePinRequest)
+
+				resp := apifunctions.UpdateCustomerPin(&c.Controller, updatePinRequest, customerData.CustomerID)
+				logs.Info("Response from pin change API: ", resp)
+
+				if resp.StatusCode != 200 {
+					response = responses.ChangePinResponse{
+						Success:       false,
+						StatusMessage: resp.StatusMessage,
+						Result:        "",
+					}
+				} else {
+					responseText, err := json.Marshal(resp.Result)
+					if err != nil {
+						logs.Error("Error marshalling response result: ", err)
+						responseText = []byte("[]")
+					}
+					v.RequestResponse = string(responseText)
+					v.DateModified = time.Now()
+					v.ResponseDate = time.Now()
+					if err := models.UpdateApi_requestsById(&v); err != nil {
+						logs.Error("Error updating API request with response: ", err)
+					} else {
+						logs.Info("API request updated with response successfully: ", v)
+					}
+					response = responses.ChangePinResponse{
+						Success:       true,
+						StatusMessage: "Pin changed successfully",
+						Result:        resp.Result,
+					}
+				}
+			}
+
+		}
+
+	} else {
+		var response responses.ChangePinResponse = responses.ChangePinResponse{
+			Success:       false,
+			StatusMessage: "Something went wrong:: " + err.Error(),
+			Result:        "",
+		}
+
+		c.Data["json"] = response
+	}
+	c.Ctx.Output.SetStatus(200)
+	c.Data["json"] = response
 	c.ServeJSON()
 }
 
