@@ -612,6 +612,7 @@ func LogAccountActivity(c *beego.Controller, acReq requests.AccountActivityReque
 					Reference:     acReq.Reference,
 					Channel:       channel,
 					ClientId:      acReq.ClientId,
+					DepositType:   acReq.TransactionType,
 				}
 				creditResp := apifunctions.CreditAccountPro(c, creditReq)
 				logs.Info("Credit account response: ", creditResp)

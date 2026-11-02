@@ -531,14 +531,15 @@ func (c *CallbackController) RequestMoneyCallback() {
 						logs.Info("Amount to deposit is ", resp.Result.Amount)
 						activityType := "credit"
 						depositReq := requests.AccountActivityRequest{
-							AccountNumber: resp.Result.SenderAccount,
-							ClientId:      clientId,
-							Reference:     resp.Result.ServiceNetwork,
-							Amount:        resp.Result.Amount,
-							ActivityType:  activityType,
-							ActivityBy:    "customer",
-							MobileNumber:  resp.Result.SenderAccount,
-							PaymentMethod: "ACCOUNT",
+							AccountNumber:   resp.Result.SenderAccount,
+							ClientId:        clientId,
+							Reference:       resp.Result.ServiceNetwork,
+							Amount:          resp.Result.Amount,
+							ActivityType:    activityType,
+							ActivityBy:      "customer",
+							MobileNumber:    resp.Result.SenderAccount,
+							PaymentMethod:   "ACCOUNT",
+							TransactionType: transaction.Result.TransactionType,
 						}
 						// helpers.LogAccountActivity(&c.Controller, resp.Result.SenderAccount, "Withdrawal", resp.Result.PaymentAmount, resp.Result.ServiceNetwork, "debit", "customer")
 						helpers.LogAccountActivity(&c.Controller, depositReq)

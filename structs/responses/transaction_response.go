@@ -56,6 +56,7 @@ type Bil_transactions struct {
 	Source                  string `orm:"size(255)"`
 	Destination             string `orm:"size(255)"`
 	Package                 string `orm:"size(255)"`
+	TransactionType         string `orm:"size(255)"`
 	Charge                  float64
 	Commission              float64
 	ExternalReferenceNumber string               `orm:"size(255)"`
