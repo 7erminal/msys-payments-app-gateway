@@ -1957,9 +1957,10 @@ func (c *Api_requestsController) UpdateCustomerPin() {
 	}
 	if _, err := models.AddApi_requests(&v); err == nil {
 		logs.Info("API request logged successfully: ", v)
+		logs.Info("About to login with ", customerData.Username)
 
 		loginRequest := requests.LoginApiRequest{
-			PhoneNumber:  strings.TrimSpace(phoneNumber),
+			PhoneNumber:  strings.TrimSpace(customerData.Username),
 			SourceSystem: strings.TrimSpace(sourceSystem),
 			Password:     strings.TrimSpace(req.Password),
 			ClientId:     strings.TrimSpace(clientCode),
