@@ -169,7 +169,7 @@ func (c *Auth_requestsController) RefreshAccessToken() {
 	var req requests.RefreshTokenRequest
 	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
 
-	logs.Info("RefreshAccessToken called with PhoneNumber: %s, SourceSystem: %s, ClientId: %s", phoneNumber, sourceSystem, clientId)
+	logs.Info("RefreshAccessToken called with PhoneNumber: %s, SourceSystem: %s, ClientId: %s, Username: %s", phoneNumber, sourceSystem, clientId, username)
 	logs.Info("Refresh token is ", req.RefreshToken)
 	isSuccess := false
 	statusMessage := "Something went wrong"
