@@ -370,10 +370,10 @@ func (c *Api_requestsController) GetCustomerDetails() {
 				c.Data["json"] = response
 			}
 		} else {
-			logs.Error("Error fetching customer corporatives: ", err)
+			logs.Error("Error fetching customer corporatives: ", customerResp.StatusDesc)
 			response = responses.CustomerGatewayResponseDTO{
 				StatusCode:    false,
-				StatusMessage: "Something went wrong:: " + err.Error(),
+				StatusMessage: "Something went wrong:: " + customerResp.StatusDesc,
 				Result:        nil,
 			}
 			c.Data["json"] = response
@@ -5093,15 +5093,15 @@ func (c *Api_requestsController) CustomerPinValidation() {
 	statusMessage := "Something went wrong"
 	result := ""
 
-	loginRequest := requests.CustomerPinValidationApiRequest{
+	pinValidationRequest := requests.CustomerPinValidationApiRequest{
 		Username:     strings.TrimSpace(customerData.Username),
 		SourceSystem: strings.TrimSpace(sourceSystem),
 		Pin:          strings.TrimSpace(req.Pin),
 		ClientId:     strings.TrimSpace(req.ClientId),
 	}
 
-	logs.Info("Formatted request for CustomerPinValidation: ", loginRequest)
-	resp := apifunctions.ValidateCustomerCredentials(&c.Controller, loginRequest)
+	logs.Info("Formatted request for CustomerPinValidation: ", pinValidationRequest)
+	resp := apifunctions.ValidateCustomerCredentials(&c.Controller, pinValidationRequest)
 	logs.Info("Response from CustomerPinValidation API: ", resp)
 
 	if resp.StatusCode != 200 {
