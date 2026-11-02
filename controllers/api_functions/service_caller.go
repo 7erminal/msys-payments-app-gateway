@@ -259,6 +259,8 @@ func RefreshCustomerToken(c *beego.Controller, req requests.RefreshTokenApiReque
 	// request.Params["username"] = username
 	// request.Params = {"UserId": strconv.Itoa(int(userid))}
 	request.HeaderField["RefreshToken"] = req.RefreshToken
+	request.HeaderField["clientCode"] = req.ClientId
+	request.InterfaceParams["Username"] = req.Username
 
 	client := api.Client{
 		Request: request,

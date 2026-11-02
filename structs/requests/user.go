@@ -32,6 +32,8 @@ type RefreshTokenRequest struct {
 
 type RefreshTokenApiRequest struct {
 	RefreshToken string
+	Username     string
+	ClientId     string
 }
 
 type LoginRequest struct {

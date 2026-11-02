@@ -164,6 +164,7 @@ func (c *Auth_requestsController) RefreshAccessToken() {
 	sourceSystem := c.Ctx.Input.Header("SourceSystem")
 	phoneNumber := c.Ctx.Input.Header("PhoneNumber")
 	clientId := c.Ctx.Input.Header("ClientId")
+	username := c.Ctx.Input.Header("username")
 
 	var req requests.RefreshTokenRequest
 	json.Unmarshal(c.Ctx.Input.RequestBody, &req)
@@ -176,6 +177,8 @@ func (c *Auth_requestsController) RefreshAccessToken() {
 
 	refreshToken := requests.RefreshTokenApiRequest{
 		RefreshToken: req.RefreshToken,
+		Username:     username,
+		ClientId:     clientId,
 	}
 
 	resp := apifunctions.RefreshCustomerToken(&c.Controller, refreshToken)
