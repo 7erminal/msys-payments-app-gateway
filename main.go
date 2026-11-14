@@ -7,6 +7,8 @@ import (
 	"github.com/beego/beego/v2/core/logs"
 	beego "github.com/beego/beego/v2/server/web"
 	_ "github.com/go-sql-driver/mysql"
+
+	"github.com/beego/beego/v2/server/web/filter/cors"
 )
 
 func main() {
@@ -28,9 +30,12 @@ func main() {
 
 	logs.SetLogger(logs.AdapterFile, `{"filename":"../logs/msys-app-api-gateway.log"}`)
 
-	if beego.BConfig.RunMode == "dev" {
-		beego.BConfig.WebConfig.DirectoryIndex = true
-		beego.BConfig.WebConfig.StaticDir["/swagger"] = "swagger"
-	}
+	beego.InsertFilter("*", beego.BeforeRouter, cors.Allow(&cors.Options{
+		AllowOrigins:     []string{"https://schools.msysconsultgh.com", "https://app.msysconsultgh.com"},
+		AllowMethods:     []string{"PUT", "PATCH", "POST", "GET", "DELETE"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "X-Requested-With"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+	}))
 	beego.Run()
 }
