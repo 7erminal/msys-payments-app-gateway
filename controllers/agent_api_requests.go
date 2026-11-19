@@ -246,7 +246,7 @@ func (c *Agent_api_requestsController) Deposit() {
 	}
 
 	logs.Info("Client ID for deposit is ", clientId)
-	logs.Info("Deposit called with PhoneNumber: %s, SourceSystem: %s, Network: %s, DestinationPhoneNumber: %s", phoneNumber, sourceSystem, network, destinationPhoneNumber)
+	logs.Info("Deposit called with PhoneNumber: %s, SourceSystem: %s, Network: %s, DestinationPhoneNumber: %s, AccountNumber: %s", phoneNumber, sourceSystem, network, destinationPhoneNumber, accountNumber)
 
 	reqBody := c.Ctx.Input.RequestBody
 	reqHeaders := c.Ctx.Request.Header
